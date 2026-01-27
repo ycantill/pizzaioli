@@ -1,0 +1,169 @@
+<div class="page-header">
+  <h1 class="page-title">Calculadora de Masa</h1>
+</div>
+
+<div class="container">
+  <!-- Configuration Card -->
+  <mat-card class="config-card">
+    <mat-card-header>
+      <mat-card-title>Configuración</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="config-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Peso por bollo (g)</mat-label>
+          <input matInput type="number" 
+                 [ngModel]="weightPerUnit()" 
+                 (ngModelChange)="weightPerUnit.set($event)">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cantidad de bollos</mat-label>
+          <input matInput type="number" 
+                 [ngModel]="quantity()" 
+                 (ngModelChange)="quantity.set($event)">
+        </mat-form-field>
+
+        <div class="total-display">
+          <span class="total-label">Peso de harina:</span>
+          <span class="total-value">{{ flourWeight() }} g</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Ingredients Card -->
+  <mat-card class="ingredients-card">
+    <mat-card-header>
+      <mat-card-title>Ingredientes (% Panadero)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content #ingredientsContent>
+      <!-- Mobile View: Cards -->
+      <div class="mobile-view">
+        @for (ingredient of calculatedIngredients(); track $index) {
+          <mat-card class="ingredient-card">
+            <mat-card-content>
+              <div class="ingredient-header">
+                @if (isFlour(ingredient.supplyId)) {
+                  <div class="flour-display">
+                    <span class="flour-label">Ingrediente (Base)</span>
+                    <span class="flour-name">{{ getSupplyName(ingredient.supplyId) }}</span>
+                  </div>
+                } @else {
+                  <mat-form-field appearance="outline" class="ingredient-name-field">
+                    <mat-label>Ingrediente</mat-label>
+                    <mat-select [value]="ingredient.supplyId"
+                                (selectionChange)="updateIngredientSupply($index, $event.value)">
+                      @for (supply of getAvailableSuppliesForIngredient(ingredient.supplyId); track supply.id) {
+                        <mat-option [value]="supply.id">{{ supply.product }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                }
+                <button mat-icon-button color="warn" 
+                        [disabled]="isFlour(ingredient.supplyId)"
+                        (click)="removeIngredient($index)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <div class="ingredient-details">
+                <mat-form-field appearance="outline" class="ingredient-field">
+                  <mat-label>Porcentaje (%)</mat-label>
+                  <input matInput type="number" 
+                         [value]="ingredient.bakerPercentage"
+                         [readonly]="isFlour(ingredient.supplyId)"
+                         (input)="updateIngredientPercentage($index, +$any($event.target).value)">
+                </mat-form-field>
+                <div class="weight-display">
+                  <span class="weight-label">Peso:</span>
+                  <span class="weight-value">{{ ingredient.calculatedWeight }} g</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Desktop View: Table -->
+      <div class="desktop-view">
+        <table mat-table [dataSource]="calculatedIngredients()" class="mat-elevation-z2">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
+            <td mat-cell *matCellDef="let ingredient; let i = index">
+              @if (isFlour(ingredient.supplyId)) {
+                <div class="flour-cell">
+                  <span class="flour-name">{{ getSupplyName(ingredient.supplyId) }}</span>
+                  <span class="flour-badge">Base</span>
+                </div>
+              } @else {
+                <mat-form-field appearance="outline" class="table-field">
+                  <mat-select [value]="ingredient.supplyId"
+                              (selectionChange)="updateIngredientSupply(i, $event.value)">
+                    @for (supply of getAvailableSuppliesForIngredient(ingredient.supplyId); track supply.id) {
+                      <mat-option [value]="supply.id">{{ supply.product }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Percentage Column -->
+          <ng-container matColumnDef="percentage">
+            <th mat-header-cell *matHeaderCellDef>Porcentaje (%)</th>
+            <td mat-cell *matCellDef="let ingredient; let i = index">
+              <mat-form-field appearance="outline" class="table-field">
+                <input matInput type="number" 
+                       [value]="ingredient.bakerPercentage"
+                       [readonly]="isFlour(ingredient.supplyId)"
+                       (input)="updateIngredientPercentage(i, +$any($event.target).value)">
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <!-- Weight Column -->
+          <ng-container matColumnDef="weight">
+            <th mat-header-cell *matHeaderCellDef>Peso (g)</th>
+            <td mat-cell *matCellDef="let ingredient">
+              <span class="weight-value">{{ ingredient.calculatedWeight }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let ingredient; let i = index">
+              <button mat-icon-button color="warn" 
+                      [disabled]="isFlour(ingredient.supplyId)"
+                      (click)="removeIngredient(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Total -->
+      <div class="total-summary">
+        <div class="summary-row">
+          <span class="summary-label">Total porcentaje:</span>
+          <span class="summary-value">{{ totalPercentage() }}%</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Peso total de masa:</span>
+          <span class="summary-value highlight">{{ totalWeight().toFixed(1) }} g</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Floating Add Button -->
+  <button mat-fab color="primary" (click)="addIngredient()" class="fab-add-button">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>
