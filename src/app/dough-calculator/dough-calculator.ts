@@ -6,10 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
-import { DoughIngredient } from '../models/dough.model';
+import { DoughIngredient, Dough } from '../models/dough.model';
 import { Supply } from '../models/supply.model';
-import { Recipe } from '../models/recipe.model';
 import { FirestoreService } from '../firestore.service';
 
 @Component({
@@ -20,8 +20,9 @@ import { FirestoreService } from '../firestore.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
     MatSelectModule,
+    MatOptionModule,
+    MatTableModule,
     FormsModule
   ],
   templateUrl: './dough-calculator.html',
@@ -32,8 +33,8 @@ export class DoughCalculator implements OnInit {
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
   
   supplies = signal<Supply[]>([]);
-  recipes = signal<Recipe[]>([]);
-  selectedRecipeId = signal<string>('');
+  doughs = signal<Dough[]>([]);
+  selectedDoughId = signal<string | null>(null);
   weightPerUnit = signal(250);
   quantity = signal(10);
   ingredients = signal<DoughIngredient[]>([]);
@@ -42,7 +43,7 @@ export class DoughCalculator implements OnInit {
 
   async ngOnInit() {
     await this.loadSupplies();
-    await this.loadRecipes();
+    await this.loadDoughs();
   }
 
   async loadSupplies() {
@@ -50,24 +51,37 @@ export class DoughCalculator implements OnInit {
       const data = await this.firestoreService.getDocuments('supplies');
       this.supplies.set(data as Supply[]);
       
-      // Add flour by default at 100%
-      const flourSupply = (data as Supply[]).find(s => 
-        s.product.toLowerCase().includes('harina')
-      );
-      if (flourSupply?.id && this.ingredients().length === 0) {
-        this.ingredients.set([{
-          supplyId: flourSupply.id,
-          bakerPercentage: 100
-        }]);
+      // Add flour by default at 100% only if no dough is selected
+      if (this.ingredients().length === 0 && !this.selectedDoughId()) {
+        const flourSupply = (data as Supply[]).find(s => 
+          s.product.toLowerCase().includes('harina')
+        );
+        if (flourSupply?.id) {
+          this.ingredients.set([{
+            supplyId: flourSupply.id,
+            bakerPercentage: 100
+          }]);
+        }
       }
     } catch (error) {
       console.error('Error loading supplies:', error);
     }
   }
 
-  loadRecipe(recipeId: string) {
-    if (!recipeId) {
-      // Reset to default flour only
+  async loadDoughs() {
+    try {
+      const data = await this.firestoreService.getDocuments('doughs');
+      this.doughs.set(data as Dough[]);
+    } catch (error) {
+      console.error('Error loading doughs:', error);
+    }
+  }
+
+  onDoughSelected(doughId: string | null) {
+    this.selectedDoughId.set(doughId);
+    
+    if (!doughId) {
+      // Reset to default flour
       const flourSupply = this.supplies().find(s => 
         s.product.toLowerCase().includes('harina')
       );
@@ -77,45 +91,28 @@ export class DoughCalculator implements OnInit {
           bakerPercentage: 100
         }]);
       }
-      this.selectedRecipeId.set('');
       return;
     }
 
-    const recipe = this.recipes().find(r => r.id === recipeId);
-    if (!recipe) return;
+    const selectedDough = this.doughs().find(d => d.id === doughId);
+    if (selectedDough) {
+      // Convert dough ingredients to calculator ingredients with baker's percentage
+      const doughIngredients = selectedDough.ingredients;
+      
+      // Find flour to calculate percentages
+      const flourIngredient = doughIngredients.find(ing => {
+        const supply = this.supplies().find(s => s.id === ing.supplyId);
+        return supply?.product.toLowerCase().includes('harina');
+      });
 
-    // Find flour ingredient to calculate percentages
-    const flourIngredient = recipe.ingredients.find(ing => {
-      const supply = this.supplies().find(s => s.id === ing.supplyId);
-      return supply?.product.toLowerCase().includes('harina');
-    });
-
-    if (!flourIngredient) {
-      console.error('Recipe must have flour ingredient');
-      return;
-    }
-
-    // Convert recipe quantities to baker percentages
-    const doughIngredients: DoughIngredient[] = recipe.ingredients.map(ing => {
-      const percentage = (ing.quantity / flourIngredient.quantity) * 100;
-      return {
-        supplyId: ing.supplyId,
-        bakerPercentage: Math.round(percentage * 100) / 100
-      };
-    });
-
-    this.ingredients.set(doughIngredients);
-    this.selectedRecipeId.set(recipeId);
-  }
-
-  async loadRecipes() {
-    try {
-      const data = await this.firestoreService.getDocuments('recipes');
-      const allRecipes = data as Recipe[];
-      // Filter only dough recipes
-      this.recipes.set(allRecipes.filter(r => r.isDough));
-    } catch (error) {
-      console.error('Error loading recipes:', error);
+      if (flourIngredient) {
+        const flourWeight = flourIngredient.quantity;
+        const calculatorIngredients: DoughIngredient[] = doughIngredients.map(ing => ({
+          supplyId: ing.supplyId,
+          bakerPercentage: Math.round((ing.quantity / flourWeight * 100) * 100) / 100
+        }));
+        this.ingredients.set(calculatorIngredients);
+      }
     }
   }
 

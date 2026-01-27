@@ -44,6 +44,10 @@
   margin-top: 16px;
 }
 
+.config-grid .full-width {
+  grid-column: 1 / -1;
+}
+
 .total-display {
   display: flex;
   justify-content: space-between;

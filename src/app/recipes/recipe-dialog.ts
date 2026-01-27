@@ -5,8 +5,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatListModule } from '@angular/material/list';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Recipe, RecipeIngredient } from '../models/recipe.model';
 import { Supply } from '../models/supply.model';
@@ -25,8 +23,6 @@ export interface RecipeDialogData {
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
-    MatCheckboxModule,
-    MatListModule,
     ReactiveFormsModule
   ],
   template: `
@@ -40,13 +36,6 @@ export interface RecipeDialogData {
             <mat-error>El nombre es requerido</mat-error>
           }
         </mat-form-field>
-
-        <div class="checkbox-field">
-          <mat-checkbox formControlName="isDough">
-            <mat-icon class="checkbox-icon">bakery_dining</mat-icon>
-            Esta es una receta de masa
-          </mat-checkbox>
-        </div>
 
         <div class="ingredients-section">
           <div class="section-header">
@@ -183,7 +172,6 @@ export class RecipeDialog {
 
   form = this.fb.group({
     name: [this.data.recipe?.name || '', Validators.required],
-    isDough: [this.data.recipe?.isDough || false],
     ingredients: this.fb.array(
       this.data.recipe?.ingredients?.length 
         ? this.data.recipe.ingredients.map(ing => this.createIngredientGroup(ing))
@@ -237,9 +225,10 @@ export class RecipeDialog {
 
   onSave(): void {
     if (this.form.valid) {
+      const formValue = this.form.value;
       const recipe: Recipe = {
-        ...this.data.recipe,
-        ...this.form.value as { name: string; isDough: boolean; ingredients: RecipeIngredient[] }
+        name: formValue.name!,
+        ingredients: formValue.ingredients as RecipeIngredient[]
       };
       this.dialogRef.close(recipe);
     }

@@ -4,39 +4,38 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { Recipe } from '../models/recipe.model';
+import { Dough } from '../models/dough.model';
 import { Supply } from '../models/supply.model';
 import { FirestoreService } from '../firestore.service';
-import { RecipeDialog } from './recipe-dialog';
+import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
-  selector: 'app-recipes',
+  selector: 'app-doughs',
+  standalone: true,
   imports: [
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatProgressSpinnerModule,
-    MatChipsModule
+    MatProgressSpinnerModule
   ],
-  templateUrl: './recipes.html',
-  styleUrl: './recipes.css'
+  templateUrl: './doughs.html',
+  styleUrl: './doughs.css'
 })
-export class Recipes implements OnInit {
+export class Doughs implements OnInit {
   private firestoreService = inject(FirestoreService);
   private dialog = inject(MatDialog);
   
-  recipes = signal<Recipe[]>([]);
+  doughs = signal<Dough[]>([]);
   supplies = signal<Supply[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['name', 'ingredients', 'actions'];
 
   async ngOnInit() {
     await this.loadSupplies();
-    await this.loadRecipes();
+    await this.loadDoughs();
   }
 
   async loadSupplies() {
@@ -48,13 +47,13 @@ export class Recipes implements OnInit {
     }
   }
 
-  async loadRecipes() {
+  async loadDoughs() {
     try {
       this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('recipes');
-      this.recipes.set(data as Recipe[]);
+      const data = await this.firestoreService.getDocuments('doughs');
+      this.doughs.set(data as Dough[]);
     } catch (error) {
-      console.error('Error loading recipes:', error);
+      console.error('Error loading doughs:', error);
     } finally {
       this.loading.set(false);
     }
@@ -65,64 +64,69 @@ export class Recipes implements OnInit {
     return supply ? supply.product : 'Desconocido';
   }
 
-  addRecipe() {
-    const dialogRef = this.dialog.open(RecipeDialog, {
+  addDough() {
+    const dialogRef = this.dialog.open(DoughDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { supplies: this.supplies() }
+      data: { 
+        supplies: this.supplies()
+      }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: Dough | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('recipes', result);
-          this.recipes.update(list => [...list, { ...result, id: docRef.id }]);
+          const docRef = await this.firestoreService.addDocument('doughs', result);
+          this.doughs.update(list => [...list, { ...result, id: docRef.id }]);
         } catch (error) {
-          console.error('Error adding recipe:', error);
+          console.error('Error adding dough:', error);
         }
       }
     });
   }
 
-  editRecipe(recipe: Recipe) {
-    const dialogRef = this.dialog.open(RecipeDialog, {
+  editDough(dough: Dough) {
+    const dialogRef = this.dialog.open(DoughDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { recipe, supplies: this.supplies() }
+      data: { 
+        dough,
+        supplies: this.supplies()
+      }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
-      if (result && recipe.id) {
+    dialogRef.afterClosed().subscribe(async (result: Dough | undefined) => {
+      if (result && dough.id) {
         try {
-          await this.firestoreService.updateDocument('recipes', recipe.id, result);
-          this.recipes.update(list => 
-            list.map(r => r.id === recipe.id ? { ...result, id: recipe.id } : r)
+          await this.firestoreService.updateDocument('doughs', dough.id, result);
+          this.doughs.update(list => 
+            list.map(d => d.id === dough.id ? { ...result, id: dough.id } : d)
           );
         } catch (error) {
-          console.error('Error updating recipe:', error);
+          console.error('Error updating dough:', error);
         }
       }
     });
   }
 
-  async deleteRecipe(recipe: Recipe) {
-    if (!recipe.id) return;
+  async deleteDough(dough: Dough) {
+    if (!dough.id) return;
     
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
       data: {
         title: 'Confirmar eliminación',
-        message: `¿Estás seguro de que deseas eliminar "${recipe.name}"?`
+        message: `¿Estás seguro de que deseas eliminar "${dough.name}"?`
       }
     });
 
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('recipes', recipe.id!);
-          this.recipes.update(list => list.filter(r => r.id !== recipe.id));
+          await this.firestoreService.deleteDocument('doughs', dough.id!);
+          this.doughs.update(list => list.filter(d => d.id !== dough.id));
         } catch (error) {
-          console.error('Error deleting recipe:', error);
+          console.error('Error deleting dough:', error);
         }
       }
     });
