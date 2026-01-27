@@ -10,6 +10,7 @@ import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
 import { SupplyDialog } from './supply-dialog';
+import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-supplies',
@@ -105,11 +106,23 @@ export class Supplies implements OnInit {
   async deleteSupply(supply: Supply) {
     if (!supply.id) return;
     
-    try {
-      await this.firestoreService.deleteDocument('supplies', supply.id);
-      this.supplies.update(list => list.filter(s => s.id !== supply.id));
-    } catch (error) {
-      console.error('Error deleting supply:', error);
-    }
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Confirmar eliminación',
+        message: `¿Estás seguro de que deseas eliminar "${supply.product}"?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (confirmed) {
+        try {
+          await this.firestoreService.deleteDocument('supplies', supply.id!);
+          this.supplies.update(list => list.filter(s => s.id !== supply.id));
+        } catch (error) {
+          console.error('Error deleting supply:', error);
+        }
+      }
+    });
   }
 }

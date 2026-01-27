@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
 import { UnitDialog } from './unit-dialog';
+import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-units',
@@ -88,11 +89,23 @@ export class Units implements OnInit {
   async deleteUnit(unit: Unit) {
     if (!unit.id) return;
     
-    try {
-      await this.firestoreService.deleteDocument('units', unit.id);
-      this.units.update(list => list.filter(u => u.id !== unit.id));
-    } catch (error) {
-      console.error('Error deleting unit:', error);
-    }
+    const dialogRef = this.dialog.open(ConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Confirmar eliminación',
+        message: `¿Estás seguro de que deseas eliminar "${unit.name}"?`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+      if (confirmed) {
+        try {
+          await this.firestoreService.deleteDocument('units', unit.id!);
+          this.units.update(list => list.filter(u => u.id !== unit.id));
+        } catch (error) {
+          console.error('Error deleting unit:', error);
+        }
+      }
+    });
   }
 }
