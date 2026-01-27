@@ -23,7 +23,7 @@ import {
 export class FirestoreService {
   
   /**
-   * Añade un documento a una colección
+   * Adds a document to a collection
    */
   async addDocument(collectionName: string, data: any) {
     const colRef = collection(db, collectionName);
@@ -31,7 +31,7 @@ export class FirestoreService {
   }
 
   /**
-   * Obtiene un documento por ID
+   * Gets a document by ID
    */
   async getDocument(collectionName: string, docId: string) {
     const docRef = doc(db, collectionName, docId);
@@ -44,7 +44,7 @@ export class FirestoreService {
   }
 
   /**
-   * Obtiene todos los documentos de una colección
+   * Gets all documents from a collection
    */
   async getDocuments(collectionName: string, ...queryConstraints: QueryConstraint[]) {
     const colRef = collection(db, collectionName);
@@ -58,7 +58,7 @@ export class FirestoreService {
   }
 
   /**
-   * Actualiza un documento
+   * Updates a document
    */
   async updateDocument(collectionName: string, docId: string, data: any) {
     const docRef = doc(db, collectionName, docId);
@@ -66,7 +66,7 @@ export class FirestoreService {
   }
 
   /**
-   * Elimina un documento
+   * Deletes a document
    */
   async deleteDocument(collectionName: string, docId: string) {
     const docRef = doc(db, collectionName, docId);
@@ -74,7 +74,8 @@ export class FirestoreService {
   }
 
   /**
-   * Obtiene una referencia a una colección
+   * 
+   * Gets a collection reference
    */
   getCollection(collectionName: string): CollectionReference<DocumentData> {
     return collection(db, collectionName);

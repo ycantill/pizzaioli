@@ -1,0 +1,133 @@
+/* Mobile First Styles */
+
+/* Toolbar */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.add-button {
+  height: 40px !important;
+}
+
+.button-text {
+  margin-left: 4px;
+}
+
+/* Container */
+.container {
+  padding: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* Mobile View - Cards */
+.mobile-view {
+  display: block;
+}
+
+.supply-card {
+  margin-bottom: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.product-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Desktop View - Tabla */
+.desktop-view {
+  display: none;
+}
+
+table {
+  width: 100%;
+}
+
+/* Tablets (768px+) */
+@media (min-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .mobile-view {
+    display: none;
+  }
+
+  .desktop-view {
+    display: block;
+  }
+
+  .add-button {
+    height: 48px !important;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .container {
+    padding: 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}

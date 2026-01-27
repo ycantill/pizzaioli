@@ -1,1 +1,28 @@
+* {
+  box-sizing: border-box;
+}
 
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+/* Mobile first - padding y márgenes pequeños por defecto */
+.container {
+  padding: 12px;
+}
+
+/* Tablets y superiores */
+@media (min-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container {
+    padding: 24px;
+  }
+}
