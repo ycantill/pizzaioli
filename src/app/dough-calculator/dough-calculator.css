@@ -23,6 +23,15 @@
   margin: 0 auto;
 }
 
+/* Recipe Selection Card */
+.recipe-card {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
 /* Configuration Card */
 .config-card {
   margin-bottom: 16px;

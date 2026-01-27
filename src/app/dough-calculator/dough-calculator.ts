@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { DoughIngredient } from '../models/dough.model';
 import { Supply } from '../models/supply.model';
+import { Recipe } from '../models/recipe.model';
 import { FirestoreService } from '../firestore.service';
 
 @Component({
@@ -31,6 +32,8 @@ export class DoughCalculator implements OnInit {
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
   
   supplies = signal<Supply[]>([]);
+  recipes = signal<Recipe[]>([]);
+  selectedRecipeId = signal<string>('');
   weightPerUnit = signal(250);
   quantity = signal(10);
   ingredients = signal<DoughIngredient[]>([]);
@@ -39,6 +42,7 @@ export class DoughCalculator implements OnInit {
 
   async ngOnInit() {
     await this.loadSupplies();
+    await this.loadRecipes();
   }
 
   async loadSupplies() {
@@ -58,6 +62,60 @@ export class DoughCalculator implements OnInit {
       }
     } catch (error) {
       console.error('Error loading supplies:', error);
+    }
+  }
+
+  loadRecipe(recipeId: string) {
+    if (!recipeId) {
+      // Reset to default flour only
+      const flourSupply = this.supplies().find(s => 
+        s.product.toLowerCase().includes('harina')
+      );
+      if (flourSupply?.id) {
+        this.ingredients.set([{
+          supplyId: flourSupply.id,
+          bakerPercentage: 100
+        }]);
+      }
+      this.selectedRecipeId.set('');
+      return;
+    }
+
+    const recipe = this.recipes().find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    // Find flour ingredient to calculate percentages
+    const flourIngredient = recipe.ingredients.find(ing => {
+      const supply = this.supplies().find(s => s.id === ing.supplyId);
+      return supply?.product.toLowerCase().includes('harina');
+    });
+
+    if (!flourIngredient) {
+      console.error('Recipe must have flour ingredient');
+      return;
+    }
+
+    // Convert recipe quantities to baker percentages
+    const doughIngredients: DoughIngredient[] = recipe.ingredients.map(ing => {
+      const percentage = (ing.quantity / flourIngredient.quantity) * 100;
+      return {
+        supplyId: ing.supplyId,
+        bakerPercentage: Math.round(percentage * 100) / 100
+      };
+    });
+
+    this.ingredients.set(doughIngredients);
+    this.selectedRecipeId.set(recipeId);
+  }
+
+  async loadRecipes() {
+    try {
+      const data = await this.firestoreService.getDocuments('recipes');
+      const allRecipes = data as Recipe[];
+      // Filter only dough recipes
+      this.recipes.set(allRecipes.filter(r => r.isDough));
+    } catch (error) {
+      console.error('Error loading recipes:', error);
     }
   }
 

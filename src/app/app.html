@@ -23,6 +23,13 @@
         <span matListItemTitle>Unidades</span>
       </a>
       <a mat-list-item 
+         routerLink="/recipes" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>restaurant_menu</mat-icon>
+        <span matListItemTitle>Recetas</span>
+      </a>
+      <a mat-list-item 
          routerLink="/dough-calculator" 
          routerLinkActive="active"
          (click)="toggleMenu()">
