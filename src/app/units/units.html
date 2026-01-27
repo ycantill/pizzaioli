@@ -1,0 +1,83 @@
+<mat-toolbar color="primary" class="toolbar">
+  <span class="title">Unidades</span>
+  <span class="spacer"></span>
+  <button mat-fab extended (click)="addUnit()" class="add-button">
+    <mat-icon>add</mat-icon>
+    <span class="button-text">Nueva</span>
+  </button>
+</mat-toolbar>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (unit of units(); track unit.id) {
+        <mat-card class="unit-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="unit-name">{{ unit.name }}</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary" 
+                        (click)="editUnit(unit)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="deleteUnit(unit)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="label">Abreviación:</span>
+                <span class="value">{{ unit.abbreviation }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="units()" class="mat-elevation-z2">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let unit">{{ unit.name }}</td>
+          </ng-container>
+
+          <!-- Abbreviation Column -->
+          <ng-container matColumnDef="abbreviation">
+            <th mat-header-cell *matHeaderCellDef>Abreviación</th>
+            <td mat-cell *matCellDef="let unit">{{ unit.abbreviation }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let unit">
+              <button mat-icon-button color="primary" 
+                      (click)="editUnit(unit)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" 
+                      (click)="deleteUnit(unit)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
