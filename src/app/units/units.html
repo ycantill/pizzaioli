@@ -1,11 +1,10 @@
-<mat-toolbar color="primary" class="toolbar">
-  <span class="title">Unidades</span>
-  <span class="spacer"></span>
+<div class="page-header">
+  <h1 class="page-title">Unidades</h1>
   <button mat-fab extended (click)="addUnit()" class="add-button">
     <mat-icon>add</mat-icon>
     <span class="button-text">Nueva</span>
   </button>
-</mat-toolbar>
+</div>
 
 <div class="container">
   @if (loading()) {

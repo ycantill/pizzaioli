@@ -1,1 +1,41 @@
-<router-outlet />
+<mat-sidenav-container class="sidenav-container">
+  <!-- Sidebar -->
+  <mat-sidenav #sidenav 
+               [opened]="menuOpen()" 
+               [mode]="'over'"
+               class="sidenav">
+    <div class="sidenav-header">
+      <h2>Pizzaioli</h2>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item 
+         routerLink="/supplies" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>inventory_2</mat-icon>
+        <span matListItemTitle>Provisiones</span>
+      </a>
+      <a mat-list-item 
+         routerLink="/units" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>straighten</mat-icon>
+        <span matListItemTitle>Unidades</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main content -->
+  <mat-sidenav-content>
+    <mat-toolbar color="primary" class="app-toolbar">
+      <button mat-icon-button (click)="toggleMenu()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="app-title">Pizzaioli</span>
+    </mat-toolbar>
+    
+    <div class="content">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
