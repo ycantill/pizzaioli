@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
+import { CostType } from '../models/cost-type.model';
 import { FirestoreService } from '../firestore.service';
 import { CostDialog } from './cost-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -31,11 +32,13 @@ export class Costs implements OnInit {
   
   costs = signal<Cost[]>([]);
   units = signal<Unit[]>([]);
+  costTypes = signal<CostType[]>([]);
   loading = signal(true);
-  displayedColumns: string[] = ['product', 'value', 'unit', 'actions'];
+  displayedColumns: string[] = ['product', 'value', 'unit', 'type', 'actions'];
 
   async ngOnInit() {
     await this.loadUnits();
+    await this.loadCostTypes();
     await this.loadCosts();
   }
 
@@ -60,15 +63,30 @@ export class Costs implements OnInit {
     }
   }
 
+  async loadCostTypes() {
+    try {
+      const data = await this.firestoreService.getDocuments('cost-types');
+      this.costTypes.set(data as CostType[]);
+    } catch (error) {
+      console.error('Error loading cost types:', error);
+    }
+  }
+
   getUnitName(unitId: string): string {
     const unit = this.units().find(u => u.id === unitId);
     return unit ? unit.name : unitId;
   }
 
+  getTypeName(typeId: string): string {
+    if (!typeId) return 'Sin tipo';
+    const type = this.costTypes().find(t => t.id === typeId);
+    return type ? type.name : 'N/A';
+  }
+
   addCost() {
     const dialogRef = this.dialog.open(CostDialog, {
       width: '400px',
-      data: { units: this.units() }
+      data: { units: this.units(), costTypes: this.costTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Cost | undefined) => {
@@ -86,7 +104,7 @@ export class Costs implements OnInit {
   editCost(cost: Cost) {
     const dialogRef = this.dialog.open(CostDialog, {
       width: '400px',
-      data: { cost, units: this.units() }
+      data: { cost, units: this.units(), costTypes: this.costTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Cost | undefined) => {

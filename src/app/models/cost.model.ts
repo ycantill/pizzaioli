@@ -3,4 +3,5 @@ export interface Cost {
   product: string;
   value: number;
   unitId: string;
+  typeId: string;
 }

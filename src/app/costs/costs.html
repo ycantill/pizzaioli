@@ -70,6 +70,12 @@
             <td mat-cell *matCellDef="let cost">{{ getUnitName(cost.unitId) }}</td>
           </ng-container>
 
+          <!-- Type Column -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let cost">{{ getTypeName(cost.typeId) }}</td>
+          </ng-container>
+
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>

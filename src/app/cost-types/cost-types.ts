@@ -47,32 +47,6 @@ export class CostTypes implements OnInit {
     }
   }
 
-  async migrateDefaultTypes() {
-    const defaultTypes: Omit<CostType, 'id'>[] = [
-      { name: 'Ingrediente' },
-      { name: 'Servicio' },
-      { name: 'Paqueteria' }
-    ];
-
-    try {
-      const existingTypes = this.costTypes();
-      const existingNames = existingTypes.map(t => t.name);
-
-      let added = 0;
-      for (const type of defaultTypes) {
-        if (!existingNames.includes(type.name)) {
-          await this.firestoreService.addDocument('cost-types', type);
-          added++;
-        }
-      }
-
-      console.log(`Migración completada: ${added} tipos agregados`);
-      await this.loadCostTypes();
-    } catch (error) {
-      console.error('Error en migración:', error);
-    }
-  }
-
   addCostType() {
     const dialogRef = this.dialog.open(CostTypeDialog, {
       width: '400px'

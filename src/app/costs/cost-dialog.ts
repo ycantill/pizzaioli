@@ -7,10 +7,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
+import { CostType } from '../models/cost-type.model';
 
 export interface CostDialogData {
   cost?: Cost;
   units: Unit[];
+  costTypes: CostType[];
 }
 
 @Component({
@@ -57,6 +59,18 @@ export interface CostDialogData {
             <mat-error>La unidad es requerida</mat-error>
           }
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="typeId">
+            @for (type of data.costTypes; track type.id) {
+              <mat-option [value]="type.id">{{ type.name }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('typeId')?.hasError('required')) {
+            <mat-error>El tipo es requerido</mat-error>
+          }
+        </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -92,7 +106,8 @@ export class CostDialog {
   form = this.fb.group({
     product: [this.data.cost?.product || '', Validators.required],
     value: [this.data.cost?.value || 0, [Validators.required, Validators.min(0.01)]],
-    unitId: [this.data.cost?.unitId || '', Validators.required]
+    unitId: [this.data.cost?.unitId || '', Validators.required],
+    typeId: [this.data.cost?.typeId || '', Validators.required]
   });
 
   onCancel(): void {
@@ -103,7 +118,7 @@ export class CostDialog {
     if (this.form.valid) {
       const cost: Cost = {
         ...this.data.cost,
-        ...this.form.value as { product: string; value: number; unitId: string }
+        ...this.form.value as { product: string; value: number; unitId: string; typeId: string }
       };
       this.dialogRef.close(cost);
     }
