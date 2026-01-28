@@ -17,10 +17,12 @@ import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 
 interface IngredientCost {
+  costId: string;
   name: string;
   quantity: number;
   unitCost: number;
   totalCost: number;
+  margin: number;
 }
 
 @Component({
@@ -54,6 +56,9 @@ export class Prices implements OnInit {
   selectedRecipeId = signal<string | null>(null);
   quantity = signal(1);
   doughBallWeight = signal(250);
+  
+  // Márgenes por ingrediente (Map de costId -> margin %)
+  ingredientMargins = signal<Map<string, number>>(new Map());
 
   constructor() {
     // Actualizar peso del bollo cuando cambia la masa seleccionada
@@ -68,7 +73,7 @@ export class Prices implements OnInit {
     });
   }
 
-  displayedColumns: string[] = ['ingredient', 'quantity', 'unitCost', 'totalCost'];
+  displayedColumns: string[] = ['ingredient', 'quantity', 'unitCost', 'totalCost', 'margin'];
 
   async ngOnInit() {
     await Promise.all([
@@ -111,6 +116,14 @@ export class Prices implements OnInit {
     try {
       const data = await this.firestoreService.getDocuments('margins');
       this.margins.set(data as Margin[]);
+      
+      // Inicializar el Map de márgenes con los valores de la colección
+      const marginsMap = new Map<string, number>();
+      data.forEach((margin: any) => {
+        const totalMargin = margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage;
+        marginsMap.set(margin.costId, totalMargin);
+      });
+      this.ingredientMargins.set(marginsMap);
     } catch (error) {
       console.error('Error loading margins:', error);
     }
@@ -135,6 +148,20 @@ export class Prices implements OnInit {
     return id ? this.recipes().find(r => r.id === id) : null;
   });
 
+  margin = computed(() => {
+    const marginData = this.margins()[0];
+    if (!marginData) {
+      return { total: 30, recovery: 10, reinvestment: 10, profit: 10 };
+    }
+    const total = marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage;
+    return {
+      total: total,
+      recovery: marginData.recoveryPercentage,
+      reinvestment: marginData.reinvestmentPercentage,
+      profit: marginData.profitPercentage
+    };
+  });
+
   doughIngredients = computed<IngredientCost[]>(() => {
     const dough = this.selectedDough();
     if (!dough) return [];
@@ -146,6 +173,9 @@ export class Prices implements OnInit {
       this.costs()
     );
 
+    const margins = this.ingredientMargins();
+    const defaultMargin = 30;
+
     return calculatedIngredients.map(ing => {
       const cost = this.costs().find(c => c.id === ing.costId);
       const unitCost = cost ? cost.value : 0;
@@ -153,11 +183,22 @@ export class Prices implements OnInit {
         ? this.doughCalcService.calculateIngredientCost(ing.quantity, cost, this.units())
         : 0;
       
+      // Prioridad: 1) Map (editado por usuario), 2) Firestore, 3) default
+      let margin = margins.get(ing.costId);
+      if (margin === undefined) {
+        const marginData = this.margins().find(m => m.costId === ing.costId);
+        margin = marginData 
+          ? marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage
+          : defaultMargin;
+      }
+      
       return {
+        costId: ing.costId,
         name: ing.name,
         quantity: ing.quantity,
         unitCost: unitCost,
-        totalCost: Math.round(totalCost * 100) / 100
+        totalCost: Math.round(totalCost * 100) / 100,
+        margin: margin
       };
     });
   });
@@ -167,6 +208,8 @@ export class Prices implements OnInit {
     if (!recipe) return [];
 
     const qty = this.quantity();
+    const margins = this.ingredientMargins();
+    const defaultMargin = 30;
 
     return recipe.ingredients.map(ingredient => {
       const cost = this.costs().find(c => c.id === ingredient.costId);
@@ -178,15 +221,27 @@ export class Prices implements OnInit {
         ? this.doughCalcService.calculateIngredientCost(totalQuantity, cost, this.units())
         : 0;
       
+      // Prioridad: 1) Map (editado por usuario), 2) Firestore, 3) default
+      let margin = margins.get(ingredient.costId);
+      if (margin === undefined) {
+        const marginData = this.margins().find(m => m.costId === ingredient.costId);
+        margin = marginData 
+          ? marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage
+          : defaultMargin;
+      }
+      
       return {
+        costId: ingredient.costId,
         name: cost?.product || 'Desconocido',
         quantity: totalQuantity,
         unitCost: unitCost,
-        totalCost: Math.round(totalCost * 100) / 100
+        totalCost: Math.round(totalCost * 100) / 100,
+        margin: margin
       };
     });
   });
 
+  // Costos base sin márgenes
   doughCost = computed(() => {
     return this.doughIngredients().reduce((sum, ing) => sum + ing.totalCost, 0);
   });
@@ -195,28 +250,84 @@ export class Prices implements OnInit {
     return this.recipeIngredients().reduce((sum, ing) => sum + ing.totalCost, 0);
   });
 
-  totalCostPerUnit = computed(() => {
+  baseCost = computed(() => {
     return this.doughCost() + this.recipeCost();
   });
 
-  margin = computed(() => {
-    const margin = this.margins()[0];
-    if (!margin) return { total: 30, recovery: 0, reinvestment: 0, profit: 30 };
-    
-    return {
-      total: margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage,
-      recovery: margin.recoveryPercentage,
-      reinvestment: margin.reinvestmentPercentage,
-      profit: margin.profitPercentage
-    };
+  // Costos con márgenes aplicados
+  doughCostWithMargin = computed(() => {
+    return this.doughIngredients().reduce((sum, ing) => {
+      const costWithMargin = ing.totalCost * (ing.margin / 100);
+      return sum + costWithMargin;
+    }, 0);
   });
 
+  recipeCostWithMargin = computed(() => {
+    return this.recipeIngredients().reduce((sum, ing) => {
+      const costWithMargin = ing.totalCost * (ing.margin / 100);
+      return sum + costWithMargin;
+    }, 0);
+  });
+
+  totalCostPerUnit = computed(() => {
+    return this.doughCostWithMargin() + this.recipeCostWithMargin();
+  });
+
+  // Margen total aplicado (diferencia entre precio final y costo base)
   marginAmount = computed(() => {
-    return this.totalCostPerUnit() * (this.margin().total / 100);
+    return this.totalCostPerUnit() - this.baseCost();
+  });
+
+  // Calcular el porcentaje de margen total promedio aplicado
+  totalMarginPercentage = computed(() => {
+    const base = this.baseCost();
+    if (base === 0) return 0;
+    return (this.marginAmount() / base) * 100;
+  });
+
+  // Calcular montos reales de cada categoría de margen
+  marginBreakdown = computed(() => {
+    let recovery = 0;
+    let reinvestment = 0;
+    let profit = 0;
+
+    // Sumar contribuciones de ingredientes de la masa
+    this.doughIngredients().forEach(ing => {
+      const marginData = this.margins().find(m => m.costId === ing.costId);
+      if (marginData) {
+        const totalMarginAmount = ing.totalCost * (ing.margin / 100);
+        const totalMarginPercent = marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage;
+        
+        recovery += totalMarginAmount * (marginData.recoveryPercentage / totalMarginPercent);
+        reinvestment += totalMarginAmount * (marginData.reinvestmentPercentage / totalMarginPercent);
+        profit += totalMarginAmount * (marginData.profitPercentage / totalMarginPercent);
+      }
+    });
+
+    // Sumar contribuciones de ingredientes de la receta
+    this.recipeIngredients().forEach(ing => {
+      const marginData = this.margins().find(m => m.costId === ing.costId);
+      if (marginData) {
+        const totalMarginAmount = ing.totalCost * (ing.margin / 100);
+        const totalMarginPercent = marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage;
+        
+        recovery += totalMarginAmount * (marginData.recoveryPercentage / totalMarginPercent);
+        reinvestment += totalMarginAmount * (marginData.reinvestmentPercentage / totalMarginPercent);
+        profit += totalMarginAmount * (marginData.profitPercentage / totalMarginPercent);
+      }
+    });
+
+    return { recovery, reinvestment, profit };
   });
 
   pricePerUnit = computed(() => {
-    return this.totalCostPerUnit() + this.marginAmount();
+    // Redondear hacia arriba al múltiplo de 100 más cercano
+    return Math.ceil(this.totalCostPerUnit() / 100) * 100;
+  });
+
+  // Redondeo comercial aplicado
+  commercialRounding = computed(() => {
+    return this.pricePerUnit() - this.totalCostPerUnit();
   });
 
   totalCost = computed(() => {
@@ -239,5 +350,15 @@ export class Prices implements OnInit {
     this.selectedDoughId.set(null);
     this.selectedRecipeId.set(null);
     this.quantity.set(1);
+    this.ingredientMargins.set(new Map());
+  }
+
+  updateIngredientMargin(costId: string, margin: number | string) {
+    const marginValue = typeof margin === 'string' ? parseFloat(margin) : margin;
+    if (isNaN(marginValue)) return;
+    
+    const newMargins = new Map(this.ingredientMargins());
+    newMargins.set(costId, marginValue);
+    this.ingredientMargins.set(newMargins);
   }
 }

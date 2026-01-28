@@ -43,14 +43,6 @@
                  (ngModelChange)="doughBallWeight.set($event)"
                  min="1">
         </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Cantidad de pizzas</mat-label>
-          <input matInput type="number" 
-                 [ngModel]="quantity()" 
-                 (ngModelChange)="quantity.set($event)"
-                 min="1">
-        </mat-form-field>
       </div>
     </mat-card-content>
   </mat-card>
@@ -74,6 +66,15 @@
                 <span class="detail-item">{{ ingredient.quantity }}g</span>
                 <span class="detail-item">${{ ingredient.unitCost.toFixed(2) }}/kg</span>
                 <span class="detail-item total">${{ ingredient.totalCost.toFixed(2) }}</span>
+              </div>
+              <div class="margin-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Margen %</mat-label>
+                  <input matInput type="number" 
+                         [value]="ingredient.margin" 
+                         (blur)="updateIngredientMargin(ingredient.costId, $any($event.target).value)"
+                         min="0">
+                </mat-form-field>
               </div>
             </div>
           }
@@ -108,6 +109,17 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="margin">
+              <th mat-header-cell *matHeaderCellDef>Margen %</th>
+              <td mat-cell *matCellDef="let ing">
+                <input matInput type="number" 
+                       [value]="ing.margin" 
+                       (blur)="updateIngredientMargin(ing.costId, $any($event.target).value)"
+                       min="0"
+                       class="margin-input">
+              </td>
+            </ng-container>
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
@@ -137,6 +149,15 @@
                 <span class="detail-item">{{ ingredient.quantity }}g</span>
                 <span class="detail-item">${{ ingredient.unitCost.toFixed(2) }}/kg</span>
                 <span class="detail-item total">${{ ingredient.totalCost.toFixed(2) }}</span>
+              </div>
+              <div class="margin-field">
+                <mat-form-field appearance="outline">
+                  <mat-label>Margen %</mat-label>
+                  <input matInput type="number" 
+                         [value]="ingredient.margin" 
+                         (blur)="updateIngredientMargin(ingredient.costId, $any($event.target).value)"
+                         min="0">
+                </mat-form-field>
               </div>
             </div>
           }
@@ -168,6 +189,17 @@
               <th mat-header-cell *matHeaderCellDef>Total</th>
               <td mat-cell *matCellDef="let ing" class="cost-cell">
                 ${{ ing.totalCost.toFixed(2) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="margin">
+              <th mat-header-cell *matHeaderCellDef>Margen %</th>
+              <td mat-cell *matCellDef="let ing">
+                <input matInput type="number" 
+                       [value]="ing.margin" 
+                       (blur)="updateIngredientMargin(ing.costId, $any($event.target).value)"
+                       min="0"
+                       class="margin-input">
               </td>
             </ng-container>
 
@@ -204,28 +236,17 @@
           <mat-divider></mat-divider>
           <div class="summary-row highlight">
             <span class="label">Costo Total por Pizza:</span>
-            <span class="value">${{ totalCostPerUnit().toFixed(2) }}</span>
+            <span class="value">${{ baseCost().toFixed(2) }}</span>
           </div>
           
-          <div class="margin-section">
-            <div class="margin-header">
-              <span class="label">Margen Total ({{ margin().total }}%):</span>
-              <span class="value">${{ marginAmount().toFixed(2) }}</span>
-            </div>
-            <div class="margin-breakdown">
-              <div class="margin-item">
-                <span>Recuperación ({{ margin().recovery }}%)</span>
-                <span>${{ (totalCostPerUnit() * margin().recovery / 100).toFixed(2) }}</span>
-              </div>
-              <div class="margin-item">
-                <span>Reinversión ({{ margin().reinvestment }}%)</span>
-                <span>${{ (totalCostPerUnit() * margin().reinvestment / 100).toFixed(2) }}</span>
-              </div>
-              <div class="margin-item">
-                <span>Ganancia ({{ margin().profit }}%)</span>
-                <span>${{ (totalCostPerUnit() * margin().profit / 100).toFixed(2) }}</span>
-              </div>
-            </div>
+          <div class="summary-row">
+            <span class="label">Margen de Ganancia ({{ totalMarginPercentage().toFixed(2) }}%):</span>
+            <span class="value">${{ marginAmount().toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span class="label">Redondeo Comercial:</span>
+            <span class="value">${{ commercialRounding().toFixed(2) }}</span>
           </div>
 
           <mat-divider></mat-divider>

@@ -81,6 +81,22 @@ mat-card-title {
   margin-bottom: 8px;
 }
 
+.margin-field {
+  margin-top: 8px;
+}
+
+.margin-field mat-form-field {
+  width: 100%;
+}
+
+.margin-input {
+  width: 80px;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
 .ingredient-details {
   display: flex;
   justify-content: space-between;
@@ -258,7 +274,7 @@ mat-divider {
   }
 
   .config-grid {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .mobile-view {
