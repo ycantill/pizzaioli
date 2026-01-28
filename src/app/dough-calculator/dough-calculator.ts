@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { DoughIngredient, Dough } from '../models/dough.model';
 import { Cost } from '../models/cost.model';
 import { FirestoreService } from '../firestore.service';
+import { DoughCalculationService } from '../services/dough-calculation.service';
 
 @Component({
   selector: 'app-dough-calculator',
@@ -30,6 +31,7 @@ import { FirestoreService } from '../firestore.service';
 })
 export class DoughCalculator implements OnInit {
   private firestoreService = inject(FirestoreService);
+  private doughCalcService = inject(DoughCalculationService);
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
   
   costs = signal<Cost[]>([]);
@@ -96,22 +98,16 @@ export class DoughCalculator implements OnInit {
 
     const selectedDough = this.doughs().find(d => d.id === doughId);
     if (selectedDough) {
-      // Convert dough ingredients to calculator ingredients with baker's percentage
-      const doughIngredients = selectedDough.ingredients;
+      const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(
+        selectedDough,
+        this.costs()
+      );
       
-      // Find flour to calculate percentages
-      const flourIngredient = doughIngredients.find(ing => {
-        const cost = this.costs().find(c => c.id === ing.costId);
-        return cost?.product.toLowerCase().includes('harina');
-      });
-
-      if (flourIngredient) {
-        const flourWeight = flourIngredient.quantity;
-        const calculatorIngredients: DoughIngredient[] = doughIngredients.map(ing => ({
-          costId: ing.costId,
-          bakerPercentage: Math.round((ing.quantity / flourWeight * 100) * 100) / 100
-        }));
-        this.ingredients.set(calculatorIngredients);
+      if (bakerPercentages.length > 0) {
+        this.ingredients.set(bakerPercentages.map(bp => ({
+          costId: bp.costId,
+          bakerPercentage: bp.bakerPercentage
+        })));
       }
     }
   }
@@ -136,13 +132,18 @@ export class DoughCalculator implements OnInit {
     );
   }
 
-  flourWeight = computed(() => this.weightPerUnit() * this.quantity());
+  // Calculate ingredient multiplier using correct formula
+  ingredientMultiplier = computed(() => {
+    const totalPercentage = this.totalPercentage();
+    if (totalPercentage === 0) return 0;
+    return (this.quantity() * this.weightPerUnit()) / totalPercentage;
+  });
 
   calculatedIngredients = computed(() => {
-    const flour = this.flourWeight();
+    const multiplier = this.ingredientMultiplier();
     return this.ingredients().map(ing => ({
       ...ing,
-      calculatedWeight: Math.round((flour * ing.bakerPercentage / 100) * 10) / 10
+      calculatedWeight: Math.round((multiplier * ing.bakerPercentage) * 10) / 10
     }));
   });
 

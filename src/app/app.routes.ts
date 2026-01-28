@@ -5,6 +5,7 @@ import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
 import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
+import { Prices } from './prices/prices';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/costs', pathMatch: 'full' },
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'units', component: Units },
   { path: 'doughs', component: Doughs },
   { path: 'recipes', component: Recipes },
+  { path: 'prices', component: Prices },
   { path: 'dough-calculator', component: DoughCalculator }
 ];

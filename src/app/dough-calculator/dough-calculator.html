@@ -34,11 +34,6 @@
                  [ngModel]="quantity()" 
                  (ngModelChange)="quantity.set($event)">
         </mat-form-field>
-
-        <div class="total-display">
-          <span class="total-label">Peso de harina:</span>
-          <span class="total-value">{{ flourWeight() }} g</span>
-        </div>
       </div>
     </mat-card-content>
   </mat-card>
