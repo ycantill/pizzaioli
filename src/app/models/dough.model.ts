@@ -7,6 +7,7 @@ export interface Dough {
   id?: string;
   name: string;
   ingredients: DoughRecipeIngredient[];
+  ballWeight: number;
 }
 
 export interface DoughIngredient {

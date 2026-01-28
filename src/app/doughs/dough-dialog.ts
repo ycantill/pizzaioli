@@ -38,6 +38,13 @@ interface DialogData {
           <input matInput formControlName="name" placeholder="Ej: Masa napolitana">
         </mat-form-field>
 
+        <mat-form-field class="full-width">
+          <mat-label>Peso por bollo (g)</mat-label>
+          <input matInput type="number" formControlName="ballWeight" 
+                 placeholder="Ej: 250">
+          <mat-hint>Peso estándar para cada bollo de masa</mat-hint>
+        </mat-form-field>
+
         <div class="ingredients-section">
           <div class="section-header">
             <h3>Ingredientes</h3>
@@ -166,6 +173,7 @@ export class DoughDialog implements OnInit {
   ngOnInit() {
     this.form = this.fb.group({
       name: [this.data.dough?.name || '', Validators.required],
+      ballWeight: [this.data.dough?.ballWeight || 250, [Validators.required, Validators.min(1)]],
       ingredients: this.fb.array([])
     });
 

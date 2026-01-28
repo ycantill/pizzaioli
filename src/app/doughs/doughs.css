@@ -16,7 +16,11 @@
   font-weight: 500;
   color: #333;
 }
-
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 .add-button {
   height: 40px;
 }
@@ -68,6 +72,25 @@
 .card-actions {
   display: flex;
   gap: 4px;
+}
+
+.info-section {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: #333;
 }
 
 .ingredients-section {

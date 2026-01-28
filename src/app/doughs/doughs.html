@@ -1,9 +1,17 @@
 <div class="page-header">
   <h1 class="page-title">Masas</h1>
-  <button mat-fab extended (click)="addDough()" class="add-button">
-    <mat-icon>add</mat-icon>
-    <span class="button-text">Nueva</span>
-  </button>
+  <div class="header-actions">
+    <button mat-stroked-button color="accent" 
+            (click)="migrateDefaultBallWeight()" 
+            [disabled]="migrating()">
+      <mat-icon>sync</mat-icon>
+      {{ migrating() ? 'Migrando...' : 'Migrar Peso' }}
+    </button>
+    <button mat-fab extended (click)="addDough()" class="add-button">
+      <mat-icon>add</mat-icon>
+      <span class="button-text">Nueva</span>
+    </button>
+  </div>
 </div>
 
 <div class="container">
@@ -31,6 +39,10 @@
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
+            </div>
+            <div class="info-section">
+              <span class="info-label">Peso por bollo:</span>
+              <span class="info-value">{{ dough.ballWeight }}g</span>
             </div>
             <div class="ingredients-section">
               <span class="section-label">Ingredientes:</span>
@@ -62,6 +74,12 @@
                 {{ dough.name }}
               </div>
             </td>
+          </ng-container>
+
+          <!-- Ball Weight Column -->
+          <ng-container matColumnDef="ballWeight">
+            <th mat-header-cell *matHeaderCellDef>Peso/bollo</th>
+            <td mat-cell *matCellDef="let dough">{{ dough.ballWeight }}g</td>
           </ng-container>
 
           <!-- Ingredients Column -->

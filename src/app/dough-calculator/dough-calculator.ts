@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef, effect } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -42,6 +42,19 @@ export class DoughCalculator implements OnInit {
   ingredients = signal<DoughIngredient[]>([]);
 
   displayedColumns: string[] = ['name', 'percentage', 'weight', 'actions'];
+
+  constructor() {
+    // Actualizar peso por unidad cuando cambia la masa seleccionada
+    effect(() => {
+      const doughId = this.selectedDoughId();
+      if (doughId) {
+        const dough = this.doughs().find(d => d.id === doughId);
+        if (dough) {
+          this.weightPerUnit.set(dough.ballWeight);
+        }
+      }
+    });
+  }
 
   async ngOnInit() {
     await this.loadCosts();
