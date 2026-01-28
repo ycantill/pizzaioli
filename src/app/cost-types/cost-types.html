@@ -1,0 +1,76 @@
+<div class="page-header">
+  <h1 class="page-title">Tipos de Costo</h1>
+  <div class="header-actions">
+    <button mat-stroked-button color="accent" (click)="migrateDefaultTypes()">
+      <mat-icon>sync</mat-icon>
+      Migrar Tipos
+    </button>
+    <button mat-fab extended (click)="addCostType()" class="add-button">
+      <mat-icon>add</mat-icon>
+      <span class="button-text">Nuevo</span>
+    </button>
+  </div>
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (type of costTypes(); track type.id) {
+        <mat-card class="type-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="type-name">{{ type.name }}</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary" 
+                        (click)="editCostType(type)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="deleteCostType(type)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="costTypes()" class="mat-elevation-z2">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let type">{{ type.name }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let type">
+              <button mat-icon-button color="primary" 
+                      (click)="editCostType(type)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" 
+                      (click)="deleteCostType(type)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

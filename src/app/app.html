@@ -16,6 +16,13 @@
         <span matListItemTitle>Costos</span>
       </a>
       <a mat-list-item 
+         routerLink="/cost-types" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>category</mat-icon>
+        <span matListItemTitle>Tipos de Costo</span>
+      </a>
+      <a mat-list-item 
          routerLink="/margins" 
          routerLinkActive="active"
          (click)="toggleMenu()">
