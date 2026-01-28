@@ -8,7 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Margin } from '../models/margin.model';
 import { Cost } from '../models/cost.model';
 import { FirestoreService } from '../firestore.service';
-import { MarginDialog } from './margin-dialog.component';
+import { MarginDialog } from './margin-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
