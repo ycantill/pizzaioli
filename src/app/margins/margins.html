@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="page-title">Márgenes</h1>
+  <button mat-fab extended (click)="addMargin()" class="add-button">
+    <mat-icon>add</mat-icon>
+    <span class="button-text">Nuevo</span>
+  </button>
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (margin of margins(); track margin.id) {
+        <mat-card class="margin-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="cost-name">{{ getCostName(margin.costId) }}</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary" 
+                        (click)="editMargin(margin)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="deleteMargin(margin)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="label">Recuperación:</span>
+                <span class="value">{{ margin.recoveryPercentage }}%</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Reinversión:</span>
+                <span class="value">{{ margin.reinvestmentPercentage }}%</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Ganancia:</span>
+                <span class="value">{{ margin.profitPercentage }}%</span>
+              </div>
+              <div class="detail-item total">
+                <span class="label">Total:</span>
+                <span class="value total-value">{{ getTotalMargin(margin) }}%</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="margins()" class="mat-elevation-z2">
+          
+          <!-- Cost Column -->
+          <ng-container matColumnDef="cost">
+            <th mat-header-cell *matHeaderCellDef>Costo</th>
+            <td mat-cell *matCellDef="let margin">{{ getCostName(margin.costId) }}</td>
+          </ng-container>
+
+          <!-- Recovery Column -->
+          <ng-container matColumnDef="recovery">
+            <th mat-header-cell *matHeaderCellDef>Recuperación</th>
+            <td mat-cell *matCellDef="let margin">{{ margin.recoveryPercentage }}%</td>
+          </ng-container>
+
+          <!-- Reinvestment Column -->
+          <ng-container matColumnDef="reinvestment">
+            <th mat-header-cell *matHeaderCellDef>Reinversión</th>
+            <td mat-cell *matCellDef="let margin">{{ margin.reinvestmentPercentage }}%</td>
+          </ng-container>
+
+          <!-- Profit Column -->
+          <ng-container matColumnDef="profit">
+            <th mat-header-cell *matHeaderCellDef>Ganancia</th>
+            <td mat-cell *matCellDef="let margin">{{ margin.profitPercentage }}%</td>
+          </ng-container>
+
+          <!-- Total Column -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let margin">
+              <strong>{{ getTotalMargin(margin) }}%</strong>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let margin">
+              <button mat-icon-button color="primary" 
+                      (click)="editMargin(margin)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" 
+                      (click)="deleteMargin(margin)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

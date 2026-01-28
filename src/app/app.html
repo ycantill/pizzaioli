@@ -16,6 +16,13 @@
         <span matListItemTitle>Costos</span>
       </a>
       <a mat-list-item 
+         routerLink="/margins" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>trending_up</mat-icon>
+        <span matListItemTitle>Márgenes</span>
+      </a>
+      <a mat-list-item 
          routerLink="/units" 
          routerLinkActive="active"
          (click)="toggleMenu()">
