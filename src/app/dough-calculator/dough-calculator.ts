@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { DoughIngredient, Dough } from '../models/dough.model';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 import { FirestoreService } from '../firestore.service';
 
 @Component({
@@ -32,7 +32,7 @@ export class DoughCalculator implements OnInit {
   private firestoreService = inject(FirestoreService);
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
   
-  supplies = signal<Supply[]>([]);
+  costs = signal<Cost[]>([]);
   doughs = signal<Dough[]>([]);
   selectedDoughId = signal<string | null>(null);
   weightPerUnit = signal(250);
@@ -42,29 +42,29 @@ export class DoughCalculator implements OnInit {
   displayedColumns: string[] = ['name', 'percentage', 'weight', 'actions'];
 
   async ngOnInit() {
-    await this.loadSupplies();
+    await this.loadCosts();
     await this.loadDoughs();
   }
 
-  async loadSupplies() {
+  async loadCosts() {
     try {
-      const data = await this.firestoreService.getDocuments('supplies');
-      this.supplies.set(data as Supply[]);
+      const data = await this.firestoreService.getDocuments('costs');
+      this.costs.set(data as Cost[]);
       
       // Add flour by default at 100% only if no dough is selected
       if (this.ingredients().length === 0 && !this.selectedDoughId()) {
-        const flourSupply = (data as Supply[]).find(s => 
-          s.product.toLowerCase().includes('harina')
+        const flourCost = (data as Cost[]).find(c => 
+          c.product.toLowerCase().includes('harina')
         );
-        if (flourSupply?.id) {
+        if (flourCost?.id) {
           this.ingredients.set([{
-            supplyId: flourSupply.id,
+            costId: flourCost.id,
             bakerPercentage: 100
           }]);
         }
       }
     } catch (error) {
-      console.error('Error loading supplies:', error);
+      console.error('Error loading costs:', error);
     }
   }
 
@@ -82,12 +82,12 @@ export class DoughCalculator implements OnInit {
     
     if (!doughId) {
       // Reset to default flour
-      const flourSupply = this.supplies().find(s => 
-        s.product.toLowerCase().includes('harina')
+      const flourCost = this.costs().find(c => 
+        c.product.toLowerCase().includes('harina')
       );
-      if (flourSupply?.id) {
+      if (flourCost?.id) {
         this.ingredients.set([{
-          supplyId: flourSupply.id,
+          costId: flourCost.id,
           bakerPercentage: 100
         }]);
       }
@@ -101,14 +101,14 @@ export class DoughCalculator implements OnInit {
       
       // Find flour to calculate percentages
       const flourIngredient = doughIngredients.find(ing => {
-        const supply = this.supplies().find(s => s.id === ing.supplyId);
-        return supply?.product.toLowerCase().includes('harina');
+        const cost = this.costs().find(c => c.id === ing.costId);
+        return cost?.product.toLowerCase().includes('harina');
       });
 
       if (flourIngredient) {
         const flourWeight = flourIngredient.quantity;
         const calculatorIngredients: DoughIngredient[] = doughIngredients.map(ing => ({
-          supplyId: ing.supplyId,
+          costId: ing.costId,
           bakerPercentage: Math.round((ing.quantity / flourWeight * 100) * 100) / 100
         }));
         this.ingredients.set(calculatorIngredients);
@@ -116,23 +116,23 @@ export class DoughCalculator implements OnInit {
     }
   }
 
-  getSupplyName(supplyId: string): string {
-    const supply = this.supplies().find(s => s.id === supplyId);
-    return supply ? supply.product : 'Seleccionar...';
+  getCostName(costId: string): string {
+    const cost = this.costs().find(c => c.id === costId);
+    return cost ? cost.product : 'Seleccionar...';
   }
 
-  isFlour(supplyId: string): boolean {
-    const supply = this.supplies().find(s => s.id === supplyId);
-    return supply ? supply.product.toLowerCase().includes('harina') : false;
+  isFlour(costId: string): boolean {
+    const cost = this.costs().find(c => c.id === costId);
+    return cost ? cost.product.toLowerCase().includes('harina') : false;
   }
 
-  getAvailableSuppliesForIngredient(currentSupplyId: string): Supply[] {
-    const usedSupplyIds = this.ingredients()
-      .map(ing => ing.supplyId)
-      .filter(id => id !== currentSupplyId);
+  getAvailableCostsForIngredient(currentCostId: string): Cost[] {
+    const usedCostIds = this.ingredients()
+      .map(ing => ing.costId)
+      .filter(id => id !== currentCostId);
     
-    return this.supplies().filter(s => 
-      s.id === currentSupplyId || !usedSupplyIds.includes(s.id!)
+    return this.costs().filter(c => 
+      c.id === currentCostId || !usedCostIds.includes(c.id!)
     );
   }
 
@@ -157,14 +157,14 @@ export class DoughCalculator implements OnInit {
   });
 
   addIngredient() {
-    const usedSupplyIds = this.ingredients().map(ing => ing.supplyId);
-    const available = this.supplies().filter(s => 
-      !usedSupplyIds.includes(s.id!)
+    const usedCostIds = this.ingredients().map(ing => ing.costId);
+    const available = this.costs().filter(c => 
+      !usedCostIds.includes(c.id!)
     );
-    const firstSupply = available[0];
-    if (firstSupply?.id) {
+    const firstCost = available[0];
+    if (firstCost?.id) {
       this.ingredients.update(list => [...list, {
-        supplyId: firstSupply.id!,
+        costId: firstCost.id!,
         bakerPercentage: 0
       }]);
       
@@ -182,9 +182,9 @@ export class DoughCalculator implements OnInit {
     this.ingredients.update(list => list.filter((_, i) => i !== index));
   }
 
-  updateIngredientSupply(index: number, supplyId: string) {
+  updateIngredientCost(index: number, costId: string) {
     this.ingredients.update(list => 
-      list.map((ing, i) => i === index ? { ...ing, supplyId } : ing)
+      list.map((ing, i) => i === index ? { ...ing, costId } : ing)
     );
   }
 

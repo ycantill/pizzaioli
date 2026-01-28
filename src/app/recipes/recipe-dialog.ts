@@ -7,11 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Recipe, RecipeIngredient } from '../models/recipe.model';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 
 export interface RecipeDialogData {
   recipe?: Recipe;
-  supplies: Supply[];
+  costs: Cost[];
 }
 
 @Component({
@@ -48,11 +48,11 @@ export interface RecipeDialogData {
           <div formArrayName="ingredients" class="ingredients-list">
             @for (ingredient of ingredientsArray.controls; track $index) {
               <div [formGroupName]="$index" class="ingredient-row">
-                <mat-form-field appearance="outline" class="supply-field">
+                <mat-form-field appearance="outline" class="cost-field">
                   <mat-label>Ingrediente</mat-label>
-                  <mat-select formControlName="supplyId">
-                    @for (supply of availableSupplies($index); track supply.id) {
-                      <mat-option [value]="supply.id">{{ supply.product }}</mat-option>
+                  <mat-select formControlName="costId">
+                    @for (cost of availableCosts($index); track cost.id) {
+                      <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
@@ -135,7 +135,7 @@ export interface RecipeDialogData {
       align-items: flex-start;
     }
 
-    .supply-field {
+    .cost-field {
       flex: 2;
       margin: 0;
     }
@@ -158,7 +158,7 @@ export interface RecipeDialogData {
         flex-wrap: wrap;
       }
 
-      .supply-field,
+      .cost-field,
       .quantity-field {
         flex: 1 1 100%;
       }
@@ -185,29 +185,29 @@ export class RecipeDialog {
 
   createIngredientGroup(ingredient?: RecipeIngredient) {
     return this.fb.group({
-      supplyId: [ingredient?.supplyId || this.data.supplies[0]?.id || '', Validators.required],
+      costId: [ingredient?.costId || this.data.costs[0]?.id || '', Validators.required],
       quantity: [ingredient?.quantity || 0, [Validators.required, Validators.min(1)]]
     });
   }
 
-  availableSupplies(currentIndex: number): Supply[] {
-    const currentSupplyId = this.ingredientsArray.at(currentIndex).get('supplyId')?.value;
-    const usedSupplyIds = this.ingredientsArray.controls
-      .map((ctrl, idx) => idx !== currentIndex ? ctrl.get('supplyId')?.value : null)
+  availableCosts(currentIndex: number): Cost[] {
+    const currentCostId = this.ingredientsArray.at(currentIndex).get('costId')?.value;
+    const usedCostIds = this.ingredientsArray.controls
+      .map((ctrl, idx) => idx !== currentIndex ? ctrl.get('costId')?.value : null)
       .filter(id => id !== null);
     
-    return this.data.supplies.filter(s => 
-      s.id === currentSupplyId || !usedSupplyIds.includes(s.id)
+    return this.data.costs.filter(c => 
+      c.id === currentCostId || !usedCostIds.includes(c.id)
     );
   }
 
   addIngredient() {
-    const usedSupplyIds = this.ingredientsArray.controls.map(ctrl => ctrl.get('supplyId')?.value);
-    const availableSupply = this.data.supplies.find(s => !usedSupplyIds.includes(s.id));
+    const usedCostIds = this.ingredientsArray.controls.map(ctrl => ctrl.get('costId')?.value);
+    const availableCost = this.data.costs.find(c => !usedCostIds.includes(c.id));
     
-    if (availableSupply) {
+    if (availableCost) {
       this.ingredientsArray.push(this.createIngredientGroup({
-        supplyId: availableSupply.id!,
+        costId: availableCost.id!,
         quantity: 0
       }));
     }

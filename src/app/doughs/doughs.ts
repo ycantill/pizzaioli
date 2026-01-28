@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -29,21 +29,21 @@ export class Doughs implements OnInit {
   private dialog = inject(MatDialog);
   
   doughs = signal<Dough[]>([]);
-  supplies = signal<Supply[]>([]);
+  costs = signal<Cost[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['name', 'ingredients', 'actions'];
 
   async ngOnInit() {
-    await this.loadSupplies();
+    await this.loadCosts();
     await this.loadDoughs();
   }
 
-  async loadSupplies() {
+  async loadCosts() {
     try {
-      const data = await this.firestoreService.getDocuments('supplies');
-      this.supplies.set(data as Supply[]);
+      const data = await this.firestoreService.getDocuments('costs');
+      this.costs.set(data as Cost[]);
     } catch (error) {
-      console.error('Error loading supplies:', error);
+      console.error('Error loading costs:', error);
     }
   }
 
@@ -59,9 +59,9 @@ export class Doughs implements OnInit {
     }
   }
 
-  getSupplyName(supplyId: string): string {
-    const supply = this.supplies().find(s => s.id === supplyId);
-    return supply ? supply.product : 'Desconocido';
+  getCostName(costId: string): string {
+    const cost = this.costs().find(c => c.id === costId);
+    return cost ? cost.product : 'Desconocido';
   }
 
   addDough() {
@@ -69,7 +69,7 @@ export class Doughs implements OnInit {
       width: '600px',
       maxHeight: '90vh',
       data: { 
-        supplies: this.supplies()
+        costs: this.costs()
       }
     });
 
@@ -91,7 +91,7 @@ export class Doughs implements OnInit {
       maxHeight: '90vh',
       data: { 
         dough,
-        supplies: this.supplies()
+        costs: this.costs()
       }
     });
 

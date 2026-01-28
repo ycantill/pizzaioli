@@ -55,24 +55,24 @@
           <mat-card class="ingredient-card">
             <mat-card-content>
               <div class="ingredient-header">
-                @if (isFlour(ingredient.supplyId)) {
+                @if (isFlour(ingredient.costId)) {
                   <div class="flour-display">
                     <span class="flour-label">Ingrediente (Base)</span>
-                    <span class="flour-name">{{ getSupplyName(ingredient.supplyId) }}</span>
+                    <span class="flour-name">{{ getCostName(ingredient.costId) }}</span>
                   </div>
                 } @else {
                   <mat-form-field appearance="outline" class="ingredient-name-field">
                     <mat-label>Ingrediente</mat-label>
-                    <mat-select [value]="ingredient.supplyId"
-                                (selectionChange)="updateIngredientSupply($index, $event.value)">
-                      @for (supply of getAvailableSuppliesForIngredient(ingredient.supplyId); track supply.id) {
-                        <mat-option [value]="supply.id">{{ supply.product }}</mat-option>
+                    <mat-select [value]="ingredient.costId"
+                                (selectionChange)="updateIngredientCost($index, $event.value)">
+                      @for (cost of getAvailableCostsForIngredient(ingredient.costId); track cost.id) {
+                        <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
                       }
                     </mat-select>
                   </mat-form-field>
                 }
                 <button mat-icon-button color="warn" 
-                        [disabled]="isFlour(ingredient.supplyId)"
+                        [disabled]="isFlour(ingredient.costId)"
                         (click)="removeIngredient($index)">
                   <mat-icon>delete</mat-icon>
                 </button>
@@ -82,7 +82,7 @@
                   <mat-label>Porcentaje (%)</mat-label>
                   <input matInput type="number" 
                          [value]="ingredient.bakerPercentage"
-                         [readonly]="isFlour(ingredient.supplyId)"
+                         [readonly]="isFlour(ingredient.costId)"
                          (input)="updateIngredientPercentage($index, +$any($event.target).value)">
                 </mat-form-field>
                 <div class="weight-display">
@@ -103,17 +103,17 @@
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
             <td mat-cell *matCellDef="let ingredient; let i = index">
-              @if (isFlour(ingredient.supplyId)) {
+              @if (isFlour(ingredient.costId)) {
                 <div class="flour-cell">
-                  <span class="flour-name">{{ getSupplyName(ingredient.supplyId) }}</span>
+                  <span class="flour-name">{{ getCostName(ingredient.costId) }}</span>
                   <span class="flour-badge">Base</span>
                 </div>
               } @else {
                 <mat-form-field appearance="outline" class="table-field">
-                  <mat-select [value]="ingredient.supplyId"
-                              (selectionChange)="updateIngredientSupply(i, $event.value)">
-                    @for (supply of getAvailableSuppliesForIngredient(ingredient.supplyId); track supply.id) {
-                      <mat-option [value]="supply.id">{{ supply.product }}</mat-option>
+                  <mat-select [value]="ingredient.costId"
+                              (selectionChange)="updateIngredientCost(i, $event.value)">
+                    @for (cost of getAvailableCostsForIngredient(ingredient.costId); track cost.id) {
+                      <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
@@ -128,7 +128,7 @@
               <mat-form-field appearance="outline" class="table-field">
                 <input matInput type="number" 
                        [value]="ingredient.bakerPercentage"
-                       [readonly]="isFlour(ingredient.supplyId)"
+                       [readonly]="isFlour(ingredient.costId)"
                        (input)="updateIngredientPercentage(i, +$any($event.target).value)">
               </mat-form-field>
             </td>
@@ -147,7 +147,7 @@
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let ingredient; let i = index">
               <button mat-icon-button color="warn" 
-                      [disabled]="isFlour(ingredient.supplyId)"
+                      [disabled]="isFlour(ingredient.costId)"
                       (click)="removeIngredient(i)">
                 <mat-icon>delete</mat-icon>
               </button>

@@ -1,5 +1,5 @@
 export interface RecipeIngredient {
-  supplyId: string;
+  costId: string;
   quantity: number;
 }
 

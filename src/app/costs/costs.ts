@@ -6,14 +6,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
-import { SupplyDialog } from './supply-dialog';
+import { CostDialog } from './cost-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
-  selector: 'app-supplies',
+  selector: 'app-costs',
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -22,21 +22,21 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
     MatCardModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './supplies.html',
-  styleUrl: './supplies.css'
+  templateUrl: './costs.html',
+  styleUrl: './costs.css'
 })
-export class Supplies implements OnInit {
+export class Costs implements OnInit {
   private firestoreService = inject(FirestoreService);
   private dialog = inject(MatDialog);
   
-  supplies = signal<Supply[]>([]);
+  costs = signal<Cost[]>([]);
   units = signal<Unit[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['product', 'value', 'unit', 'actions'];
 
   async ngOnInit() {
     await this.loadUnits();
-    await this.loadSupplies();
+    await this.loadCosts();
   }
 
   async loadUnits() {
@@ -48,13 +48,13 @@ export class Supplies implements OnInit {
     }
   }
 
-  async loadSupplies() {
+  async loadCosts() {
     try {
       this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('supplies');
-      this.supplies.set(data as Supply[]);
+      const data = await this.firestoreService.getDocuments('costs');
+      this.costs.set(data as Cost[]);
     } catch (error) {
-      console.error('Error loading supplies:', error);
+      console.error('Error loading costs:', error);
     } finally {
       this.loading.set(false);
     }
@@ -65,62 +65,62 @@ export class Supplies implements OnInit {
     return unit ? unit.name : unitId;
   }
 
-  addSupply() {
-    const dialogRef = this.dialog.open(SupplyDialog, {
+  addCost() {
+    const dialogRef = this.dialog.open(CostDialog, {
       width: '400px',
       data: { units: this.units() }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Supply | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: Cost | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('supplies', result);
-          this.supplies.update(list => [...list, { ...result, id: docRef.id }]);
+          const docRef = await this.firestoreService.addDocument('costs', result);
+          this.costs.update(list => [...list, { ...result, id: docRef.id }]);
         } catch (error) {
-          console.error('Error adding supply:', error);
+          console.error('Error adding cost:', error);
         }
       }
     });
   }
 
-  editSupply(supply: Supply) {
-    const dialogRef = this.dialog.open(SupplyDialog, {
+  editCost(cost: Cost) {
+    const dialogRef = this.dialog.open(CostDialog, {
       width: '400px',
-      data: { supply, units: this.units() }
+      data: { cost, units: this.units() }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Supply | undefined) => {
-      if (result && supply.id) {
+    dialogRef.afterClosed().subscribe(async (result: Cost | undefined) => {
+      if (result && cost.id) {
         try {
-          await this.firestoreService.updateDocument('supplies', supply.id, result);
-          this.supplies.update(list => 
-            list.map(s => s.id === supply.id ? { ...result, id: supply.id } : s)
+          await this.firestoreService.updateDocument('costs', cost.id, result);
+          this.costs.update(list => 
+            list.map(c => c.id === cost.id ? { ...result, id: cost.id } : c)
           );
         } catch (error) {
-          console.error('Error updating supply:', error);
+          console.error('Error updating cost:', error);
         }
       }
     });
   }
 
-  async deleteSupply(supply: Supply) {
-    if (!supply.id) return;
+  async deleteCost(cost: Cost) {
+    if (!cost.id) return;
     
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
       data: {
         title: 'Confirmar eliminación',
-        message: `¿Estás seguro de que deseas eliminar "${supply.product}"?`
+        message: `¿Estás seguro de que deseas eliminar "${cost.product}"?`
       }
     });
 
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('supplies', supply.id!);
-          this.supplies.update(list => list.filter(s => s.id !== supply.id));
+          await this.firestoreService.deleteDocument('costs', cost.id!);
+          this.costs.update(list => list.filter(c => c.id !== cost.id));
         } catch (error) {
-          console.error('Error deleting supply:', error);
+          console.error('Error deleting cost:', error);
         }
       }
     });

@@ -8,11 +8,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { Dough } from '../models/dough.model';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 
 interface DialogData {
   dough?: Dough;
-  supplies: Supply[];
+  costs: Cost[];
 }
 
 @Component({
@@ -50,12 +50,12 @@ interface DialogData {
           <div formArrayName="ingredients" class="ingredients-list">
             @for (ingredient of ingredients.controls; track $index) {
               <div [formGroupName]="$index" class="ingredient-row">
-                <mat-form-field class="supply-field">
+                <mat-form-field class="cost-field">
                   <mat-label>Insumo</mat-label>
-                  <mat-select formControlName="supplyId">
-                    @for (supply of data.supplies; track supply.id) {
-                      <mat-option [value]="supply.id">
-                        {{ supply.product }}
+                  <mat-select formControlName="costId">
+                    @for (cost of data.costs; track cost.id) {
+                      <mat-option [value]="cost.id">
+                        {{ cost.product }}
                       </mat-option>
                     }
                   </mat-select>
@@ -126,7 +126,7 @@ interface DialogData {
       align-items: flex-start;
     }
 
-    .supply-field {
+    .cost-field {
       flex: 2;
     }
 
@@ -148,7 +148,7 @@ interface DialogData {
         flex-wrap: wrap;
       }
 
-      .supply-field,
+      .cost-field,
       .quantity-field {
         flex: 1 1 100%;
       }
@@ -171,7 +171,7 @@ export class DoughDialog implements OnInit {
 
     if (this.data.dough?.ingredients) {
       this.data.dough.ingredients.forEach(ingredient => {
-        this.ingredients.push(this.createIngredient(ingredient.supplyId, ingredient.quantity));
+        this.ingredients.push(this.createIngredient(ingredient.costId, ingredient.quantity));
       });
     } else {
       this.addIngredient();
@@ -182,9 +182,9 @@ export class DoughDialog implements OnInit {
     return this.form.get('ingredients') as FormArray;
   }
 
-  createIngredient(supplyId: string = '', quantity: number = 0): FormGroup {
+  createIngredient(costId: string = '', quantity: number = 0): FormGroup {
     return this.fb.group({
-      supplyId: [supplyId, Validators.required],
+      costId: [costId, Validators.required],
       quantity: [quantity, [Validators.required, Validators.min(0.01)]]
     });
   }

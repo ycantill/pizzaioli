@@ -5,16 +5,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Supply } from '../models/supply.model';
+import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
 
-export interface SupplyDialogData {
-  supply?: Supply;
+export interface CostDialogData {
+  cost?: Cost;
   units: Unit[];
 }
 
 @Component({
-  selector: 'app-supply-dialog',
+  selector: 'app-cost-dialog',
   imports: [
     MatDialogModule,
     MatFormFieldModule,
@@ -24,7 +24,7 @@ export interface SupplyDialogData {
     ReactiveFormsModule
   ],
   template: `
-    <h2 mat-dialog-title>{{ data.supply ? 'Editar' : 'Nueva' }} Provisión</h2>
+    <h2 mat-dialog-title>{{ data.cost ? 'Editar' : 'Nuevo' }} Costo</h2>
     <mat-dialog-content>
       <form [formGroup]="form">
         <mat-form-field appearance="outline" class="full-width">
@@ -64,7 +64,7 @@ export interface SupplyDialogData {
       <button mat-flat-button color="primary" 
               (click)="onSave()" 
               [disabled]="!form.valid">
-        {{ data.supply ? 'Guardar' : 'Crear' }}
+        {{ data.cost ? 'Guardar' : 'Crear' }}
       </button>
     </mat-dialog-actions>
   `,
@@ -84,15 +84,15 @@ export interface SupplyDialogData {
     }
   `]
 })
-export class SupplyDialog {
-  data: SupplyDialogData = inject(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<SupplyDialog>);
+export class CostDialog {
+  data: CostDialogData = inject(MAT_DIALOG_DATA);
+  private dialogRef = inject(MatDialogRef<CostDialog>);
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
-    product: [this.data.supply?.product || '', Validators.required],
-    value: [this.data.supply?.value || 0, [Validators.required, Validators.min(0.01)]],
-    unitId: [this.data.supply?.unitId || '', Validators.required]
+    product: [this.data.cost?.product || '', Validators.required],
+    value: [this.data.cost?.value || 0, [Validators.required, Validators.min(0.01)]],
+    unitId: [this.data.cost?.unitId || '', Validators.required]
   });
 
   onCancel(): void {
@@ -101,11 +101,11 @@ export class SupplyDialog {
 
   onSave(): void {
     if (this.form.valid) {
-      const supply: Supply = {
-        ...this.data.supply,
+      const cost: Cost = {
+        ...this.data.cost,
         ...this.form.value as { product: string; value: number; unitId: string }
       };
-      this.dialogRef.close(supply);
+      this.dialogRef.close(cost);
     }
   }
 }
