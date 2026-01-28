@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
 import { Cost } from '../models/cost.model';
+import { CostType } from '../models/cost-type.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -30,18 +31,37 @@ export class Doughs implements OnInit {
   
   doughs = signal<Dough[]>([]);
   costs = signal<Cost[]>([]);
+  costTypes = signal<CostType[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['name', 'ingredients', 'actions'];
 
   async ngOnInit() {
+    await this.loadCostTypes();
     await this.loadCosts();
     await this.loadDoughs();
   }
 
+  async loadCostTypes() {
+    try {
+      const data = await this.firestoreService.getDocuments('cost-types');
+      this.costTypes.set(data as CostType[]);
+    } catch (error) {
+      console.error('Error loading cost types:', error);
+    }
+  }
+
   async loadCosts() {
     try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
+      const allCosts = await this.firestoreService.getDocuments('costs') as Cost[];
+      const types = this.costTypes();
+      const ingredienteType = types.find(t => t.name.toLowerCase() === 'ingrediente');
+      
+      // Filtrar solo ingredientes
+      const ingredientCosts = ingredienteType 
+        ? allCosts.filter(cost => cost.typeId === ingredienteType.id)
+        : allCosts;
+      
+      this.costs.set(ingredientCosts);
     } catch (error) {
       console.error('Error loading costs:', error);
     }
