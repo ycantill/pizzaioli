@@ -6,5 +6,6 @@ export interface RecipeIngredient {
 export interface Recipe {
   id?: string;
   name: string;
+  recipeTypeId: string;
   ingredients: RecipeIngredient[];
 }

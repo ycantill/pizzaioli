@@ -8,10 +8,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Recipe, RecipeIngredient } from '../models/recipe.model';
 import { Cost } from '../models/cost.model';
+import { RecipeType } from '../models/recipe-type.model';
 
 export interface RecipeDialogData {
   recipe?: Recipe;
   costs: Cost[];
+  recipeTypes: RecipeType[];
 }
 
 @Component({
@@ -34,6 +36,18 @@ export interface RecipeDialogData {
           <input matInput formControlName="name" placeholder="Ej: Pizza Margherita">
           @if (form.get('name')?.hasError('required')) {
             <mat-error>El nombre es requerido</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tipo de Receta</mat-label>
+          <mat-select formControlName="recipeTypeId">
+            @for (type of data.recipeTypes; track type.id) {
+              <mat-option [value]="type.id">{{ type.name }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('recipeTypeId')?.hasError('required')) {
+            <mat-error>El tipo de receta es requerido</mat-error>
           }
         </mat-form-field>
 
@@ -172,6 +186,7 @@ export class RecipeDialog {
 
   form = this.fb.group({
     name: [this.data.recipe?.name || '', Validators.required],
+    recipeTypeId: [this.data.recipe?.recipeTypeId || '', Validators.required],
     ingredients: this.fb.array(
       this.data.recipe?.ingredients?.length 
         ? this.data.recipe.ingredients.map(ing => this.createIngredientGroup(ing))
@@ -228,6 +243,7 @@ export class RecipeDialog {
       const formValue = this.form.value;
       const recipe: Recipe = {
         name: formValue.name!,
+        recipeTypeId: formValue.recipeTypeId!,
         ingredients: formValue.ingredients as RecipeIngredient[]
       };
       this.dialogRef.close(recipe);

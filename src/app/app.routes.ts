@@ -7,11 +7,13 @@ import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
 import { Prices } from './prices/prices';
 import { CostTypes } from './cost-types/cost-types';
+import { RecipeTypes } from './recipe-types/recipe-types';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/costs', pathMatch: 'full' },
   { path: 'costs', component: Costs },
   { path: 'cost-types', component: CostTypes },
+  { path: 'recipe-types', component: RecipeTypes },
   { path: 'margins', component: Margins },
   { path: 'units', component: Units },
   { path: 'doughs', component: Doughs },

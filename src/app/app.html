@@ -51,6 +51,13 @@
         <span matListItemTitle>Recetas</span>
       </a>
       <a mat-list-item 
+         routerLink="/recipe-types" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>local_pizza</mat-icon>
+        <span matListItemTitle>Tipos de Receta</span>
+      </a>
+      <a mat-list-item 
          routerLink="/prices" 
          routerLinkActive="active"
          (click)="toggleMenu()">

@@ -65,6 +65,17 @@
   color: #333;
 }
 
+.recipe-type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
 .dough-chip {
   background-color: #ff6f00 !important;
   color: white !important;

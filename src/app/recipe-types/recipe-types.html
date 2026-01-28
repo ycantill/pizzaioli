@@ -1,0 +1,35 @@
+<div class="page-header">
+  <h1 class="page-title">Tipos de Receta</h1>
+  <button mat-fab extended color="primary" (click)="openDialog()">
+    <mat-icon>add</mat-icon>
+    <span class="button-text">Nuevo Tipo</span>
+  </button>
+</div>
+
+<div class="container">
+  <mat-card>
+    <mat-card-content>
+      <table mat-table [dataSource]="recipeTypes()" class="full-width-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let recipeType">{{ recipeType.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+          <td mat-cell *matCellDef="let recipeType" class="actions-column">
+            <button mat-icon-button color="primary" (click)="openDialog(recipeType)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteRecipeType(recipeType.id!)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

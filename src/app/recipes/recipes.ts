@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Recipe } from '../models/recipe.model';
 import { Cost } from '../models/cost.model';
 import { CostType } from '../models/cost-type.model';
+import { RecipeType } from '../models/recipe-type.model';
 import { FirestoreService } from '../firestore.service';
 import { RecipeDialog } from './recipe-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -33,11 +34,13 @@ export class Recipes implements OnInit {
   recipes = signal<Recipe[]>([]);
   costs = signal<Cost[]>([]);
   costTypes = signal<CostType[]>([]);
+  recipeTypes = signal<RecipeType[]>([]);
   loading = signal(true);
-  displayedColumns: string[] = ['name', 'ingredients', 'actions'];
+  displayedColumns: string[] = ['name', 'type', 'ingredients', 'actions'];
 
   async ngOnInit() {
     await this.loadCostTypes();
+    await this.loadRecipeTypes();
     await this.loadCosts();
     await this.loadRecipes();
   }
@@ -48,6 +51,15 @@ export class Recipes implements OnInit {
       this.costTypes.set(data as CostType[]);
     } catch (error) {
       console.error('Error loading cost types:', error);
+    }
+  }
+
+  async loadRecipeTypes() {
+    try {
+      const data = await this.firestoreService.getDocuments('recipe-types');
+      this.recipeTypes.set(data as RecipeType[]);
+    } catch (error) {
+      console.error('Error loading recipe types:', error);
     }
   }
 
@@ -85,11 +97,16 @@ export class Recipes implements OnInit {
     return cost ? cost.product : 'Desconocido';
   }
 
+  getRecipeTypeName(recipeTypeId: string): string {
+    const type = this.recipeTypes().find(t => t.id === recipeTypeId);
+    return type ? type.name : 'Desconocido';
+  }
+
   addRecipe() {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { costs: this.costs() }
+      data: { costs: this.costs(), recipeTypes: this.recipeTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
@@ -108,7 +125,7 @@ export class Recipes implements OnInit {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { recipe, costs: this.costs() }
+      data: { recipe, costs: this.costs(), recipeTypes: this.recipeTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
