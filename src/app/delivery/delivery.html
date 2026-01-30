@@ -1,0 +1,50 @@
+<div class="page-header">
+  <h1 class="page-title">Configuración de Delivery</h1>
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    @for (recipeType of recipeTypes(); track recipeType.id) {
+      <mat-card class="delivery-card">
+        <mat-card-header>
+          <mat-card-title>
+            <div class="card-title-content">
+              <mat-icon class="title-icon">local_shipping</mat-icon>
+              <span>{{ recipeType.name }}</span>
+            </div>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (getDeliveryForType(recipeType.id!); as delivery) {
+            <div class="items-list">
+              @for (item of delivery.items; track $index) {
+                <div class="item-row">
+                  <span class="item-name">{{ getCostName(item.costId) }}</span>
+                  <span class="item-quantity">{{ item.quantity }} unidades</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="no-config">Sin configuración</p>
+          }
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" (click)="openDialog(recipeType)">
+            <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
+            {{ getDeliveryForType(recipeType.id!) ? 'Editar' : 'Configurar' }}
+          </button>
+          @if (getDeliveryForType(recipeType.id!); as delivery) {
+            <button mat-button color="warn" (click)="deleteDelivery(delivery.id!)">
+              <mat-icon>delete</mat-icon>
+              Eliminar
+            </button>
+          }
+        </mat-card-actions>
+      </mat-card>
+    }
+  }
+</div>

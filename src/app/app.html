@@ -58,6 +58,13 @@
         <span matListItemTitle>Tipos de Receta</span>
       </a>
       <a mat-list-item 
+         routerLink="/delivery" 
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>local_shipping</mat-icon>
+        <span matListItemTitle>Delivery</span>
+      </a>
+      <a mat-list-item 
          routerLink="/prices" 
          routerLinkActive="active"
          (click)="toggleMenu()">

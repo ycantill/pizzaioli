@@ -8,12 +8,14 @@ import { Margins } from './margins/margins';
 import { Prices } from './prices/prices';
 import { CostTypes } from './cost-types/cost-types';
 import { RecipeTypes } from './recipe-types/recipe-types';
+import { DeliveryConfig } from './delivery/delivery';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/costs', pathMatch: 'full' },
   { path: 'costs', component: Costs },
   { path: 'cost-types', component: CostTypes },
   { path: 'recipe-types', component: RecipeTypes },
+  { path: 'delivery', component: DeliveryConfig },
   { path: 'margins', component: Margins },
   { path: 'units', component: Units },
   { path: 'doughs', component: Doughs },

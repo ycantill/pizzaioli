@@ -13,6 +13,7 @@ import { Recipe } from '../models/recipe.model';
 import { Cost } from '../models/cost.model';
 import { Margin } from '../models/margin.model';
 import { Unit } from '../models/unit.model';
+import { Delivery } from '../models/delivery.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 
@@ -51,6 +52,7 @@ export class Prices implements OnInit {
   costs = signal<Cost[]>([]);
   margins = signal<Margin[]>([]);
   units = signal<Unit[]>([]);
+  deliveries = signal<Delivery[]>([]);
 
   selectedDoughId = signal<string | null>(null);
   selectedRecipeId = signal<string | null>(null);
@@ -81,7 +83,8 @@ export class Prices implements OnInit {
       this.loadRecipes(),
       this.loadCosts(),
       this.loadMargins(),
-      this.loadUnits()
+      this.loadUnits(),
+      this.loadDeliveries()
     ]);
   }
 
@@ -135,6 +138,15 @@ export class Prices implements OnInit {
       this.units.set(data as Unit[]);
     } catch (error) {
       console.error('Error loading units:', error);
+    }
+  }
+
+  async loadDeliveries() {
+    try {
+      const data = await this.firestoreService.getDocuments('deliveries');
+      this.deliveries.set(data as Delivery[]);
+    } catch (error) {
+      console.error('Error loading deliveries:', error);
     }
   }
 
@@ -241,6 +253,45 @@ export class Prices implements OnInit {
     });
   });
 
+  deliveryItems = computed<IngredientCost[]>(() => {
+    const recipe = this.selectedRecipe();
+    if (!recipe || !recipe.recipeTypeId) return [];
+
+    const delivery = this.deliveries().find(d => d.recipeTypeId === recipe.recipeTypeId);
+    if (!delivery) return [];
+
+    const qty = this.quantity();
+    const margins = this.ingredientMargins();
+    const defaultMargin = 30;
+
+    return delivery.items.map(item => {
+      const cost = this.costs().find(c => c.id === item.costId);
+      const unitCost = cost ? cost.value : 0;
+      
+      // Multiply item quantity by number of pizzas
+      const totalQuantity = item.quantity * qty;
+      const totalCost = cost ? cost.value * totalQuantity : 0;
+      
+      // Prioridad: 1) Map (editado por usuario), 2) Firestore, 3) default
+      let margin = margins.get(item.costId);
+      if (margin === undefined) {
+        const marginData = this.margins().find(m => m.costId === item.costId);
+        margin = marginData 
+          ? marginData.recoveryPercentage + marginData.reinvestmentPercentage + marginData.profitPercentage
+          : defaultMargin;
+      }
+      
+      return {
+        costId: item.costId,
+        name: cost?.product || 'Desconocido',
+        quantity: totalQuantity,
+        unitCost: unitCost,
+        totalCost: Math.round(totalCost * 100) / 100,
+        margin: margin
+      };
+    });
+  });
+
   // Costos base sin márgenes
   doughCost = computed(() => {
     return this.doughIngredients().reduce((sum, ing) => sum + ing.totalCost, 0);
@@ -250,8 +301,12 @@ export class Prices implements OnInit {
     return this.recipeIngredients().reduce((sum, ing) => sum + ing.totalCost, 0);
   });
 
+  deliveryCost = computed(() => {
+    return this.deliveryItems().reduce((sum, item) => sum + item.totalCost, 0);
+  });
+
   baseCost = computed(() => {
-    return this.doughCost() + this.recipeCost();
+    return this.doughCost() + this.recipeCost() + this.deliveryCost();
   });
 
   // Costos con márgenes aplicados
@@ -269,8 +324,15 @@ export class Prices implements OnInit {
     }, 0);
   });
 
+  deliveryCostWithMargin = computed(() => {
+    return this.deliveryItems().reduce((sum, item) => {
+      const costWithMargin = item.totalCost * (item.margin / 100);
+      return sum + costWithMargin;
+    }, 0);
+  });
+
   totalCostPerUnit = computed(() => {
-    return this.doughCostWithMargin() + this.recipeCostWithMargin();
+    return this.doughCostWithMargin() + this.recipeCostWithMargin() + this.deliveryCostWithMargin();
   });
 
   // Margen total aplicado (diferencia entre precio final y costo base)
