@@ -12,7 +12,6 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-cost-types',
-  standalone: true,
   imports: [
     MatTableModule,
     MatButtonModule,
