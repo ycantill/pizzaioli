@@ -33,7 +33,6 @@ export class Doughs implements OnInit {
   costs = signal<Cost[]>([]);
   costTypes = signal<CostType[]>([]);
   loading = signal(true);
-  migrating = signal(false);
   displayedColumns: string[] = ['name', 'ballWeight', 'ingredients', 'actions'];
 
   async ngOnInit() {
@@ -77,27 +76,6 @@ export class Doughs implements OnInit {
       console.error('Error loading doughs:', error);
     } finally {
       this.loading.set(false);
-    }
-  }
-
-  async migrateDefaultBallWeight() {
-    try {
-      this.migrating.set(true);
-      let updated = 0;
-
-      for (const dough of this.doughs()) {
-        if (dough.id && !dough.ballWeight) {
-          await this.firestoreService.updateDocument('doughs', dough.id, { ballWeight: 250 });
-          updated++;
-        }
-      }
-
-      console.log(`Migración completada: ${updated} masas actualizadas con peso por defecto de 250g`);
-      await this.loadDoughs();
-    } catch (error) {
-      console.error('Error en migración:', error);
-    } finally {
-      this.migrating.set(false);
     }
   }
 

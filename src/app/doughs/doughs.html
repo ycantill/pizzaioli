@@ -1,12 +1,6 @@
 <div class="page-header">
   <h1 class="page-title">Masas</h1>
   <div class="header-actions">
-    <button mat-stroked-button color="accent" 
-            (click)="migrateDefaultBallWeight()" 
-            [disabled]="migrating()">
-      <mat-icon>sync</mat-icon>
-      {{ migrating() ? 'Migrando...' : 'Migrar Peso' }}
-    </button>
     <button mat-fab extended (click)="addDough()" class="add-button">
       <mat-icon>add</mat-icon>
       <span class="button-text">Nueva</span>
