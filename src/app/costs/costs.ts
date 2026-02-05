@@ -94,6 +94,15 @@ export class Costs implements OnInit {
         try {
           const docRef = await this.firestoreService.addDocument('costs', result);
           this.costs.update(list => [...list, { ...result, id: docRef.id }]);
+          
+          // Crear margen por defecto para el nuevo costo
+          const defaultMargin = {
+            costId: docRef.id,
+            recoveryPercentage: 100,
+            reinvestmentPercentage: 100,
+            profitPercentage: 100
+          };
+          await this.firestoreService.addDocument('margins', defaultMargin);
         } catch (error) {
           console.error('Error adding cost:', error);
         }
