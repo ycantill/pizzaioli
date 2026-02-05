@@ -181,7 +181,7 @@ export class Prices implements OnInit {
     const calculatedIngredients = this.doughCalcService.calculateIngredientQuantities(
       dough,
       this.doughBallWeight(),
-      this.quantity(),
+      1, // Always calculate for 1 unit
       this.costs()
     );
 
@@ -219,7 +219,6 @@ export class Prices implements OnInit {
     const recipe = this.selectedRecipe();
     if (!recipe) return [];
 
-    const qty = this.quantity();
     const margins = this.ingredientMargins();
     const defaultMargin = 30;
 
@@ -227,10 +226,9 @@ export class Prices implements OnInit {
       const cost = this.costs().find(c => c.id === ingredient.costId);
       const unitCost = cost ? cost.value : 0;
       
-      // Multiply ingredient quantity by number of pizzas
-      const totalQuantity = ingredient.quantity * qty;
+      // Calculate for 1 unit only
       const totalCost = cost 
-        ? this.doughCalcService.calculateIngredientCost(totalQuantity, cost, this.units())
+        ? this.doughCalcService.calculateIngredientCost(ingredient.quantity, cost, this.units())
         : 0;
       
       // Prioridad: 1) Map (editado por usuario), 2) Firestore, 3) default
@@ -245,7 +243,7 @@ export class Prices implements OnInit {
       return {
         costId: ingredient.costId,
         name: cost?.product || 'Desconocido',
-        quantity: totalQuantity,
+        quantity: ingredient.quantity,
         unitCost: unitCost,
         totalCost: Math.round(totalCost * 100) / 100,
         margin: margin
@@ -260,7 +258,6 @@ export class Prices implements OnInit {
     const delivery = this.deliveries().find(d => d.recipeTypeId === recipe.recipeTypeId);
     if (!delivery) return [];
 
-    const qty = this.quantity();
     const margins = this.ingredientMargins();
     const defaultMargin = 30;
 
@@ -268,9 +265,8 @@ export class Prices implements OnInit {
       const cost = this.costs().find(c => c.id === item.costId);
       const unitCost = cost ? cost.value : 0;
       
-      // Multiply item quantity by number of pizzas
-      const totalQuantity = item.quantity * qty;
-      const totalCost = cost ? cost.value * totalQuantity : 0;
+      // Calculate for 1 unit only
+      const totalCost = cost ? cost.value * item.quantity : 0;
       
       // Prioridad: 1) Map (editado por usuario), 2) Firestore, 3) default
       let margin = margins.get(item.costId);
@@ -284,7 +280,7 @@ export class Prices implements OnInit {
       return {
         costId: item.costId,
         name: cost?.product || 'Desconocido',
-        quantity: totalQuantity,
+        quantity: item.quantity,
         unitCost: unitCost,
         totalCost: Math.round(totalCost * 100) / 100,
         margin: margin
@@ -405,13 +401,12 @@ export class Prices implements OnInit {
   });
 
   hasSelection = computed(() => {
-    return this.selectedDoughId() !== null && this.selectedRecipeId() !== null;
+    return this.selectedDoughId() !== null;
   });
 
   reset() {
     this.selectedDoughId.set(null);
     this.selectedRecipeId.set(null);
-    this.quantity.set(1);
     this.ingredientMargins.set(new Map());
   }
 

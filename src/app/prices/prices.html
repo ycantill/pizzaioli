@@ -43,6 +43,14 @@
                  (ngModelChange)="doughBallWeight.set($event)"
                  min="1">
         </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cantidad de bollos</mat-label>
+          <input matInput type="number" 
+                 [ngModel]="quantity()" 
+                 (ngModelChange)="quantity.set($event)"
+                 min="1">
+        </mat-form-field>
       </div>
     </mat-card-content>
   </mat-card>
@@ -132,6 +140,7 @@
     </mat-card>
 
     <!-- Recipe Ingredients Card -->
+    @if (selectedRecipeId()) {
     <mat-card class="detail-card">
       <mat-card-header>
         <mat-card-title>
@@ -213,9 +222,10 @@
         </div>
       </mat-card-content>
     </mat-card>
+    }
 
     <!-- Delivery Items Card -->
-    @if (deliveryItems().length > 0) {
+    @if (selectedRecipeId() && deliveryItems().length > 0) {
       <mat-card class="detail-card">
         <mat-card-header>
           <mat-card-title>
@@ -309,7 +319,7 @@
       </mat-card-header>
       <mat-card-content>
         <div class="summary-section">
-          <h3 class="section-title">Por Pizza</h3>
+          <h3 class="section-title">Por Unidad</h3>
           <div class="summary-row">
             <span class="label">Costo de Masa:</span>
             <span class="value">${{ doughCost().toFixed(2) }}</span>
@@ -326,7 +336,7 @@
           }
           <mat-divider></mat-divider>
           <div class="summary-row highlight">
-            <span class="label">Costo Total por Pizza:</span>
+            <span class="label">Costo Total por Unidad:</span>
             <span class="value">${{ baseCost().toFixed(2) }}</span>
           </div>
           
@@ -342,7 +352,7 @@
 
           <mat-divider></mat-divider>
           <div class="summary-row price">
-            <span class="label">Precio de Venta por Pizza:</span>
+            <span class="label">Precio de Venta por Unidad:</span>
             <span class="value">${{ pricePerUnit().toFixed(2) }}</span>
           </div>
         </div>
@@ -350,7 +360,7 @@
         @if (quantity() > 1) {
           <mat-divider class="section-divider"></mat-divider>
           <div class="summary-section">
-            <h3 class="section-title">Total para {{ quantity() }} Pizzas</h3>
+            <h3 class="section-title">Total para {{ quantity() }} Unidades</h3>
             <div class="summary-row">
               <span class="label">Costo Total:</span>
               <span class="value">${{ totalCost().toFixed(2) }}</span>
