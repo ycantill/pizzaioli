@@ -8,43 +8,77 @@
       <mat-spinner></mat-spinner>
     </div>
   } @else {
-    @for (recipeType of recipeTypes(); track recipeType.id) {
-      <mat-card class="delivery-card">
-        <mat-card-header>
-          <mat-card-title>
-            <div class="card-title-content">
-              <mat-icon class="title-icon">local_shipping</mat-icon>
-              <span>{{ recipeType.name }}</span>
-            </div>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          @if (getDeliveryForType(recipeType.id!); as delivery) {
-            <div class="items-list">
-              @for (item of delivery.items; track $index) {
-                <div class="item-row">
-                  <span class="item-name">{{ getCostName(item.costId) }}</span>
-                  <span class="item-quantity">{{ item.quantity }} unidades</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="no-config">Sin configuración</p>
-          }
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-raised-button color="primary" (click)="openDialog(recipeType)">
-            <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
-            {{ getDeliveryForType(recipeType.id!) ? 'Editar' : 'Configurar' }}
-          </button>
-          @if (getDeliveryForType(recipeType.id!); as delivery) {
-            <button mat-button color="warn" (click)="deleteDelivery(delivery.id!)">
-              <mat-icon>delete</mat-icon>
-              Eliminar
+    <div class="desktop-view">
+      <table mat-table [dataSource]="recipeTypes()" class="mat-elevation-z2">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Tipo de Receta</th>
+          <td mat-cell *matCellDef="let recipeType">
+            {{ recipeType.name }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="items">
+          <th mat-header-cell *matHeaderCellDef>Items</th>
+          <td mat-cell *matCellDef="let recipeType">
+            @if (getDeliveryForType(recipeType.id!); as delivery) {
+              <div class="items-summary">
+                @for (item of delivery.items; track $index) {
+                  <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
+                }
+              </div>
+            } @else {
+              <span class="no-config">Sin configuración</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let recipeType">
+            <button mat-icon-button color="primary" (click)="openDialog(recipeType)" 
+                    [matTooltip]="getDeliveryForType(recipeType.id!) ? 'Editar' : 'Configurar'">
+              <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
             </button>
-          }
-        </mat-card-actions>
-      </mat-card>
-    }
+            @if (getDeliveryForType(recipeType.id!); as delivery) {
+              <button mat-icon-button color="warn" (click)="deleteDelivery(delivery.id!)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+
+    <div class="mobile-view">
+      @for (recipeType of recipeTypes(); track recipeType.id) {
+        <div class="delivery-row">
+          <div class="delivery-info">
+            <span class="type-name">{{ recipeType.name }}</span>
+            @if (getDeliveryForType(recipeType.id!); as delivery) {
+              <div class="items-list">
+                @for (item of delivery.items; track $index) {
+                  <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
+                }
+              </div>
+            } @else {
+              <span class="no-config">Sin configuración</span>
+            }
+          </div>
+          <div class="delivery-actions">
+            <button mat-icon-button color="primary" (click)="openDialog(recipeType)">
+              <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
+            </button>
+            @if (getDeliveryForType(recipeType.id!); as delivery) {
+              <button mat-icon-button color="warn" (click)="deleteDelivery(delivery.id!)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
   }
 </div>
