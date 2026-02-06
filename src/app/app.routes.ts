@@ -5,7 +5,6 @@ import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
 import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
-import { Prices } from './prices/prices';
 import { CostTypes } from './cost-types/cost-types';
 import { RecipeTypes } from './recipe-types/recipe-types';
 import { DeliveryConfig } from './delivery/delivery';
@@ -22,6 +21,5 @@ export const routes: Routes = [
   { path: 'units', component: Units },
   { path: 'doughs', component: Doughs },
   { path: 'recipes', component: Recipes },
-  { path: 'prices', component: Prices },
   { path: 'dough-calculator', component: DoughCalculator }
 ];
