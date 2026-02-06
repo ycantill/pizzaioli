@@ -1,0 +1,72 @@
+.container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* Mobile view */
+.mobile-view {
+  display: none;
+}
+
+.consumption-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.consumption-row:last-child {
+  border-bottom: none;
+}
+
+.consumption-info {
+  flex: 1;
+}
+
+.consumption-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 2px;
+}
+
+.service-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.consumption-details {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.consumption-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+  
+  .mobile-view {
+    display: block;
+  }
+}
