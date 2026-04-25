@@ -18,6 +18,8 @@ import { Margin } from '../models/margin.model';
 import { Unit } from '../models/unit.model';
 import { Delivery } from '../models/delivery.model';
 import { Price } from '../models/price.model';
+import { Consumption } from '../models/consumption.model';
+import { Labor } from '../models/labor.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -26,6 +28,15 @@ interface CostLineItem {
   name: string;
   quantity: number;
   unitCost: number;
+  baseCost: number;
+  marginPercent: number;
+  costWithMargin: number;
+}
+
+interface LaborLineItem {
+  name: string;
+  hours: number;
+  costPerHour: number;
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
@@ -61,6 +72,8 @@ export class Prices implements OnInit {
   margins = signal<Margin[]>([]);
   units = signal<Unit[]>([]);
   deliveries = signal<Delivery[]>([]);
+  consumptions = signal<Consumption[]>([]);
+  labors = signal<Labor[]>([]);
   savedPrices = signal<Price[]>([]);
 
   selectedDoughId = signal<string | null>(null);
@@ -72,6 +85,7 @@ export class Prices implements OnInit {
   saving = signal(false);
 
   ingredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin'];
+  laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin'];
   savedPricesColumns: string[] = ['name', 'price', 'actions'];
 
   constructor() {
@@ -88,13 +102,15 @@ export class Prices implements OnInit {
 
   async ngOnInit() {
     try {
-      const [doughs, recipes, costs, margins, units, deliveries, prices] = await Promise.all([
+      const [doughs, recipes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
         this.firestoreService.getDocuments('doughs'),
         this.firestoreService.getDocuments('recipes'),
         this.firestoreService.getDocuments('costs'),
         this.firestoreService.getDocuments('margins'),
         this.firestoreService.getDocuments('units'),
         this.firestoreService.getDocuments('deliveries'),
+        this.firestoreService.getDocuments('consumptions'),
+        this.firestoreService.getDocuments('labors'),
         this.firestoreService.getDocuments('prices')
       ]);
       this.doughs.set(doughs as Dough[]);
@@ -103,6 +119,8 @@ export class Prices implements OnInit {
       this.margins.set(margins as Margin[]);
       this.units.set(units as Unit[]);
       this.deliveries.set(deliveries as Delivery[]);
+      this.consumptions.set(consumptions as Consumption[]);
+      this.labors.set(labors as Labor[]);
       this.savedPrices.set(prices as Price[]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -229,14 +247,92 @@ export class Prices implements OnInit {
     }).filter((item): item is CostLineItem => item !== null);
   });
 
+  matchedLabor = computed(() => {
+    const recipe = this.selectedRecipe();
+    if (!recipe) return null;
+    return this.labors().find(l => l.recipeTypeId === recipe.recipeTypeId) ?? null;
+  });
+
+  laborLineItems = computed<LaborLineItem[]>(() => {
+    const labor = this.matchedLabor();
+    if (!labor) return [];
+
+    const allConsumptions = this.consumptions();
+    const allCosts = this.costs();
+    const allMargins = this.margins();
+
+    return labor.items.map(item => {
+      const consumption = allConsumptions.find(c => c.id === item.consumptionId);
+      if (!consumption) return null;
+
+      const cost = allCosts.find(c => c.id === consumption.costId);
+      if (!cost) return null;
+
+      const hours = item.minutes / 60;
+      const costPerHour = consumption.quantity * cost.value;
+      const baseCost = hours * costPerHour;
+
+      const margin = allMargins.find(m => m.costId === consumption.costId);
+      const totalMargin = margin
+        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
+        : 0;
+      const costWithMargin = baseCost * (totalMargin / 100);
+
+      return {
+        name: consumption.name,
+        hours,
+        costPerHour: Math.round(costPerHour * 100) / 100,
+        baseCost: Math.round(baseCost * 100) / 100,
+        marginPercent: totalMargin,
+        costWithMargin: Math.round(costWithMargin * 100) / 100
+      };
+    }).filter((item): item is LaborLineItem => item !== null);
+  });
+
+  doughSubtotal = computed(() => {
+    const items = this.doughLineItems();
+    return {
+      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
+      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
+    };
+  });
+
+  recipeSubtotal = computed(() => {
+    const items = this.recipeLineItems();
+    return {
+      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
+      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
+    };
+  });
+
+  deliverySubtotal = computed(() => {
+    const items = this.deliveryLineItems();
+    return {
+      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
+      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
+    };
+  });
+
+  laborSubtotal = computed(() => {
+    const items = this.laborLineItems();
+    return {
+      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
+      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
+    };
+  });
+
   totalBaseCost = computed(() => {
-    const all = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
-    return Math.round(all.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100;
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.reduce((sum, item) => sum + item.baseCost, 0);
+    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.baseCost, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   totalWithMargin = computed(() => {
-    const all = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
-    return Math.round(all.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100;
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.reduce((sum, item) => sum + item.costWithMargin, 0);
+    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.costWithMargin, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   suggestedPrice = computed(() => {
@@ -255,6 +351,14 @@ export class Prices implements OnInit {
 
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
+  }
+
+  formatMinutes(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
+    if (hours > 0) return `${hours}h`;
+    return `${minutes}min`;
   }
 
   async savePrice() {

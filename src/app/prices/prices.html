@@ -55,63 +55,28 @@
           <mat-card-title>Ingredientes de Masa</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <!-- Mobile View -->
-          <div class="mobile-view">
-            @for (item of doughLineItems(); track $index) {
-              <mat-card class="item-card">
-                <mat-card-content>
-                  <h3 class="item-name">{{ item.name }}</h3>
-                  <div class="item-details">
-                    <div class="detail-item">
-                      <span class="label">Cantidad:</span>
-                      <span class="value">{{ item.quantity }} g</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo/g:</span>
-                      <span class="value">{{ item.unitCost }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo base:</span>
-                      <span class="value">{{ item.baseCost | number:'1.0-2' }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Margen:</span>
-                      <span class="value" [class.warning]="item.marginPercent === 0">
-                        @if (item.marginPercent === 0) {
-                          Sin margen
-                        } @else {
-                          {{ item.marginPercent }}%
-                        }
-                      </span>
-                    </div>
-                    <div class="detail-item total">
-                      <span class="label">Costo c/ margen:</span>
-                      <span class="value total-value">{{ item.costWithMargin | number:'1.0-2' }}</span>
-                    </div>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-            }
-          </div>
-
-          <!-- Desktop View -->
-          <div class="desktop-view">
-            <table mat-table [dataSource]="doughLineItems()">
+          <table mat-table [dataSource]="doughLineItems()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
                 <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
               </ng-container>
               <ng-container matColumnDef="quantity">
                 <th mat-header-cell *matHeaderCellDef>Cantidad (g)</th>
                 <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="unitCost">
                 <th mat-header-cell *matHeaderCellDef>$/g</th>
                 <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="baseCost">
                 <th mat-header-cell *matHeaderCellDef>Costo Base</th>
                 <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ doughSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <ng-container matColumnDef="margin">
                 <th mat-header-cell *matHeaderCellDef>Margen %</th>
@@ -122,17 +87,21 @@
                     {{ item.marginPercent }}%
                   }
                 </td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="costWithMargin">
                 <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
                 <td mat-cell *matCellDef="let item">
                   <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
                 </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ doughSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
             </table>
-          </div>
         </mat-card-content>
       </mat-card>
     }
@@ -144,63 +113,28 @@
           <mat-card-title>Ingredientes de Receta</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <!-- Mobile View -->
-          <div class="mobile-view">
-            @for (item of recipeLineItems(); track $index) {
-              <mat-card class="item-card">
-                <mat-card-content>
-                  <h3 class="item-name">{{ item.name }}</h3>
-                  <div class="item-details">
-                    <div class="detail-item">
-                      <span class="label">Cantidad:</span>
-                      <span class="value">{{ item.quantity }} g</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo/g:</span>
-                      <span class="value">{{ item.unitCost }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo base:</span>
-                      <span class="value">{{ item.baseCost | number:'1.0-2' }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Margen:</span>
-                      <span class="value" [class.warning]="item.marginPercent === 0">
-                        @if (item.marginPercent === 0) {
-                          Sin margen
-                        } @else {
-                          {{ item.marginPercent }}%
-                        }
-                      </span>
-                    </div>
-                    <div class="detail-item total">
-                      <span class="label">Costo c/ margen:</span>
-                      <span class="value total-value">{{ item.costWithMargin | number:'1.0-2' }}</span>
-                    </div>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-            }
-          </div>
-
-          <!-- Desktop View -->
-          <div class="desktop-view">
-            <table mat-table [dataSource]="recipeLineItems()">
+          <table mat-table [dataSource]="recipeLineItems()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
                 <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
               </ng-container>
               <ng-container matColumnDef="quantity">
                 <th mat-header-cell *matHeaderCellDef>Cantidad (g)</th>
                 <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="unitCost">
                 <th mat-header-cell *matHeaderCellDef>$/g</th>
                 <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="baseCost">
                 <th mat-header-cell *matHeaderCellDef>Costo Base</th>
                 <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ recipeSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <ng-container matColumnDef="margin">
                 <th mat-header-cell *matHeaderCellDef>Margen %</th>
@@ -211,17 +145,21 @@
                     {{ item.marginPercent }}%
                   }
                 </td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="costWithMargin">
                 <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
                 <td mat-cell *matCellDef="let item">
                   <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
                 </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ recipeSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
             </table>
-          </div>
         </mat-card-content>
       </mat-card>
     }
@@ -233,63 +171,28 @@
           <mat-card-title>Items de Delivery</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <!-- Mobile View -->
-          <div class="mobile-view">
-            @for (item of deliveryLineItems(); track $index) {
-              <mat-card class="item-card">
-                <mat-card-content>
-                  <h3 class="item-name">{{ item.name }}</h3>
-                  <div class="item-details">
-                    <div class="detail-item">
-                      <span class="label">Cantidad:</span>
-                      <span class="value">{{ item.quantity }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo/ud:</span>
-                      <span class="value">{{ item.unitCost }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Costo base:</span>
-                      <span class="value">{{ item.baseCost | number:'1.0-2' }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <span class="label">Margen:</span>
-                      <span class="value" [class.warning]="item.marginPercent === 0">
-                        @if (item.marginPercent === 0) {
-                          Sin margen
-                        } @else {
-                          {{ item.marginPercent }}%
-                        }
-                      </span>
-                    </div>
-                    <div class="detail-item total">
-                      <span class="label">Costo c/ margen:</span>
-                      <span class="value total-value">{{ item.costWithMargin | number:'1.0-2' }}</span>
-                    </div>
-                  </div>
-                </mat-card-content>
-              </mat-card>
-            }
-          </div>
-
-          <!-- Desktop View -->
-          <div class="desktop-view">
-            <table mat-table [dataSource]="deliveryLineItems()">
+          <table mat-table [dataSource]="deliveryLineItems()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Item</th>
                 <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
               </ng-container>
               <ng-container matColumnDef="quantity">
                 <th mat-header-cell *matHeaderCellDef>Cantidad</th>
                 <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="unitCost">
                 <th mat-header-cell *matHeaderCellDef>$/ud</th>
                 <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="baseCost">
                 <th mat-header-cell *matHeaderCellDef>Costo Base</th>
                 <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ deliverySubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <ng-container matColumnDef="margin">
                 <th mat-header-cell *matHeaderCellDef>Margen %</th>
@@ -300,17 +203,79 @@
                     {{ item.marginPercent }}%
                   }
                 </td>
+                <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="costWithMargin">
                 <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
                 <td mat-cell *matCellDef="let item">
                   <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
                 </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ deliverySubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
             </table>
-          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Mano de Obra -->
+    @if (laborLineItems().length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Mano de Obra</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="laborLineItems()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Consumo</th>
+                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
+              </ng-container>
+              <ng-container matColumnDef="costPerHour">
+                <th mat-header-cell *matHeaderCellDef>$/h</th>
+                <td mat-cell *matCellDef="let item">{{ item.costPerHour }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="hours">
+                <th mat-header-cell *matHeaderCellDef>Tiempo</th>
+                <td mat-cell *matCellDef="let item">{{ formatMinutes(item.hours * 60) }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="baseCost">
+                <th mat-header-cell *matHeaderCellDef>Costo Base</th>
+                <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ laborSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margen %</th>
+                <td mat-cell *matCellDef="let item" [class.warning]="item.marginPercent === 0">
+                  @if (item.marginPercent === 0) {
+                    Sin margen
+                  } @else {
+                    {{ item.marginPercent }}%
+                  }
+                </td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="costWithMargin">
+                <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ laborSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="laborColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: laborColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="laborColumns" class="subtotal-row"></tr>
+            </table>
         </mat-card-content>
       </mat-card>
     }

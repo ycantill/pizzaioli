@@ -53,66 +53,6 @@ mat-card-header {
   margin-bottom: 16px;
 }
 
-/* Mobile View */
-.mobile-view {
-  display: block;
-}
-
-.item-card {
-  margin-bottom: 12px;
-  background-color: #fafafa;
-}
-
-.item-name {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-}
-
-.item-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.detail-item.total {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.label {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-}
-
-.value {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.value.warning {
-  color: #f44336;
-  font-style: italic;
-}
-
-.total-value {
-  color: #1976d2;
-  font-size: 16px;
-}
-
-/* Desktop View */
-.desktop-view {
-  display: none;
-}
-
 table {
   width: 100%;
 }

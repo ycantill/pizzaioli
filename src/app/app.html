@@ -64,12 +64,19 @@
         <mat-icon matListItemIcon>local_shipping</mat-icon>
         <span matListItemTitle>Delivery</span>
       </a>
-      <a mat-list-item 
-         routerLink="/consumptions" 
+      <a mat-list-item
+         routerLink="/consumptions"
          routerLinkActive="active"
          (click)="toggleMenu()">
         <mat-icon matListItemIcon>inventory_2</mat-icon>
         <span matListItemTitle>Consumos</span>
+      </a>
+      <a mat-list-item
+         routerLink="/labor"
+         routerLinkActive="active"
+         (click)="toggleMenu()">
+        <mat-icon matListItemIcon>engineering</mat-icon>
+        <span matListItemTitle>Mano de Obra</span>
       </a>
       <a mat-list-item
          routerLink="/dough-calculator"

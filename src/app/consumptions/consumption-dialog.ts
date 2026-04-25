@@ -51,7 +51,7 @@ export interface ConsumptionDialogData {
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Cantidad por hora{{ getUnitLabel() }}</mat-label>
+          <mat-label>Consumo en 1 hora{{ getUnitLabel() }}</mat-label>
           <input matInput type="number" formControlName="quantity" min="0.1" step="0.1">
           @if (form.get('quantity')?.hasError('required') && form.get('quantity')?.touched) {
             <mat-error>La cantidad es requerida</mat-error>
