@@ -5,10 +5,12 @@ import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
 import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
-import { Prices } from './prices/prices';
 import { CostTypes } from './cost-types/cost-types';
 import { RecipeTypes } from './recipe-types/recipe-types';
 import { DeliveryConfig } from './delivery/delivery';
+import { Consumptions } from './consumptions/consumptions';
+import { Prices } from './prices/prices';
+import { LaborConfig } from './labor/labor';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/costs', pathMatch: 'full' },
@@ -16,10 +18,12 @@ export const routes: Routes = [
   { path: 'cost-types', component: CostTypes },
   { path: 'recipe-types', component: RecipeTypes },
   { path: 'delivery', component: DeliveryConfig },
+  { path: 'consumptions', component: Consumptions },
   { path: 'margins', component: Margins },
   { path: 'units', component: Units },
   { path: 'doughs', component: Doughs },
   { path: 'recipes', component: Recipes },
+  { path: 'dough-calculator', component: DoughCalculator },
   { path: 'prices', component: Prices },
-  { path: 'dough-calculator', component: DoughCalculator }
+  { path: 'labor', component: LaborConfig }
 ];

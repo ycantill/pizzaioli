@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Delivery } from '../models/delivery.model';
 import { RecipeType } from '../models/recipe-type.model';
@@ -21,7 +22,8 @@ import { DeliveryDialog } from './delivery-dialog';
     MatButtonModule,
     MatIconModule,
     MatTableModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './delivery.html',
   styleUrl: './delivery.css'
@@ -36,6 +38,7 @@ export class DeliveryConfig implements OnInit {
   costTypes = signal<CostType[]>([]);
   units = signal<Unit[]>([]);
   loading = signal(true);
+  displayedColumns: string[] = ['name', 'items', 'actions'];
 
   async ngOnInit() {
     await Promise.all([

@@ -1,60 +1,7 @@
-/* Mobile First Styles */
-
-/* Page Header */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.add-button {
-  height: 40px !important;
-}
-
-.button-text {
-  margin-left: 4px;
-}
-
-/* Container */
-.container {
-  padding: 16px;
-}
-
-/* Loading */
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 64px 0;
-}
-
-/* Mobile View: Cards */
-.mobile-view {
-  display: grid;
-  gap: 16px;
-}
+/* Estilos específicos para cost-types */
 
 .type-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
 }
 
 .type-name {
@@ -62,16 +9,6 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: #1976d2;
-}
-
-.card-actions {
-  display: flex;
-  gap: 4px;
-}
-
-/* Desktop View: Table */
-.desktop-view {
-  display: none;
 }
 
 mat-card-content {
@@ -91,25 +28,3 @@ td.mat-cell {
   color: #666;
 }
 
-/* Tablet and Desktop */
-@media (min-width: 768px) {
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 32px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-}

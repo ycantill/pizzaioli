@@ -1,371 +1,386 @@
 <div class="page-header">
   <h1 class="page-title">Precios</h1>
-  @if (hasSelection()) {
-    <button mat-fab extended (click)="reset()" class="reset-button">
-      <mat-icon>refresh</mat-icon>
-      <span class="button-text">Nuevo</span>
-    </button>
-  }
 </div>
 
 <div class="container">
-  <!-- Configuration Card -->
-  <mat-card class="config-card">
-    <mat-card-header>
-      <mat-card-title>Configuración</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="config-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Masa</mat-label>
-          <mat-select [value]="selectedDoughId()" 
-                      (selectionChange)="selectedDoughId.set($event.value)">
-            @for (dough of doughs(); track dough.id) {
-              <mat-option [value]="dough.id">{{ dough.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
 
-        <mat-form-field appearance="outline">
-          <mat-label>Receta</mat-label>
-          <mat-select [value]="selectedRecipeId()" 
-                      (selectionChange)="selectedRecipeId.set($event.value)">
-            @for (recipe of recipes(); track recipe.id) {
-              <mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Peso por bollo (g)</mat-label>
-          <input matInput type="number" 
-                 [ngModel]="doughBallWeight()" 
-                 (ngModelChange)="doughBallWeight.set($event)"
-                 min="1">
-        </mat-form-field>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  @if (hasSelection()) {
-    <!-- Dough Ingredients Card -->
-    <mat-card class="detail-card">
+    <!-- Configuration Card -->
+    <mat-card class="config-card">
       <mat-card-header>
-        <mat-card-title>
-          <mat-icon class="title-icon">bakery_dining</mat-icon>
-          Costos de Masa: {{ selectedDough()?.name }}
-        </mat-card-title>
+        <mat-card-title>Configuracion</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <!-- Mobile View -->
-        <div class="mobile-view">
-          @for (ingredient of doughIngredients(); track $index) {
-            <div class="ingredient-row-mobile">
-              <div class="ingredient-name">{{ ingredient.name }}</div>
-              <div class="ingredient-details">
-                <span class="detail-item">{{ ingredient.quantity }}g</span>
-                <span class="detail-item">${{ ingredient.unitCost.toFixed(2) }}/kg</span>
-                <span class="detail-item total">${{ ingredient.totalCost.toFixed(2) }}</span>
-              </div>
-              <div class="margin-field">
-                <mat-form-field appearance="outline">
-                  <mat-label>Margen %</mat-label>
-                  <input matInput type="number" 
-                         [value]="ingredient.margin" 
-                         (blur)="updateIngredientMargin(ingredient.costId, $any($event.target).value)"
-                         min="0">
-                </mat-form-field>
-              </div>
-            </div>
-          }
-          <div class="subtotal-row">
-            <span>Subtotal Masa:</span>
-            <span class="subtotal-value">${{ doughCost().toFixed(2) }}</span>
-          </div>
-        </div>
+        <div class="config-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Masa</mat-label>
+            <mat-select [value]="selectedDoughId()"
+                        (selectionChange)="onDoughSelected($event.value)">
+              <mat-option [value]="null">Seleccionar masa</mat-option>
+              @for (dough of doughs(); track dough.id) {
+                <mat-option [value]="dough.id">{{ dough.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <!-- Desktop View -->
-        <div class="desktop-view">
-          <table mat-table [dataSource]="doughIngredients()" class="mat-elevation-z2">
-            <ng-container matColumnDef="ingredient">
-              <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
-              <td mat-cell *matCellDef="let ing">{{ ing.name }}</td>
-            </ng-container>
+          <mat-form-field appearance="outline">
+            <mat-label>Receta</mat-label>
+            <mat-select [value]="selectedRecipeId()"
+                        (selectionChange)="onRecipeSelected($event.value)">
+              <mat-option [value]="null">Seleccionar receta</mat-option>
+              @for (recipe of recipes(); track recipe.id) {
+                <mat-option [value]="recipe.id">{{ recipe.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-            <ng-container matColumnDef="quantity">
-              <th mat-header-cell *matHeaderCellDef>Cantidad</th>
-              <td mat-cell *matCellDef="let ing">{{ ing.quantity }}g</td>
-            </ng-container>
-
-            <ng-container matColumnDef="unitCost">
-              <th mat-header-cell *matHeaderCellDef>Costo/kg</th>
-              <td mat-cell *matCellDef="let ing">${{ ing.unitCost.toFixed(2) }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="totalCost">
-              <th mat-header-cell *matHeaderCellDef>Total</th>
-              <td mat-cell *matCellDef="let ing" class="cost-cell">
-                ${{ ing.totalCost.toFixed(2) }}
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="margin">
-              <th mat-header-cell *matHeaderCellDef>Margen %</th>
-              <td mat-cell *matCellDef="let ing">
-                <input matInput type="number" 
-                       [value]="ing.margin" 
-                       (blur)="updateIngredientMargin(ing.costId, $any($event.target).value)"
-                       min="0"
-                       class="margin-input">
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-          <div class="subtotal-section">
-            <span class="subtotal-label">Subtotal Masa:</span>
-            <span class="subtotal-value">${{ doughCost().toFixed(2) }}</span>
-          </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Peso del bollo (g)</mat-label>
+            <input matInput type="number"
+                   [ngModel]="ballWeight()"
+                   (ngModelChange)="ballWeight.set($event)">
+          </mat-form-field>
         </div>
       </mat-card-content>
     </mat-card>
 
-    <!-- Recipe Ingredients Card -->
-    <mat-card class="detail-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon class="title-icon">restaurant</mat-icon>
-          Costos de Receta: {{ selectedRecipe()?.name }}
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <!-- Mobile View -->
-        <div class="mobile-view">
-          @for (ingredient of recipeIngredients(); track $index) {
-            <div class="ingredient-row-mobile">
-              <div class="ingredient-name">{{ ingredient.name }}</div>
-              <div class="ingredient-details">
-                <span class="detail-item">{{ ingredient.quantity }}g</span>
-                <span class="detail-item">${{ ingredient.unitCost.toFixed(2) }}/kg</span>
-                <span class="detail-item total">${{ ingredient.totalCost.toFixed(2) }}</span>
-              </div>
-              <div class="margin-field">
-                <mat-form-field appearance="outline">
-                  <mat-label>Margen %</mat-label>
-                  <input matInput type="number" 
-                         [value]="ingredient.margin" 
-                         (blur)="updateIngredientMargin(ingredient.costId, $any($event.target).value)"
-                         min="0">
-                </mat-form-field>
-              </div>
-            </div>
-          }
-          <div class="subtotal-row">
-            <span>Subtotal Receta:</span>
-            <span class="subtotal-value">${{ recipeCost().toFixed(2) }}</span>
-          </div>
-        </div>
-
-        <!-- Desktop View -->
-        <div class="desktop-view">
-          <table mat-table [dataSource]="recipeIngredients()" class="mat-elevation-z2">
-            <ng-container matColumnDef="ingredient">
-              <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
-              <td mat-cell *matCellDef="let ing">{{ ing.name }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="quantity">
-              <th mat-header-cell *matHeaderCellDef>Cantidad</th>
-              <td mat-cell *matCellDef="let ing">{{ ing.quantity }}g</td>
-            </ng-container>
-
-            <ng-container matColumnDef="unitCost">
-              <th mat-header-cell *matHeaderCellDef>Costo/kg</th>
-              <td mat-cell *matCellDef="let ing">${{ ing.unitCost.toFixed(2) }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="totalCost">
-              <th mat-header-cell *matHeaderCellDef>Total</th>
-              <td mat-cell *matCellDef="let ing" class="cost-cell">
-                ${{ ing.totalCost.toFixed(2) }}
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="margin">
-              <th mat-header-cell *matHeaderCellDef>Margen %</th>
-              <td mat-cell *matCellDef="let ing">
-                <input matInput type="number" 
-                       [value]="ing.margin" 
-                       (blur)="updateIngredientMargin(ing.costId, $any($event.target).value)"
-                       min="0"
-                       class="margin-input">
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-          <div class="subtotal-section">
-            <span class="subtotal-label">Subtotal Receta:</span>
-            <span class="subtotal-value">${{ recipeCost().toFixed(2) }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Delivery Items Card -->
-    @if (deliveryItems().length > 0) {
-      <mat-card class="detail-card">
+    <!-- Dough Ingredients -->
+    @if (selectedDough() && doughLineItems().length > 0) {
+      <mat-card class="section-card">
         <mat-card-header>
-          <mat-card-title>
-            <mat-icon class="title-icon">local_shipping</mat-icon>
-            Costos de Delivery
-          </mat-card-title>
+          <mat-card-title>Ingredientes de Masa</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <!-- Mobile View -->
-          <div class="mobile-view">
-            @for (item of deliveryItems(); track $index) {
-              <div class="ingredient-row-mobile">
-                <div class="ingredient-name">{{ item.name }}</div>
-                <div class="ingredient-details">
-                  <span class="detail-item">{{ item.quantity }} unidades</span>
-                  <span class="detail-item">${{ item.unitCost.toFixed(2) }}/unidad</span>
-                  <span class="detail-item total">${{ item.totalCost.toFixed(2) }}</span>
-                </div>
-                <div class="margin-field">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Margen %</mat-label>
-                    <input matInput type="number" 
-                           [value]="item.margin" 
-                           (blur)="updateIngredientMargin(item.costId, $any($event.target).value)"
-                           min="0">
-                  </mat-form-field>
-                </div>
-              </div>
-            }
-            <div class="subtotal-row">
-              <span>Subtotal Delivery:</span>
-              <span class="subtotal-value">${{ deliveryCost().toFixed(2) }}</span>
+          <table mat-table [dataSource]="doughLineItems()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
+                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Cantidad (g)</th>
+                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="unitCost">
+                <th mat-header-cell *matHeaderCellDef>$/g</th>
+                <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="baseCost">
+                <th mat-header-cell *matHeaderCellDef>Costo Base</th>
+                <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ doughSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margen %</th>
+                <td mat-cell *matCellDef="let item" [class.warning]="item.marginPercent === 0">
+                  @if (item.marginPercent === 0) {
+                    Sin margen
+                  } @else {
+                    {{ item.marginPercent }}%
+                  }
+                </td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="costWithMargin">
+                <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ doughSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
+            </table>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Recipe Ingredients -->
+    @if (selectedRecipe() && recipeLineItems().length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Ingredientes de Receta</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="recipeLineItems()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
+                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Cantidad (g)</th>
+                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="unitCost">
+                <th mat-header-cell *matHeaderCellDef>$/g</th>
+                <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="baseCost">
+                <th mat-header-cell *matHeaderCellDef>Costo Base</th>
+                <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ recipeSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margen %</th>
+                <td mat-cell *matCellDef="let item" [class.warning]="item.marginPercent === 0">
+                  @if (item.marginPercent === 0) {
+                    Sin margen
+                  } @else {
+                    {{ item.marginPercent }}%
+                  }
+                </td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="costWithMargin">
+                <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ recipeSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
+            </table>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Delivery Items -->
+    @if (matchedDelivery() && deliveryLineItems().length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Items de Delivery</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="deliveryLineItems()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Item</th>
+                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="unitCost">
+                <th mat-header-cell *matHeaderCellDef>$/ud</th>
+                <td mat-cell *matCellDef="let item">{{ item.unitCost }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="baseCost">
+                <th mat-header-cell *matHeaderCellDef>Costo Base</th>
+                <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ deliverySubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margen %</th>
+                <td mat-cell *matCellDef="let item" [class.warning]="item.marginPercent === 0">
+                  @if (item.marginPercent === 0) {
+                    Sin margen
+                  } @else {
+                    {{ item.marginPercent }}%
+                  }
+                </td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="costWithMargin">
+                <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ deliverySubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: ingredientColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="ingredientColumns" class="subtotal-row"></tr>
+            </table>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Mano de Obra -->
+    @if (laborLineItems().length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Mano de Obra</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="laborLineItems()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Consumo</th>
+                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                <td mat-footer-cell *matFooterCellDef><strong>Subtotal:</strong></td>
+              </ng-container>
+              <ng-container matColumnDef="costPerHour">
+                <th mat-header-cell *matHeaderCellDef>$/h</th>
+                <td mat-cell *matCellDef="let item">{{ item.costPerHour }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="hours">
+                <th mat-header-cell *matHeaderCellDef>Tiempo</th>
+                <td mat-cell *matCellDef="let item">{{ formatMinutes(item.hours * 60) }}</td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="baseCost">
+                <th mat-header-cell *matHeaderCellDef>Costo Base</th>
+                <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ laborSubtotal().baseCost | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="margin">
+                <th mat-header-cell *matHeaderCellDef>Margen %</th>
+                <td mat-cell *matCellDef="let item" [class.warning]="item.marginPercent === 0">
+                  @if (item.marginPercent === 0) {
+                    Sin margen
+                  } @else {
+                    {{ item.marginPercent }}%
+                  }
+                </td>
+                <td mat-footer-cell *matFooterCellDef></td>
+              </ng-container>
+              <ng-container matColumnDef="costWithMargin">
+                <th mat-header-cell *matHeaderCellDef>Costo c/ Margen</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+                <td mat-footer-cell *matFooterCellDef>
+                  <strong>{{ laborSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="laborColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: laborColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="laborColumns" class="subtotal-row"></tr>
+            </table>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Summary -->
+    @if (totalBaseCost() > 0) {
+      <mat-card class="summary-card">
+        <mat-card-header>
+          <mat-card-title>Resumen</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span class="summary-label">Costo base total:</span>
+              <span class="summary-value">{{ totalBaseCost() | number:'1.0-2' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Total con margen:</span>
+              <span class="summary-value">{{ totalWithMargin() | number:'1.0-2' }}</span>
+            </div>
+            <div class="summary-row highlight">
+              <span class="summary-label">Precio sugerido:</span>
+              <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>
             </div>
           </div>
 
-          <!-- Desktop View -->
-          <div class="desktop-view">
-            <table mat-table [dataSource]="deliveryItems()" class="mat-elevation-z2">
-              <ng-container matColumnDef="ingredient">
-                <th mat-header-cell *matHeaderCellDef>Item</th>
-                <td mat-cell *matCellDef="let item">{{ item.name }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="quantity">
-                <th mat-header-cell *matHeaderCellDef>Cantidad</th>
-                <td mat-cell *matCellDef="let item">{{ item.quantity }} unidades</td>
-              </ng-container>
-
-              <ng-container matColumnDef="unitCost">
-                <th mat-header-cell *matHeaderCellDef>Costo/Unidad</th>
-                <td mat-cell *matCellDef="let item">${{ item.unitCost.toFixed(2) }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="totalCost">
-                <th mat-header-cell *matHeaderCellDef>Total</th>
-                <td mat-cell *matCellDef="let item" class="cost-cell">
-                  ${{ item.totalCost.toFixed(2) }}
-                </td>
-              </ng-container>
-
-              <ng-container matColumnDef="margin">
-                <th mat-header-cell *matHeaderCellDef>Margen %</th>
-                <td mat-cell *matCellDef="let item">
-                  <input matInput type="number" 
-                         [value]="item.margin" 
-                         (blur)="updateIngredientMargin(item.costId, $any($event.target).value)"
-                         min="0"
-                         class="margin-input">
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-            <div class="subtotal-section">
-              <span class="subtotal-label">Subtotal Delivery:</span>
-              <span class="subtotal-value">${{ deliveryCost().toFixed(2) }}</span>
-            </div>
+          <div class="save-section">
+            <mat-form-field appearance="outline" class="save-name-field">
+              <mat-label>Nombre del precio</mat-label>
+              <input matInput
+                     [ngModel]="priceName()"
+                     (ngModelChange)="priceName.set($event)">
+            </mat-form-field>
+            <button mat-raised-button color="primary"
+                    [disabled]="!canSave()"
+                    (click)="savePrice()"
+                    matTooltip="Guardar precio">
+              <mat-icon>save</mat-icon>
+              Guardar
+            </button>
           </div>
         </mat-card-content>
       </mat-card>
     }
 
-    <!-- Summary Card -->
-    <mat-card class="summary-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon class="title-icon">calculate</mat-icon>
-          Resumen de Precios
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="summary-section">
-          <h3 class="section-title">Por Pizza</h3>
-          <div class="summary-row">
-            <span class="label">Costo de Masa:</span>
-            <span class="value">${{ doughCost().toFixed(2) }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">Costo de Receta:</span>
-            <span class="value">${{ recipeCost().toFixed(2) }}</span>
-          </div>
-          @if (deliveryCost() > 0) {
-            <div class="summary-row">
-              <span class="label">Costo de Delivery:</span>
-              <span class="value">${{ deliveryCost().toFixed(2) }}</span>
-            </div>
-          }
-          <mat-divider></mat-divider>
-          <div class="summary-row highlight">
-            <span class="label">Costo Total por Pizza:</span>
-            <span class="value">${{ baseCost().toFixed(2) }}</span>
-          </div>
-          
-          <div class="summary-row">
-            <span class="label">Margen de Ganancia ({{ totalMarginPercentage().toFixed(2) }}%):</span>
-            <span class="value">${{ marginAmount().toFixed(2) }}</span>
+    <!-- Saved Prices -->
+    @if (savedPrices().length > 0) {
+      <mat-card class="saved-prices-card">
+        <mat-card-header>
+          <mat-card-title>Precios Guardados</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <!-- Mobile View -->
+          <div class="mobile-view">
+            @for (price of savedPrices(); track price.id) {
+              <mat-card class="item-card">
+                <mat-card-content>
+                  <div class="saved-price-row">
+                    <div class="saved-price-info">
+                      <h3 class="item-name">{{ price.name }}</h3>
+                      <span class="saved-price-value">{{ price.price | number:'1.0-0' }}</span>
+                    </div>
+                    <button mat-icon-button color="warn"
+                            (click)="deletePrice(price)"
+                            [attr.aria-label]="'Eliminar precio ' + price.name"
+                            matTooltip="Eliminar">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            }
           </div>
 
-          <div class="summary-row">
-            <span class="label">Redondeo Comercial:</span>
-            <span class="value">${{ commercialRounding().toFixed(2) }}</span>
+          <!-- Desktop View -->
+          <div class="desktop-view">
+            <table mat-table [dataSource]="savedPrices()">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let price">{{ price.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="price">
+                <th mat-header-cell *matHeaderCellDef>Precio</th>
+                <td mat-cell *matCellDef="let price">
+                  <strong>{{ price.price | number:'1.0-0' }}</strong>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let price">
+                  <button mat-icon-button color="warn"
+                          (click)="deletePrice(price)"
+                          [attr.aria-label]="'Eliminar precio ' + price.name"
+                          matTooltip="Eliminar">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="savedPricesColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: savedPricesColumns;"></tr>
+            </table>
           </div>
+        </mat-card-content>
+      </mat-card>
+    }
 
-          <mat-divider></mat-divider>
-          <div class="summary-row price">
-            <span class="label">Precio de Venta por Pizza:</span>
-            <span class="value">${{ pricePerUnit().toFixed(2) }}</span>
-          </div>
-        </div>
-
-        @if (quantity() > 1) {
-          <mat-divider class="section-divider"></mat-divider>
-          <div class="summary-section">
-            <h3 class="section-title">Total para {{ quantity() }} Pizzas</h3>
-            <div class="summary-row">
-              <span class="label">Costo Total:</span>
-              <span class="value">${{ totalCost().toFixed(2) }}</span>
-            </div>
-            <div class="summary-row">
-              <span class="label">Margen Total:</span>
-              <span class="value">${{ totalMargin().toFixed(2) }}</span>
-            </div>
-            <div class="summary-row total">
-              <span class="label">Precio Total de Venta:</span>
-              <span class="value">${{ totalPrice().toFixed(2) }}</span>
-            </div>
-          </div>
-        }
-      </mat-card-content>
-    </mat-card>
   }
 </div>

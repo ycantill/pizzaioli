@@ -1,61 +1,7 @@
-/* Mobile First Styles */
-
-/* Page Header */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.add-button {
-  height: 40px !important;
-}
-
-.button-text {
-  margin-left: 4px;
-}
-
-/* Container */
-.container {
-  padding: 12px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-}
-
-/* Mobile View - Cards */
-.mobile-view {
-  display: block;
-}
+/* Estilos específicos para costs */
 
 .cost-card {
   margin-bottom: 16px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
 }
 
 .product-name {
@@ -63,12 +9,6 @@
   font-size: 16px;
   font-weight: 500;
   flex: 1;
-}
-
-.card-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
 }
 
 .card-details {
@@ -93,45 +33,6 @@
   font-size: 14px;
 }
 
-/* Desktop View - Tabla */
-.desktop-view {
-  display: none;
-}
-
 table {
   width: 100%;
-}
-
-/* Tablets (768px+) */
-@media (min-width: 768px) {
-  .container {
-    padding: 20px;
-  }
-
-  .title {
-    font-size: 20px;
-  }
-
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-
-  .add-button {
-    height: 48px !important;
-  }
-}
-
-/* Desktop (1024px+) */
-@media (min-width: 1024px) {
-  .container {
-    padding: 24px;
-  }
-
-  .title {
-    font-size: 24px;
-  }
 }
