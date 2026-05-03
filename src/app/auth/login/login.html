@@ -1,0 +1,126 @@
+<div class="login-container">
+  <mat-card class="login-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="logo-icon" aria-hidden="true">local_pizza</mat-icon>
+        Pizzaioli
+      </mat-card-title>
+      <mat-card-subtitle>
+        @if (step() === 'phone') {
+          Ingresá tu número de teléfono para continuar
+        } @else {
+          Ingresá el código que te enviamos por SMS
+        }
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (step() === 'phone') {
+        <form [formGroup]="phoneForm" (ngSubmit)="sendCode()" id="phone-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Número de teléfono</mat-label>
+            <mat-icon matPrefix aria-hidden="true">phone</mat-icon>
+            <input
+              matInput
+              formControlName="phone"
+              type="tel"
+              inputmode="numeric"
+              placeholder="3001234567"
+              autocomplete="tel-national"
+              aria-describedby="phone-hint"
+            />
+            @if (phoneForm.get('phone')?.hasError('required')) {
+              <mat-error>El número de teléfono es requerido</mat-error>
+            } @else if (phoneForm.get('phone')?.hasError('pattern')) {
+              <mat-error>Número inválido</mat-error>
+            }
+          </mat-form-field>
+        </form>
+      } @else {
+        <form [formGroup]="otpForm" (ngSubmit)="verifyCode()" id="otp-form">
+          <p class="otp-description">
+            Enviamos un código de 6 dígitos a
+            <strong>{{ phoneForm.value.phone }}</strong>
+          </p>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Código de verificación</mat-label>
+            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+            <input
+              matInput
+              formControlName="code"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="123456"
+              autocomplete="one-time-code"
+              aria-describedby="otp-hint"
+            />
+            @if (otpForm.get('code')?.hasError('required')) {
+              <mat-error>El código es requerido</mat-error>
+            } @else if (otpForm.get('code')?.hasError('pattern')) {
+              <mat-error>El código debe tener 6 dígitos</mat-error>
+            }
+            <mat-hint id="otp-hint">Ingresá los 6 dígitos del SMS</mat-hint>
+          </mat-form-field>
+        </form>
+      }
+
+      @if (error()) {
+        <p class="error-message" role="alert">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          {{ error() }}
+        </p>
+      }
+    </mat-card-content>
+
+    <mat-card-actions>
+      @if (step() === 'phone') {
+        <button
+          mat-flat-button
+          color="primary"
+          class="full-width"
+          type="submit"
+          form="phone-form"
+          [disabled]="loading() || phoneForm.invalid"
+          (click)="sendCode()"
+          aria-label="Enviar código de verificación"
+        >
+          @if (loading()) {
+            <mat-spinner diameter="20" aria-label="Cargando..." />
+          } @else {
+            Enviar código
+          }
+        </button>
+      } @else {
+        <button
+          mat-flat-button
+          color="primary"
+          class="full-width"
+          type="submit"
+          form="otp-form"
+          [disabled]="loading() || otpForm.invalid"
+          (click)="verifyCode()"
+          aria-label="Verificar código"
+        >
+          @if (loading()) {
+            <mat-spinner diameter="20" aria-label="Verificando..." />
+          } @else {
+            Verificar código
+          }
+        </button>
+        <button
+          mat-button
+          class="full-width back-button"
+          [disabled]="loading()"
+          (click)="goBack()"
+          aria-label="Volver a ingresar número de teléfono"
+        >
+          <mat-icon aria-hidden="true">arrow_back</mat-icon>
+          Cambiar número
+        </button>
+      }
+    </mat-card-actions>
+  </mat-card>
+
+  <div id="recaptcha-container" aria-hidden="true"></div>
+</div>
