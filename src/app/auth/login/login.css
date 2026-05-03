@@ -1,0 +1,92 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px !important;
+}
+
+mat-card-header {
+  padding-bottom: 8px;
+}
+
+mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 4px;
+}
+
+.logo-icon {
+  color: #764ba2;
+  font-size: 2rem !important;
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+mat-card-content {
+  padding-top: 16px !important;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.country-prefix {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  user-select: none;
+}
+
+.otp-description {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c62828;
+  font-size: 0.875rem;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background-color: #ffebee;
+  border-radius: 8px;
+}
+
+.error-message mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+mat-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px !important;
+}
+
+.back-button {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
+#recaptcha-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
