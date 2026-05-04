@@ -13,6 +13,7 @@ import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
 import { Recipe } from '../models/recipe.model';
+import { RecipeType } from '../models/recipe-type.model';
 import { Cost } from '../models/cost.model';
 import { Margin } from '../models/margin.model';
 import { Unit } from '../models/unit.model';
@@ -68,6 +69,7 @@ export class Prices implements OnInit {
 
   doughs = signal<Dough[]>([]);
   recipes = signal<Recipe[]>([]);
+  recipeTypes = signal<RecipeType[]>([]);
   costs = signal<Cost[]>([]);
   margins = signal<Margin[]>([]);
   units = signal<Unit[]>([]);
@@ -102,9 +104,10 @@ export class Prices implements OnInit {
 
   async ngOnInit() {
     try {
-      const [doughs, recipes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
+      const [doughs, recipes, recipeTypes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
         this.firestoreService.getDocuments('doughs'),
         this.firestoreService.getDocuments('recipes'),
+        this.firestoreService.getDocuments('recipe-types'),
         this.firestoreService.getDocuments('costs'),
         this.firestoreService.getDocuments('margins'),
         this.firestoreService.getDocuments('units'),
@@ -115,6 +118,7 @@ export class Prices implements OnInit {
       ]);
       this.doughs.set(doughs as Dough[]);
       this.recipes.set(recipes as Recipe[]);
+      this.recipeTypes.set(recipeTypes as RecipeType[]);
       this.costs.set(costs as Cost[]);
       this.margins.set(margins as Margin[]);
       this.units.set(units as Unit[]);
@@ -137,6 +141,12 @@ export class Prices implements OnInit {
   selectedRecipe = computed(() => {
     const id = this.selectedRecipeId();
     return id ? this.recipes().find(r => r.id === id) ?? null : null;
+  });
+
+  selectedRecipeTypeName = computed(() => {
+    const recipe = this.selectedRecipe();
+    if (!recipe) return null;
+    return this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? null;
   });
 
   doughLineItems = computed<CostLineItem[]>(() => {
@@ -351,6 +361,13 @@ export class Prices implements OnInit {
 
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
+    const recipe = recipeId ? this.recipes().find(r => r.id === recipeId) ?? null : null;
+    if (recipe) {
+      const typeName = this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? '';
+      this.priceName.set(typeName ? `${typeName} - ${recipe.name}` : recipe.name);
+    } else {
+      this.priceName.set('');
+    }
   }
 
   formatMinutes(totalMinutes: number): string {
