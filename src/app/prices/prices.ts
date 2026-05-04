@@ -77,6 +77,7 @@ export class Prices implements OnInit {
   consumptions = signal<Consumption[]>([]);
   labors = signal<Labor[]>([]);
   savedPrices = signal<Price[]>([]);
+  sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
 
   selectedDoughId = signal<string | null>(null);
   selectedRecipeId = signal<string | null>(null);
@@ -385,7 +386,15 @@ export class Prices implements OnInit {
 
     this.saving.set(true);
     try {
-      const priceData = { name: this.priceName().trim(), price: this.suggestedPrice() };
+      const priceData: Price = {
+        name: this.priceName().trim(),
+        price: this.suggestedPrice(),
+        doughId: this.selectedDoughId(),
+        recipeId: this.selectedRecipeId(),
+        ballWeight: this.ballWeight(),
+        ajuste: this.ajuste(),
+        ajusteDescription: this.ajusteDescription(),
+      };
       const docRef = await this.firestoreService.addDocument('prices', priceData);
       this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
       this.priceName.set('');
@@ -394,6 +403,15 @@ export class Prices implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  loadPrice(price: Price): void {
+    this.selectedDoughId.set(price.doughId ?? null);
+    this.selectedRecipeId.set(price.recipeId ?? null);
+    this.ballWeight.set(price.ballWeight ?? 250);
+    this.ajuste.set(price.ajuste ?? 0);
+    this.ajusteDescription.set(price.ajusteDescription ?? '');
+    this.priceName.set(price.name);
   }
 
   deletePrice(price: Price) {
