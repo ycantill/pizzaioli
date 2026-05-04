@@ -296,6 +296,10 @@
               <span class="summary-label">Total con margen:</span>
               <span class="summary-value">{{ totalWithMargin() | number:'1.0-2' }}</span>
             </div>
+            <div class="summary-row">
+              <span class="summary-label">Redondeo:</span>
+              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() | number:'1.0-2' }}</span>
+            </div>
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>
               <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>

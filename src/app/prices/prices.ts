@@ -338,7 +338,7 @@ export class Prices implements OnInit {
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil(total / 100) * 100;
+    return Math.ceil(total / 1000) * 1000;
   });
 
   canSave = computed(() => {
