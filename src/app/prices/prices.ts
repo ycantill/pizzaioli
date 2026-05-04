@@ -82,6 +82,8 @@ export class Prices implements OnInit {
   selectedRecipeId = signal<string | null>(null);
   ballWeight = signal(250);
   priceName = signal('');
+  ajuste = signal<number>(0);
+  ajusteDescription = signal('');
 
   loading = signal(true);
   saving = signal(false);
@@ -348,7 +350,7 @@ export class Prices implements OnInit {
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil(total / 1000) * 1000;
+    return Math.ceil((total + this.ajuste()) / 1000) * 1000;
   });
 
   canSave = computed(() => {

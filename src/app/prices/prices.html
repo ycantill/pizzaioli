@@ -298,8 +298,28 @@
             </div>
             <div class="summary-row">
               <span class="summary-label">Redondeo:</span>
-              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() | number:'1.0-2' }}</span>
+              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() - ajuste() | number:'1.0-2' }}</span>
             </div>
+          </div>
+
+          <div class="ajuste-section">
+            <mat-form-field appearance="outline" class="ajuste-field">
+              <mat-label>Ajuste</mat-label>
+              <input matInput type="number"
+                     [ngModel]="ajuste()"
+                     (ngModelChange)="ajuste.set(+$event || 0)">
+              <mat-hint>Valor que se suma antes de redondear</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="ajuste-desc-field">
+              <mat-label>Descripción del ajuste</mat-label>
+              <textarea matInput
+                        rows="3"
+                        [ngModel]="ajusteDescription()"
+                        (ngModelChange)="ajusteDescription.set($event)"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="summary-rows">
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>
               <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>
