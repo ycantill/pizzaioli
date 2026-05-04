@@ -296,10 +296,6 @@
               <span class="summary-label">Total con margen:</span>
               <span class="summary-value">{{ totalWithMargin() | number:'1.0-2' }}</span>
             </div>
-            <div class="summary-row">
-              <span class="summary-label">Redondeo:</span>
-              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() - ajuste() | number:'1.0-2' }}</span>
-            </div>
           </div>
 
           <div class="ajuste-section">
@@ -320,6 +316,16 @@
           </div>
 
           <div class="summary-rows">
+            @if (ajuste() !== 0) {
+              <div class="summary-row">
+                <span class="summary-label">Ajuste:</span>
+                <span class="summary-value">{{ ajuste() | number:'1.0-2' }}</span>
+              </div>
+            }
+            <div class="summary-row">
+              <span class="summary-label">Redondeo:</span>
+              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() - ajuste() | number:'1.0-2' }}</span>
+            </div>
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>
               <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>
