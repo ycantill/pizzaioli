@@ -111,6 +111,24 @@ td.warning {
   color: #1976d2;
 }
 
+/* Ajuste Section */
+.ajuste-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.ajuste-field {
+  width: 100%;
+}
+
+.ajuste-desc-field {
+  width: 100%;
+}
+
 /* Save Section */
 .save-section {
   display: flex;

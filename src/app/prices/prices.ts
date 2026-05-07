@@ -13,6 +13,7 @@ import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
 import { Recipe } from '../models/recipe.model';
+import { RecipeType } from '../models/recipe-type.model';
 import { Cost } from '../models/cost.model';
 import { Margin } from '../models/margin.model';
 import { Unit } from '../models/unit.model';
@@ -68,6 +69,7 @@ export class Prices implements OnInit {
 
   doughs = signal<Dough[]>([]);
   recipes = signal<Recipe[]>([]);
+  recipeTypes = signal<RecipeType[]>([]);
   costs = signal<Cost[]>([]);
   margins = signal<Margin[]>([]);
   units = signal<Unit[]>([]);
@@ -75,11 +77,14 @@ export class Prices implements OnInit {
   consumptions = signal<Consumption[]>([]);
   labors = signal<Labor[]>([]);
   savedPrices = signal<Price[]>([]);
+  sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
 
   selectedDoughId = signal<string | null>(null);
   selectedRecipeId = signal<string | null>(null);
   ballWeight = signal(250);
   priceName = signal('');
+  ajuste = signal<number>(0);
+  ajusteDescription = signal('');
 
   loading = signal(true);
   saving = signal(false);
@@ -102,9 +107,10 @@ export class Prices implements OnInit {
 
   async ngOnInit() {
     try {
-      const [doughs, recipes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
+      const [doughs, recipes, recipeTypes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
         this.firestoreService.getDocuments('doughs'),
         this.firestoreService.getDocuments('recipes'),
+        this.firestoreService.getDocuments('recipe-types'),
         this.firestoreService.getDocuments('costs'),
         this.firestoreService.getDocuments('margins'),
         this.firestoreService.getDocuments('units'),
@@ -115,6 +121,7 @@ export class Prices implements OnInit {
       ]);
       this.doughs.set(doughs as Dough[]);
       this.recipes.set(recipes as Recipe[]);
+      this.recipeTypes.set(recipeTypes as RecipeType[]);
       this.costs.set(costs as Cost[]);
       this.margins.set(margins as Margin[]);
       this.units.set(units as Unit[]);
@@ -137,6 +144,12 @@ export class Prices implements OnInit {
   selectedRecipe = computed(() => {
     const id = this.selectedRecipeId();
     return id ? this.recipes().find(r => r.id === id) ?? null : null;
+  });
+
+  selectedRecipeTypeName = computed(() => {
+    const recipe = this.selectedRecipe();
+    if (!recipe) return null;
+    return this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? null;
   });
 
   doughLineItems = computed<CostLineItem[]>(() => {
@@ -338,7 +351,7 @@ export class Prices implements OnInit {
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil(total / 100) * 100;
+    return Math.ceil((total + this.ajuste()) / 1000) * 1000;
   });
 
   canSave = computed(() => {
@@ -351,6 +364,13 @@ export class Prices implements OnInit {
 
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
+    const recipe = recipeId ? this.recipes().find(r => r.id === recipeId) ?? null : null;
+    if (recipe) {
+      const typeName = this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? '';
+      this.priceName.set(typeName ? `${typeName} - ${recipe.name}` : recipe.name);
+    } else {
+      this.priceName.set('');
+    }
   }
 
   formatMinutes(totalMinutes: number): string {
@@ -366,7 +386,15 @@ export class Prices implements OnInit {
 
     this.saving.set(true);
     try {
-      const priceData = { name: this.priceName().trim(), price: this.suggestedPrice() };
+      const priceData: Price = {
+        name: this.priceName().trim(),
+        price: this.suggestedPrice(),
+        doughId: this.selectedDoughId(),
+        recipeId: this.selectedRecipeId(),
+        ballWeight: this.ballWeight(),
+        ajuste: this.ajuste(),
+        ajusteDescription: this.ajusteDescription(),
+      };
       const docRef = await this.firestoreService.addDocument('prices', priceData);
       this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
       this.priceName.set('');
@@ -375,6 +403,15 @@ export class Prices implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  loadPrice(price: Price): void {
+    this.selectedDoughId.set(price.doughId ?? null);
+    this.selectedRecipeId.set(price.recipeId ?? null);
+    this.ballWeight.set(price.ballWeight ?? 250);
+    this.ajuste.set(price.ajuste ?? 0);
+    this.ajusteDescription.set(price.ajusteDescription ?? '');
+    this.priceName.set(price.name);
   }
 
   deletePrice(price: Price) {

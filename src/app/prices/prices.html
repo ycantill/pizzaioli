@@ -296,6 +296,36 @@
               <span class="summary-label">Total con margen:</span>
               <span class="summary-value">{{ totalWithMargin() | number:'1.0-2' }}</span>
             </div>
+          </div>
+
+          <div class="ajuste-section">
+            <mat-form-field appearance="outline" class="ajuste-field">
+              <mat-label>Ajuste</mat-label>
+              <input matInput type="number"
+                     [ngModel]="ajuste()"
+                     (ngModelChange)="ajuste.set(+$event || 0)">
+              <mat-hint>Valor que se suma antes de redondear</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="ajuste-desc-field">
+              <mat-label>Descripción del ajuste</mat-label>
+              <textarea matInput
+                        rows="3"
+                        [ngModel]="ajusteDescription()"
+                        (ngModelChange)="ajusteDescription.set($event)"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="summary-rows">
+            @if (ajuste() !== 0) {
+              <div class="summary-row">
+                <span class="summary-label">Ajuste:</span>
+                <span class="summary-value">{{ ajuste() | number:'1.0-2' }}</span>
+              </div>
+            }
+            <div class="summary-row">
+              <span class="summary-label">Redondeo:</span>
+              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() - ajuste() | number:'1.0-2' }}</span>
+            </div>
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>
               <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>
@@ -330,7 +360,7 @@
         <mat-card-content>
           <!-- Mobile View -->
           <div class="mobile-view">
-            @for (price of savedPrices(); track price.id) {
+            @for (price of sortedSavedPrices(); track price.id) {
               <mat-card class="item-card">
                 <mat-card-content>
                   <div class="saved-price-row">
@@ -338,12 +368,20 @@
                       <h3 class="item-name">{{ price.name }}</h3>
                       <span class="saved-price-value">{{ price.price | number:'1.0-0' }}</span>
                     </div>
-                    <button mat-icon-button color="warn"
-                            (click)="deletePrice(price)"
-                            [attr.aria-label]="'Eliminar precio ' + price.name"
-                            matTooltip="Eliminar">
-                      <mat-icon>delete</mat-icon>
-                    </button>
+                    <div>
+                      <button mat-icon-button
+                              (click)="loadPrice(price)"
+                              [attr.aria-label]="'Cargar precio ' + price.name"
+                              matTooltip="Cargar">
+                        <mat-icon>upload</mat-icon>
+                      </button>
+                      <button mat-icon-button color="warn"
+                              (click)="deletePrice(price)"
+                              [attr.aria-label]="'Eliminar precio ' + price.name"
+                              matTooltip="Eliminar">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -352,7 +390,7 @@
 
           <!-- Desktop View -->
           <div class="desktop-view">
-            <table mat-table [dataSource]="savedPrices()">
+            <table mat-table [dataSource]="sortedSavedPrices()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Nombre</th>
                 <td mat-cell *matCellDef="let price">{{ price.name }}</td>
@@ -366,6 +404,12 @@
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
                 <td mat-cell *matCellDef="let price">
+                  <button mat-icon-button
+                          (click)="loadPrice(price)"
+                          [attr.aria-label]="'Cargar precio ' + price.name"
+                          matTooltip="Cargar">
+                    <mat-icon>upload</mat-icon>
+                  </button>
                   <button mat-icon-button color="warn"
                           (click)="deletePrice(price)"
                           [attr.aria-label]="'Eliminar precio ' + price.name"
