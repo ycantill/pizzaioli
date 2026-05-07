@@ -32,6 +32,7 @@ interface CostLineItem {
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
+  isRecoveryOnly: boolean;
 }
 
 interface LaborLineItem {
@@ -41,6 +42,7 @@ interface LaborLineItem {
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
+  isRecoveryOnly: boolean;
 }
 
 @Component({
@@ -182,6 +184,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -189,7 +192,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -212,6 +216,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -219,7 +224,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -248,6 +254,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -255,7 +262,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -290,6 +298,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: consumption.name,
@@ -297,7 +306,8 @@ export class Prices implements OnInit {
         costPerHour: Math.round(costPerHour * 100) / 100,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is LaborLineItem => item !== null);
   });
@@ -346,6 +356,50 @@ export class Prices implements OnInit {
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.costWithMargin, 0);
     const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.costWithMargin, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
+  });
+
+  totalMarginAmount = computed(() => {
+    return Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100;
+  });
+
+  totalBaseCostExcludingRecovery = computed(() => {
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
+    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
+  });
+
+  totalWithMarginProfitOnly = computed(() => {
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
+    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
+  });
+
+  totalWithMarginPercent = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round(((this.totalWithMarginProfitOnly() - base) / base) * 10000) / 100;
+  });
+
+  averageWeightedMargin = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round((this.totalWithMarginProfitOnly() / base) * 10000) / 100;
+  });
+
+  totalRecoveryWithMargin = computed(() => {
+    return Math.round((this.totalWithMargin() - this.totalWithMarginProfitOnly()) * 100) / 100;
+  });
+
+  totalProfitAndReinvestmentAmount = computed(() => {
+    return Math.round((this.totalWithMarginProfitOnly() - this.totalBaseCostExcludingRecovery()) * 100) / 100;
+  });
+
+  totalMarginPercent = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round((this.totalMarginAmount() / base) * 10000) / 100;
   });
 
   suggestedPrice = computed(() => {

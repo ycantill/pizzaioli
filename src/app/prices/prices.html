@@ -293,7 +293,29 @@
               <span class="summary-value">{{ totalBaseCost() | number:'1.0-2' }}</span>
             </div>
             <div class="summary-row">
-              <span class="summary-label">Total con margen:</span>
+              <span class="summary-label">Costo base (sin recuperación):</span>
+              <span class="summary-value">{{ totalBaseCostExcludingRecovery() | number:'1.0-2' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Margen ponderado promedio:</span>
+              <span class="summary-value">{{ averageWeightedMargin() | number:'1.0-1' }}%</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Total con ganancia y reinversión:</span>
+              <span class="summary-value">{{ totalWithMarginProfitOnly() | number:'1.0-2' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Monto ganancia y reinversión:</span>
+              <span class="summary-value">{{ totalProfitAndReinvestmentAmount() | number:'1.0-2' }} ({{ totalWithMarginPercent() | number:'1.0-1' }}%)</span>
+            </div>
+            @if (totalRecoveryWithMargin() > 0) {
+              <div class="summary-row">
+                <span class="summary-label">Recuperación (ítems):</span>
+                <span class="summary-value">{{ totalRecoveryWithMargin() | number:'1.0-2' }}</span>
+              </div>
+            }
+            <div class="summary-row">
+              <span class="summary-label">Total antes de ajuste:</span>
               <span class="summary-value">{{ totalWithMargin() | number:'1.0-2' }}</span>
             </div>
           </div>
@@ -329,6 +351,10 @@
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>
               <span class="summary-value price">{{ suggestedPrice() | number:'1.0-0' }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Margen de ganancia total:</span>
+              <span class="summary-value">{{ totalMarginAmount() | number:'1.0-2' }} ({{ totalMarginPercent() | number:'1.0-1' }}%)</span>
             </div>
           </div>
 
