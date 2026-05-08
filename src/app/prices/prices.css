@@ -121,6 +121,12 @@ td.warning {
   border-top: 1px solid #e0e0e0;
 }
 
+.ajuste-mode-group {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
 .ajuste-field {
   width: 100%;
 }
