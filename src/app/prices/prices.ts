@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRadioModule } from '@angular/material/radio';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
@@ -32,6 +33,7 @@ interface CostLineItem {
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
+  isRecoveryOnly: boolean;
 }
 
 interface LaborLineItem {
@@ -41,6 +43,7 @@ interface LaborLineItem {
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
+  isRecoveryOnly: boolean;
 }
 
 @Component({
@@ -57,6 +60,7 @@ interface LaborLineItem {
     MatTableModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatRadioModule,
     DecimalPipe
   ],
   templateUrl: './prices.html',
@@ -85,6 +89,8 @@ export class Prices implements OnInit {
   priceName = signal('');
   ajuste = signal<number>(0);
   ajusteDescription = signal('');
+  ajusteMode = signal<'manual' | 'auto'>('manual');
+  targetMarginPercent = signal<number>(200);
 
   loading = signal(true);
   saving = signal(false);
@@ -182,6 +188,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -189,7 +196,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -212,6 +220,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -219,7 +228,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -248,6 +258,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: cost.product,
@@ -255,7 +266,8 @@ export class Prices implements OnInit {
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is CostLineItem => item !== null);
   });
@@ -290,6 +302,7 @@ export class Prices implements OnInit {
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
       const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
         name: consumption.name,
@@ -297,7 +310,8 @@ export class Prices implements OnInit {
         costPerHour: Math.round(costPerHour * 100) / 100,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
       };
     }).filter((item): item is LaborLineItem => item !== null);
   });
@@ -348,10 +362,67 @@ export class Prices implements OnInit {
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
+  totalMarginAmount = computed(() => {
+    return Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100;
+  });
+
+  totalBaseCostExcludingRecovery = computed(() => {
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
+    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
+  });
+
+  totalWithMarginProfitOnly = computed(() => {
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
+    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
+    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
+  });
+
+  totalWithMarginPercent = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round(((this.totalWithMarginProfitOnly() - base) / base) * 10000) / 100;
+  });
+
+  averageWeightedMargin = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round((this.totalWithMarginProfitOnly() / base) * 10000) / 100;
+  });
+
+  totalRecoveryWithMargin = computed(() => {
+    return Math.round((this.totalWithMargin() - this.totalWithMarginProfitOnly()) * 100) / 100;
+  });
+
+  totalProfitAndReinvestmentAmount = computed(() => {
+    return Math.round((this.totalWithMarginProfitOnly() - this.totalBaseCostExcludingRecovery()) * 100) / 100;
+  });
+
+  totalMarginPercent = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    if (base === 0) return 0;
+    return Math.round((this.totalMarginAmount() / base) * 10000) / 100;
+  });
+
+  autoSuggestedPrice = computed(() => {
+    const base = this.totalBaseCostExcludingRecovery();
+    return Math.round((this.totalBaseCost() + (this.targetMarginPercent() / 100) * base) * 100) / 100;
+  });
+
+  autoAjuste = computed(() => {
+    return Math.round((this.autoSuggestedPrice() - this.totalWithMargin()) * 100) / 100;
+  });
+
+  effectiveAjuste = computed(() =>
+    this.ajusteMode() === 'auto' ? this.autoAjuste() : this.ajuste()
+  );
+
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil((total + this.ajuste()) / 1000) * 1000;
+    return Math.ceil((total + this.effectiveAjuste()) / 1000) * 1000;
   });
 
   canSave = computed(() => {
