@@ -134,10 +134,10 @@ export class MarginDialog {
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
-    costId: [this.data.margin?.costId || '', Validators.required],
-    recoveryPercentage: [this.data.margin?.recoveryPercentage || 100, [Validators.required, Validators.min(0)]],
-    reinvestmentPercentage: [this.data.margin?.reinvestmentPercentage || 100, [Validators.required, Validators.min(0)]],
-    profitPercentage: [this.data.margin?.profitPercentage || 100, [Validators.required, Validators.min(0)]]
+    costId: [this.data.margin?.costId ?? '', Validators.required],
+    recoveryPercentage: [this.data.margin?.recoveryPercentage ?? 100, [Validators.required, Validators.min(0)]],
+    reinvestmentPercentage: [this.data.margin?.reinvestmentPercentage ?? 100, [Validators.required, Validators.min(0)]],
+    profitPercentage: [this.data.margin?.profitPercentage ?? 100, [Validators.required, Validators.min(0)]]
   });
 
   getTotalMargin(): number {
