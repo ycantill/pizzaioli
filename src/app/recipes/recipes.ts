@@ -142,6 +142,30 @@ export class Recipes implements OnInit {
     });
   }
 
+  async copyRecipe(recipe: Recipe) {
+    const copy: Recipe = {
+      name: `${recipe.name} (copia)`,
+      recipeTypeId: recipe.recipeTypeId,
+      ingredients: recipe.ingredients.map(i => ({ ...i }))
+    };
+    const dialogRef = this.dialog.open(RecipeDialog, {
+      width: '600px',
+      maxHeight: '90vh',
+      data: { recipe: copy, costs: this.costs(), recipeTypes: this.recipeTypes() }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
+      if (result) {
+        try {
+          const docRef = await this.firestoreService.addDocument('recipes', result);
+          this.recipes.update(list => [...list, { ...result, id: docRef.id }]);
+        } catch (error) {
+          console.error('Error copying recipe:', error);
+        }
+      }
+    });
+  }
+
   async deleteRecipe(recipe: Recipe) {
     if (!recipe.id) return;
     

@@ -23,6 +23,11 @@
                 <span class="recipe-type-badge">{{ getRecipeTypeName(recipe.recipeTypeId) }}</span>
               </div>
               <div class="card-actions">
+                <button mat-icon-button
+                        (click)="copyRecipe(recipe)"
+                        aria-label="Copiar receta">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
                 <button mat-icon-button color="primary" 
                         (click)="editRecipe(recipe)">
                   <mat-icon>edit</mat-icon>
@@ -87,6 +92,11 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let recipe">
+              <button mat-icon-button
+                      (click)="copyRecipe(recipe)"
+                      aria-label="Copiar receta">
+                <mat-icon>content_copy</mat-icon>
+              </button>
               <button mat-icon-button color="primary" 
                       (click)="editRecipe(recipe)">
                 <mat-icon>edit</mat-icon>
