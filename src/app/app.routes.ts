@@ -11,6 +11,7 @@ import { DeliveryConfig } from './delivery/delivery';
 import { Consumptions } from './consumptions/consumptions';
 import { Prices } from './prices/prices';
 import { LaborConfig } from './labor/labor';
+import { Toppings } from './toppings/toppings';
 import { Login } from './auth/login/login';
 import { authGuard, noAuthGuard } from './auth/auth.guard';
 
@@ -29,4 +30,5 @@ export const routes: Routes = [
   { path: 'dough-calculator', component: DoughCalculator, canActivate: [authGuard] },
   { path: 'prices', component: Prices, canActivate: [authGuard] },
   { path: 'labor', component: LaborConfig, canActivate: [authGuard] },
+  { path: 'toppings', component: Toppings, canActivate: [authGuard] },
 ];
