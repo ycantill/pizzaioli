@@ -8,4 +8,5 @@ export interface Price {
   ajuste?: number;
   ajusteDescription?: string;
   additionToppingIds?: string[];
+  removedIngredientIds?: string[];
 }

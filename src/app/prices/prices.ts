@@ -28,6 +28,7 @@ import { DoughCalculationService } from '../services/dough-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 interface CostLineItem {
+  toppingId?: string;
   name: string;
   quantity: number;
   unitCost: number;
@@ -94,12 +95,14 @@ export class Prices implements OnInit {
   ajusteMode = signal<'manual' | 'auto'>('manual');
   targetMarginPercent = signal<number>(200);
   selectedAdditionIds = signal<string[]>([]);
+  removedIngredientIds = signal<string[]>([]);
   pendingAdditionId = signal<string | null>(null);
 
   loading = signal(true);
   saving = signal(false);
 
   ingredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin'];
+  recipeIngredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'remove'];
   additionColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'remove'];
   laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin'];
   savedPricesColumns: string[] = ['name', 'price', 'actions'];
@@ -216,8 +219,9 @@ export class Prices implements OnInit {
     const allToppings = this.toppings();
     const allCosts = this.costs();
     const allMargins = this.margins();
+    const removed = new Set(this.removedIngredientIds());
 
-    return recipe.toppings.map(toppingId => {
+    return recipe.toppings.filter(id => !removed.has(id)).map(toppingId => {
       const topping = allToppings.find(t => t.id === toppingId);
       if (!topping) return null;
 
@@ -234,6 +238,7 @@ export class Prices implements OnInit {
       const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
+        toppingId,
         name: `${cost.product} (${topping.size})`,
         quantity: topping.quantity,
         unitCost: cost.value,
@@ -242,7 +247,7 @@ export class Prices implements OnInit {
         costWithMargin: Math.round(costWithMargin * 100) / 100,
         isRecoveryOnly
       };
-    }).filter((item): item is CostLineItem => item !== null);
+    }).filter(item => item !== null) as CostLineItem[];
   });
 
   availableSizeSAdditions = computed(() => {
@@ -502,6 +507,7 @@ export class Prices implements OnInit {
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
     this.selectedAdditionIds.set([]);
+    this.removedIngredientIds.set([]);
     this.pendingAdditionId.set(null);
     const recipe = recipeId ? this.recipes().find(r => r.id === recipeId) ?? null : null;
     if (recipe) {
@@ -530,6 +536,10 @@ export class Prices implements OnInit {
     this.selectedAdditionIds.update(ids => ids.filter(id => id !== toppingId));
   }
 
+  removeIngredient(toppingId: string) {
+    this.removedIngredientIds.update(ids => [...ids, toppingId]);
+  }
+
   formatMinutes(totalMinutes: number): string {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -552,6 +562,7 @@ export class Prices implements OnInit {
         ajuste: this.ajuste(),
         ajusteDescription: this.ajusteDescription(),
         additionToppingIds: this.selectedAdditionIds().length ? this.selectedAdditionIds() : undefined,
+        removedIngredientIds: this.removedIngredientIds().length ? this.removedIngredientIds() : undefined,
       };
       const docRef = await this.firestoreService.addDocument('prices', priceData);
       this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
@@ -571,6 +582,7 @@ export class Prices implements OnInit {
     this.ajusteDescription.set(price.ajusteDescription ?? '');
     this.priceName.set(price.name);
     this.selectedAdditionIds.set(price.additionToppingIds ?? []);
+    this.removedIngredientIds.set(price.removedIngredientIds ?? []);
     this.pendingAdditionId.set(null);
   }
 
