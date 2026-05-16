@@ -97,6 +97,60 @@ export class Recipes implements OnInit {
     return type ? type.name : 'Desconocido';
   }
 
+  openPrintWindow() {
+    const allToppings = this.toppings();
+    const allCosts = this.costs();
+
+    const recipesHtml = this.recipes().map(recipe => {
+      const toppingRows = recipe.toppings.map(toppingId => {
+        const topping = allToppings.find(t => t.id === toppingId);
+        if (!topping) return '';
+        const cost = allCosts.find(c => c.id === topping.costId);
+        if (!cost) return '';
+        return `<tr><td>${cost.product}</td><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
+      }).join('');
+
+      return `
+        <div class="recipe">
+          <h2>${recipe.name}</h2>
+          <table>
+            <thead><tr><th>Ingrediente</th><th>Tamaño</th><th>Cantidad</th></tr></thead>
+            <tbody>${toppingRows}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recetas</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { font-size: 1.4rem; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .recipe { border: 1px solid #ccc; border-radius: 4px; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+    .recipe h2 { font-size: 1rem; margin: 0; padding: 8px 10px; background: #f0f0f0; border-bottom: 1px solid #ccc; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+    th { text-align: left; padding: 4px 10px; background: #fafafa; border-bottom: 1px solid #ddd; color: #555; }
+    td { padding: 4px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    @media print { body { padding: 0; } .grid { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+  <h1>Recetas</h1>
+  <div class="grid">${recipesHtml}</div>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
+  }
+
   addRecipe() {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',

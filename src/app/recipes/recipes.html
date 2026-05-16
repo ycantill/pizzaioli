@@ -1,9 +1,15 @@
 <div class="page-header">
   <h1 class="page-title">Recetas</h1>
-  <button mat-fab extended (click)="addRecipe()" class="add-button">
-    <mat-icon>add</mat-icon>
-    <span class="button-text">Nueva</span>
-  </button>
+  <div class="header-actions">
+    <button mat-fab extended (click)="openPrintWindow()" class="print-button">
+      <mat-icon>print</mat-icon>
+      <span class="button-text">Imprimir</span>
+    </button>
+    <button mat-fab extended (click)="addRecipe()" class="add-button">
+      <mat-icon>add</mat-icon>
+      <span class="button-text">Nueva</span>
+    </button>
+  </div>
 </div>
 
 <div class="container">

@@ -75,6 +75,62 @@ export class Toppings implements OnInit {
     return cost ? cost.product : 'Desconocido';
   }
 
+  openPrintWindow() {
+    const allCosts = this.costs();
+    // Group toppings by product
+    const groups = new Map<string, { product: string; rows: string }>();
+    for (const topping of this.toppings()) {
+      const cost = allCosts.find(c => c.id === topping.costId);
+      if (!cost) continue;
+      const key = topping.costId;
+      const row = `<tr><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
+      if (groups.has(key)) {
+        groups.get(key)!.rows += row;
+      } else {
+        groups.set(key, { product: cost.product, rows: row });
+      }
+    }
+
+    const cardsHtml = Array.from(groups.values()).map(g => `
+      <div class="card">
+        <h2>${g.product}</h2>
+        <table>
+          <thead><tr><th>Tamaño</th><th>Cantidad</th></tr></thead>
+          <tbody>${g.rows}</tbody>
+        </table>
+      </div>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Toppings</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { font-size: 1.4rem; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .card { border: 1px solid #ccc; border-radius: 4px; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+    .card h2 { font-size: 0.95rem; margin: 0; padding: 8px 10px; background: #f0f0f0; border-bottom: 1px solid #ccc; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+    th { text-align: left; padding: 4px 10px; background: #fafafa; border-bottom: 1px solid #ddd; color: #555; }
+    td { padding: 4px 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    @media print { body { padding: 0; } .grid { grid-template-columns: repeat(4, 1fr); } }
+  </style>
+</head>
+<body>
+  <h1>Toppings</h1>
+  <div class="grid">${cardsHtml}</div>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
+  }
+
   getUnitAbbreviation(costId: string): string {
     const cost = this.costs().find(c => c.id === costId);
     if (!cost) return '';

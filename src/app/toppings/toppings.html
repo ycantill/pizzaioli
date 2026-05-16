@@ -1,9 +1,15 @@
 <div class="page-header">
   <h1 class="page-title">Toppings</h1>
-  <button mat-fab extended (click)="addTopping()" class="add-button">
-    <mat-icon>add</mat-icon>
-    <span class="button-text">Nuevo</span>
-  </button>
+  <div class="header-actions">
+    <button mat-fab extended (click)="openPrintWindow()" class="print-button">
+      <mat-icon>print</mat-icon>
+      <span class="button-text">Imprimir</span>
+    </button>
+    <button mat-fab extended (click)="addTopping()" class="add-button">
+      <mat-icon>add</mat-icon>
+      <span class="button-text">Nuevo</span>
+    </button>
+  </div>
 </div>
 
 <div class="container">
