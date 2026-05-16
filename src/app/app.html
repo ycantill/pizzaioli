@@ -105,13 +105,6 @@
           <span matListItemTitle>Precios</span>
         </a>
       </mat-nav-list>
-
-      <div class="sidenav-footer">
-        <button mat-button class="sign-out-button" (click)="signOut()" aria-label="Cerrar sesión">
-          <mat-icon aria-hidden="true">logout</mat-icon>
-          Cerrar sesión
-        </button>
-      </div>
     </mat-sidenav>
 
     <!-- Main content -->
@@ -121,6 +114,11 @@
           <mat-icon aria-hidden="true">menu</mat-icon>
         </button>
         <span class="app-title">Pizzaioli</span>
+        <span class="toolbar-spacer"></span>
+        <button mat-button (click)="signOut()" aria-label="Cerrar sesión">
+          <mat-icon aria-hidden="true">logout</mat-icon>
+          Cerrar sesión
+        </button>
       </mat-toolbar>
 
       <div class="content">
