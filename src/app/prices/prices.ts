@@ -22,6 +22,7 @@ import { Delivery } from '../models/delivery.model';
 import { Price } from '../models/price.model';
 import { Consumption } from '../models/consumption.model';
 import { Labor } from '../models/labor.model';
+import { Topping } from '../models/topping.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -80,6 +81,7 @@ export class Prices implements OnInit {
   deliveries = signal<Delivery[]>([]);
   consumptions = signal<Consumption[]>([]);
   labors = signal<Labor[]>([]);
+  toppings = signal<Topping[]>([]);
   savedPrices = signal<Price[]>([]);
   sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
 
@@ -113,7 +115,7 @@ export class Prices implements OnInit {
 
   async ngOnInit() {
     try {
-      const [doughs, recipes, recipeTypes, costs, margins, units, deliveries, consumptions, labors, prices] = await Promise.all([
+      const [doughs, recipes, recipeTypes, costs, margins, units, deliveries, consumptions, labors, prices, toppings] = await Promise.all([
         this.firestoreService.getDocuments('doughs'),
         this.firestoreService.getDocuments('recipes'),
         this.firestoreService.getDocuments('recipe-types'),
@@ -123,7 +125,8 @@ export class Prices implements OnInit {
         this.firestoreService.getDocuments('deliveries'),
         this.firestoreService.getDocuments('consumptions'),
         this.firestoreService.getDocuments('labors'),
-        this.firestoreService.getDocuments('prices')
+        this.firestoreService.getDocuments('prices'),
+        this.firestoreService.getDocuments('toppings')
       ]);
       this.doughs.set(doughs as Dough[]);
       this.recipes.set(recipes as Recipe[]);
@@ -135,6 +138,7 @@ export class Prices implements OnInit {
       this.consumptions.set(consumptions as Consumption[]);
       this.labors.set(labors as Labor[]);
       this.savedPrices.set(prices as Price[]);
+      this.toppings.set(toppings as Topping[]);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -206,16 +210,20 @@ export class Prices implements OnInit {
     const recipe = this.selectedRecipe();
     if (!recipe) return [];
 
+    const allToppings = this.toppings();
     const allCosts = this.costs();
     const allMargins = this.margins();
 
-    return recipe.ingredients.map(ing => {
-      const cost = allCosts.find(c => c.id === ing.costId);
+    return recipe.toppings.map(toppingId => {
+      const topping = allToppings.find(t => t.id === toppingId);
+      if (!topping) return null;
+
+      const cost = allCosts.find(c => c.id === topping.costId);
       if (!cost) return null;
 
-      const baseCost = ing.quantity * cost.value;
+      const baseCost = topping.quantity * cost.value;
 
-      const margin = allMargins.find(m => m.costId === ing.costId);
+      const margin = allMargins.find(m => m.costId === topping.costId);
       const totalMargin = margin
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
         : 0;
@@ -223,8 +231,8 @@ export class Prices implements OnInit {
       const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
       return {
-        name: cost.product,
-        quantity: ing.quantity,
+        name: `${cost.product} (${topping.size})`,
+        quantity: topping.quantity,
         unitCost: cost.value,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,

@@ -4,11 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { Recipe } from '../models/recipe.model';
+import { Topping } from '../models/topping.model';
 import { Cost } from '../models/cost.model';
-import { CostType } from '../models/cost-type.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { FirestoreService } from '../firestore.service';
 import { RecipeDialog } from './recipe-dialog';
@@ -21,8 +20,7 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatProgressSpinnerModule,
-    MatChipsModule
+    MatProgressSpinnerModule
   ],
   templateUrl: './recipes.html',
   styleUrl: './recipes.css'
@@ -32,26 +30,16 @@ export class Recipes implements OnInit {
   private dialog = inject(MatDialog);
   
   recipes = signal<Recipe[]>([]);
+  toppings = signal<Topping[]>([]);
   costs = signal<Cost[]>([]);
-  costTypes = signal<CostType[]>([]);
   recipeTypes = signal<RecipeType[]>([]);
   loading = signal(true);
-  displayedColumns: string[] = ['name', 'type', 'ingredients', 'actions'];
+  displayedColumns: string[] = ['name', 'type', 'toppings', 'actions'];
 
   async ngOnInit() {
-    await this.loadCostTypes();
     await this.loadRecipeTypes();
-    await this.loadCosts();
+    await Promise.all([this.loadCosts(), this.loadToppings()]);
     await this.loadRecipes();
-  }
-
-  async loadCostTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('cost-types');
-      this.costTypes.set(data as CostType[]);
-    } catch (error) {
-      console.error('Error loading cost types:', error);
-    }
   }
 
   async loadRecipeTypes() {
@@ -65,18 +53,19 @@ export class Recipes implements OnInit {
 
   async loadCosts() {
     try {
-      const allCosts = await this.firestoreService.getDocuments('costs') as Cost[];
-      const types = this.costTypes();
-      const ingredienteType = types.find(t => t.name.toLowerCase() === 'ingrediente');
-      
-      // Filtrar solo ingredientes
-      const ingredientCosts = ingredienteType 
-        ? allCosts.filter(cost => cost.typeId === ingredienteType.id)
-        : allCosts;
-      
-      this.costs.set(ingredientCosts);
+      const data = await this.firestoreService.getDocuments('costs');
+      this.costs.set(data as Cost[]);
     } catch (error) {
       console.error('Error loading costs:', error);
+    }
+  }
+
+  async loadToppings() {
+    try {
+      const data = await this.firestoreService.getDocuments('toppings');
+      this.toppings.set(data as Topping[]);
+    } catch (error) {
+      console.error('Error loading toppings:', error);
     }
   }
 
@@ -92,9 +81,15 @@ export class Recipes implements OnInit {
     }
   }
 
-  getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+  getToppingLabel(toppingId: string): string {
+    const topping = this.toppings().find(t => t.id === toppingId);
+    if (!topping) return 'Desconocido';
+    const cost = this.costs().find(c => c.id === topping.costId);
+    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
+  }
+
+  getRecipeItems(recipe: Recipe): string[] {
+    return recipe.toppings.map(id => this.getToppingLabel(id));
   }
 
   getRecipeTypeName(recipeTypeId: string): string {
@@ -106,7 +101,7 @@ export class Recipes implements OnInit {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { costs: this.costs(), recipeTypes: this.recipeTypes() }
+      data: { toppings: this.toppings(), costs: this.costs(), recipeTypes: this.recipeTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
@@ -125,7 +120,7 @@ export class Recipes implements OnInit {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { recipe, costs: this.costs(), recipeTypes: this.recipeTypes() }
+      data: { recipe, toppings: this.toppings(), costs: this.costs(), recipeTypes: this.recipeTypes() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
@@ -137,30 +132,6 @@ export class Recipes implements OnInit {
           );
         } catch (error) {
           console.error('Error updating recipe:', error);
-        }
-      }
-    });
-  }
-
-  async copyRecipe(recipe: Recipe) {
-    const copy: Recipe = {
-      name: `${recipe.name} (copia)`,
-      recipeTypeId: recipe.recipeTypeId,
-      ingredients: recipe.ingredients.map(i => ({ ...i }))
-    };
-    const dialogRef = this.dialog.open(RecipeDialog, {
-      width: '600px',
-      maxHeight: '90vh',
-      data: { recipe: copy, costs: this.costs(), recipeTypes: this.recipeTypes() }
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
-      if (result) {
-        try {
-          const docRef = await this.firestoreService.addDocument('recipes', result);
-          this.recipes.update(list => [...list, { ...result, id: docRef.id }]);
-        } catch (error) {
-          console.error('Error copying recipe:', error);
         }
       }
     });

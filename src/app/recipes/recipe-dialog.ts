@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -6,12 +6,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
-import { Recipe, RecipeIngredient } from '../models/recipe.model';
+import { Recipe } from '../models/recipe.model';
+import { Topping } from '../models/topping.model';
 import { Cost } from '../models/cost.model';
 import { RecipeType } from '../models/recipe-type.model';
 
 export interface RecipeDialogData {
   recipe?: Recipe;
+  toppings: Topping[];
   costs: Cost[];
   recipeTypes: RecipeType[];
 }
@@ -51,34 +53,30 @@ export interface RecipeDialogData {
           }
         </mat-form-field>
 
-        <div class="ingredients-section">
+        <div class="toppings-section">
           <div class="section-header">
-            <h3>Ingredientes</h3>
-            <button mat-icon-button type="button" (click)="addIngredient()" color="primary">
+            <h3>Toppings</h3>
+            <button mat-icon-button type="button" (click)="addTopping()" color="primary"
+                    [disabled]="availableToppings(null).length === 0">
               <mat-icon>add_circle</mat-icon>
             </button>
           </div>
 
-          <div formArrayName="ingredients" class="ingredients-list">
-            @for (ingredient of ingredientsArray.controls; track $index) {
-              <div [formGroupName]="$index" class="ingredient-row">
-                <mat-form-field appearance="outline" class="cost-field">
-                  <mat-label>Ingrediente</mat-label>
-                  <mat-select formControlName="costId">
-                    @for (cost of availableCosts($index); track cost.id) {
-                      <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
+          <div formArrayName="toppings" class="toppings-list">
+            @for (ctrl of toppingsArray.controls; track $index) {
+              <div class="topping-row">
+                <mat-form-field appearance="outline" class="topping-field">
+                  <mat-label>Topping</mat-label>
+                  <mat-select [formControlName]="$index">
+                    @for (topping of availableToppings($index); track topping.id) {
+                      <mat-option [value]="topping.id">{{ getToppingLabel(topping) }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="quantity-field">
-                  <mat-label>Cantidad (g)</mat-label>
-                  <input matInput type="number" formControlName="quantity">
-                </mat-form-field>
-
-                <button mat-icon-button type="button" color="warn" 
-                        (click)="removeIngredient($index)"
-                        [disabled]="ingredientsArray.length === 1">
+                <button mat-icon-button type="button" color="warn"
+                        (click)="removeTopping($index)"
+                        [disabled]="toppingsArray.length === 1">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -107,16 +105,7 @@ export interface RecipeDialogData {
       margin-bottom: 16px;
     }
 
-    .checkbox-field {
-      margin-bottom: 24px;
-    }
-
-    .checkbox-icon {
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-
-    .ingredients-section {
+    .toppings-section {
       margin-top: 16px;
     }
 
@@ -134,7 +123,7 @@ export interface RecipeDialogData {
       font-weight: 500;
     }
 
-    .ingredients-list {
+    .toppings-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -143,18 +132,13 @@ export interface RecipeDialogData {
       padding: 4px;
     }
 
-    .ingredient-row {
+    .topping-row {
       display: flex;
       gap: 12px;
       align-items: flex-start;
     }
 
-    .cost-field {
-      flex: 2;
-      margin: 0;
-    }
-
-    .quantity-field {
+    .topping-field {
       flex: 1;
       margin: 0;
     }
@@ -167,15 +151,6 @@ export interface RecipeDialogData {
       mat-dialog-content {
         min-width: auto;
       }
-
-      .ingredient-row {
-        flex-wrap: wrap;
-      }
-
-      .cost-field,
-      .quantity-field {
-        flex: 1 1 100%;
-      }
     }
   `]
 })
@@ -185,52 +160,43 @@ export class RecipeDialog {
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
-    name: [this.data.recipe?.name || '', Validators.required],
-    recipeTypeId: [this.data.recipe?.recipeTypeId || '', Validators.required],
-    ingredients: this.fb.array(
-      this.data.recipe?.ingredients?.length 
-        ? this.data.recipe.ingredients.map(ing => this.createIngredientGroup(ing))
-        : [this.createIngredientGroup()]
+    name: [this.data.recipe?.name ?? '', Validators.required],
+    recipeTypeId: [this.data.recipe?.recipeTypeId ?? '', Validators.required],
+    toppings: this.fb.array(
+      this.data.recipe?.toppings?.length
+        ? this.data.recipe.toppings.map(id => this.fb.control(id, Validators.required))
+        : [this.fb.control(this.data.toppings[0]?.id ?? '', Validators.required)]
     )
   });
 
-  get ingredientsArray() {
-    return this.form.get('ingredients') as FormArray;
+  get toppingsArray() {
+    return this.form.get('toppings') as FormArray;
   }
 
-  createIngredientGroup(ingredient?: RecipeIngredient) {
-    return this.fb.group({
-      costId: [ingredient?.costId || this.data.costs[0]?.id || '', Validators.required],
-      quantity: [ingredient?.quantity || 0, [Validators.required, Validators.min(1)]]
-    });
+  getToppingLabel(topping: Topping): string {
+    const cost = this.data.costs.find(c => c.id === topping.costId);
+    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
   }
 
-  availableCosts(currentIndex: number): Cost[] {
-    const currentCostId = this.ingredientsArray.at(currentIndex).get('costId')?.value;
-    const usedCostIds = this.ingredientsArray.controls
-      .map((ctrl, idx) => idx !== currentIndex ? ctrl.get('costId')?.value : null)
-      .filter(id => id !== null);
-    
-    return this.data.costs.filter(c => 
-      c.id === currentCostId || !usedCostIds.includes(c.id)
-    );
+  availableToppings(currentIndex: number | null): Topping[] {
+    const usedIds = this.toppingsArray.controls
+      .map((_, i) => i !== currentIndex ? this.toppingsArray.at(i).value as string : null)
+      .filter((id): id is string => id !== null);
+    const currentId = currentIndex !== null ? this.toppingsArray.at(currentIndex).value as string : null;
+    return this.data.toppings.filter(t => t.id === currentId || !usedIds.includes(t.id!));
   }
 
-  addIngredient() {
-    const usedCostIds = this.ingredientsArray.controls.map(ctrl => ctrl.get('costId')?.value);
-    const availableCost = this.data.costs.find(c => !usedCostIds.includes(c.id));
-    
-    if (availableCost) {
-      this.ingredientsArray.push(this.createIngredientGroup({
-        costId: availableCost.id!,
-        quantity: 0
-      }));
+  addTopping() {
+    const usedIds = this.toppingsArray.controls.map(ctrl => ctrl.value as string);
+    const next = this.data.toppings.find(t => !usedIds.includes(t.id!));
+    if (next) {
+      this.toppingsArray.push(this.fb.control(next.id!, Validators.required));
     }
   }
 
-  removeIngredient(index: number) {
-    if (this.ingredientsArray.length > 1) {
-      this.ingredientsArray.removeAt(index);
+  removeTopping(index: number) {
+    if (this.toppingsArray.length > 1) {
+      this.toppingsArray.removeAt(index);
     }
   }
 
@@ -240,11 +206,11 @@ export class RecipeDialog {
 
   onSave(): void {
     if (this.form.valid) {
-      const formValue = this.form.value;
       const recipe: Recipe = {
-        name: formValue.name!,
-        recipeTypeId: formValue.recipeTypeId!,
-        ingredients: formValue.ingredients as RecipeIngredient[]
+        ...this.data.recipe,
+        name: this.form.value.name!,
+        recipeTypeId: this.form.value.recipeTypeId!,
+        toppings: this.form.value.toppings as string[]
       };
       this.dialogRef.close(recipe);
     }
