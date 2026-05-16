@@ -8,6 +8,28 @@
   border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
+
+.additions-input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.additions-select {
+  flex: 1;
+}
+
+.additions-table {
+  width: 100%;
+}
+
+.additions-empty {
+  color: #999;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 8px 0;
+}
   z-index: 10;
 }
 
@@ -206,4 +228,26 @@ td.warning {
   .container {
     padding: 32px;
   }
+}
+
+.additions-input-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.additions-select {
+  flex: 1;
+}
+
+.additions-table {
+  width: 100%;
+}
+
+.additions-empty {
+  color: #999;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 8px 0;
 }

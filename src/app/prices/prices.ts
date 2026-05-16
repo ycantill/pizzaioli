@@ -93,11 +93,14 @@ export class Prices implements OnInit {
   ajusteDescription = signal('');
   ajusteMode = signal<'manual' | 'auto'>('manual');
   targetMarginPercent = signal<number>(200);
+  selectedAdditionIds = signal<string[]>([]);
+  pendingAdditionId = signal<string | null>(null);
 
   loading = signal(true);
   saving = signal(false);
 
   ingredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin'];
+  additionColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'remove'];
   laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin'];
   savedPricesColumns: string[] = ['name', 'price', 'actions'];
 
@@ -242,6 +245,61 @@ export class Prices implements OnInit {
     }).filter((item): item is CostLineItem => item !== null);
   });
 
+  availableSizeSAdditions = computed(() => {
+    const recipeToppingIds = new Set(this.selectedRecipe()?.toppings ?? []);
+    const alreadyAdded = new Set(this.selectedAdditionIds());
+    const allCosts = this.costs();
+    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3 };
+    return this.toppings()
+      .filter(t => !recipeToppingIds.has(t.id!) && !alreadyAdded.has(t.id!))
+      .sort((a, b) => {
+        const nameA = allCosts.find(c => c.id === a.costId)?.product ?? '';
+        const nameB = allCosts.find(c => c.id === b.costId)?.product ?? '';
+        const nameCmp = nameA.localeCompare(nameB);
+        return nameCmp !== 0 ? nameCmp : (sizeOrder[a.size] ?? 99) - (sizeOrder[b.size] ?? 99);
+      });
+  });
+
+  additionLineItems = computed<CostLineItem[]>(() => {
+    const allCosts = this.costs();
+    const allMargins = this.margins();
+    const allToppings = this.toppings();
+
+    return this.selectedAdditionIds().map(toppingId => {
+      const topping = allToppings.find(t => t.id === toppingId);
+      if (!topping) return null;
+
+      const cost = allCosts.find(c => c.id === topping.costId);
+      if (!cost) return null;
+
+      const baseCost = topping.quantity * cost.value;
+      const margin = allMargins.find(m => m.costId === topping.costId);
+      const totalMargin = margin
+        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
+        : 0;
+      const costWithMargin = baseCost * (totalMargin / 100);
+      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
+
+      return {
+        name: `${cost.product} (${topping.size})`,
+        quantity: topping.quantity,
+        unitCost: cost.value,
+        baseCost: Math.round(baseCost * 100) / 100,
+        marginPercent: totalMargin,
+        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        isRecoveryOnly
+      };
+    }).filter((item): item is CostLineItem => item !== null);
+  });
+
+  additionSubtotal = computed(() => {
+    const items = this.additionLineItems();
+    return {
+      baseCost: Math.round(items.reduce((sum, i) => sum + i.baseCost, 0) * 100) / 100,
+      costWithMargin: Math.round(items.reduce((sum, i) => sum + i.costWithMargin, 0) * 100) / 100
+    };
+  });
+
   matchedDelivery = computed(() => {
     const recipe = this.selectedRecipe();
     if (!recipe) return null;
@@ -357,14 +415,14 @@ export class Prices implements OnInit {
   });
 
   totalBaseCost = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.baseCost, 0);
     const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.baseCost, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   totalWithMargin = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.costWithMargin, 0);
     const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.costWithMargin, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
@@ -375,14 +433,14 @@ export class Prices implements OnInit {
   });
 
   totalBaseCostExcludingRecovery = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
     const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
     const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   totalWithMarginProfitOnly = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
     const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
     const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
@@ -443,6 +501,8 @@ export class Prices implements OnInit {
 
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
+    this.selectedAdditionIds.set([]);
+    this.pendingAdditionId.set(null);
     const recipe = recipeId ? this.recipes().find(r => r.id === recipeId) ?? null : null;
     if (recipe) {
       const typeName = this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? '';
@@ -450,6 +510,24 @@ export class Prices implements OnInit {
     } else {
       this.priceName.set('');
     }
+  }
+
+  getToppingDisplayLabel(toppingId: string): string {
+    const topping = this.toppings().find(t => t.id === toppingId);
+    if (!topping) return 'Desconocido';
+    const cost = this.costs().find(c => c.id === topping.costId);
+    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity}g)`;
+  }
+
+  addAddition() {
+    const id = this.pendingAdditionId();
+    if (!id) return;
+    this.selectedAdditionIds.update(ids => [...ids, id]);
+    this.pendingAdditionId.set(null);
+  }
+
+  removeAddition(toppingId: string) {
+    this.selectedAdditionIds.update(ids => ids.filter(id => id !== toppingId));
   }
 
   formatMinutes(totalMinutes: number): string {
@@ -473,6 +551,7 @@ export class Prices implements OnInit {
         ballWeight: this.ballWeight(),
         ajuste: this.ajuste(),
         ajusteDescription: this.ajusteDescription(),
+        additionToppingIds: this.selectedAdditionIds().length ? this.selectedAdditionIds() : undefined,
       };
       const docRef = await this.firestoreService.addDocument('prices', priceData);
       this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
@@ -491,6 +570,8 @@ export class Prices implements OnInit {
     this.ajuste.set(price.ajuste ?? 0);
     this.ajusteDescription.set(price.ajusteDescription ?? '');
     this.priceName.set(price.name);
+    this.selectedAdditionIds.set(price.additionToppingIds ?? []);
+    this.pendingAdditionId.set(null);
   }
 
   deletePrice(price: Price) {
