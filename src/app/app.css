@@ -72,13 +72,3 @@ mat-nav-list a.active mat-icon {
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
-
-@media (max-width: 767px) {
-  .content {
-    height: calc(100vh - 56px);
-  }
-
-  .app-title {
-    font-size: 1.1rem;
-  }
-}
