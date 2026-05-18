@@ -1,0 +1,54 @@
+.topping-card {
+  margin-bottom: 16px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.topping-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+}
+
+.empty-cell {
+  text-align: center;
+  padding: 32px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.empty-message {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+  margin-top: 32px;
+}

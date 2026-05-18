@@ -12,13 +12,13 @@
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 500;
   color: #333;
 }
 
 .container {
-  padding: 16px;
+  padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -39,7 +39,7 @@
 
 .config-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   margin-top: 16px;
 }
@@ -87,7 +87,7 @@ mat-card-header {
 
 /* Mobile View */
 .mobile-view {
-  display: block;
+  display: none;
 }
 
 .ingredient-card {
@@ -185,7 +185,7 @@ mat-card-header {
 
 /* Desktop View */
 .desktop-view {
-  display: none;
+  display: block;
 }
 
 .table-field {
@@ -232,31 +232,3 @@ th {
   color: #1976d2;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .container {
-    padding: 24px;
-  }
-
-  .config-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 32px;
-  }
-}

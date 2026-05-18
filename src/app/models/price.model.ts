@@ -7,4 +7,6 @@ export interface Price {
   ballWeight?: number;
   ajuste?: number;
   ajusteDescription?: string;
+  additionToppingIds?: string[];
+  removedIngredientIds?: string[];
 }

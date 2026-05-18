@@ -12,7 +12,7 @@
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 500;
   color: #333;
 }
@@ -30,7 +30,7 @@
 }
 
 .container {
-  padding: 16px;
+  padding: 32px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -44,7 +44,7 @@
 
 /* Mobile View */
 .mobile-view {
-  display: block;
+  display: none;
 }
 
 .dough-card {
@@ -132,7 +132,7 @@
 
 /* Desktop View */
 .desktop-view {
-  display: none;
+  display: block;
 }
 
 table {
@@ -182,27 +182,3 @@ th {
   font-weight: 500;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .container {
-    padding: 24px;
-  }
-
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 32px;
-  }
-}

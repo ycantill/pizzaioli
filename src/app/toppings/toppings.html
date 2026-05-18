@@ -1,0 +1,118 @@
+<div class="page-header">
+  <h1 class="page-title">Toppings</h1>
+  <div class="header-actions">
+    <button mat-fab extended (click)="openPrintWindow()" class="print-button">
+      <mat-icon>print</mat-icon>
+      <span class="button-text">Imprimir</span>
+    </button>
+    <button mat-fab extended (click)="addTopping()" class="add-button">
+      <mat-icon>add</mat-icon>
+      <span class="button-text">Nuevo</span>
+    </button>
+  </div>
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (topping of toppings(); track topping.id) {
+        <mat-card class="topping-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="topping-name">{{ getCostName(topping.costId) }} ({{ topping.size }})</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary"
+                        aria-label="Editar topping"
+                        (click)="editTopping(topping)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn"
+                        aria-label="Eliminar topping"
+                        (click)="deleteTopping(topping)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="label">Ingrediente:</span>
+                <span class="value">{{ getCostName(topping.costId) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Cantidad:</span>
+                <span class="value">{{ topping.quantity }} {{ getUnitAbbreviation(topping.costId) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Tamaño:</span>
+                <span class="value">{{ topping.size }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      @if (toppings().length === 0) {
+        <p class="empty-message">No hay toppings configurados. Crea el primero.</p>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="toppings()" class="mat-elevation-z2">
+
+          <!-- Ingredient Column -->
+          <ng-container matColumnDef="ingredient">
+            <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
+            <td mat-cell *matCellDef="let topping">{{ getCostName(topping.costId) }}</td>
+          </ng-container>
+
+          <!-- Quantity Column -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+            <td mat-cell *matCellDef="let topping">
+              {{ topping.quantity }} {{ getUnitAbbreviation(topping.costId) }}
+            </td>
+          </ng-container>
+
+          <!-- Size Column -->
+          <ng-container matColumnDef="size">
+            <th mat-header-cell *matHeaderCellDef>Tamaño</th>
+            <td mat-cell *matCellDef="let topping">{{ topping.size }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let topping">
+              <button mat-icon-button color="primary"
+                      aria-label="Editar topping"
+                      (click)="editTopping(topping)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn"
+                      aria-label="Eliminar topping"
+                      (click)="deleteTopping(topping)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
+              No hay toppings configurados.
+            </td>
+          </tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

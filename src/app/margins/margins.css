@@ -15,7 +15,7 @@
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 500;
   color: #333;
 }
@@ -30,7 +30,7 @@
 
 /* Container */
 .container {
-  padding: 12px;
+  padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -44,7 +44,7 @@
 
 /* Mobile View - Cards */
 .mobile-view {
-  display: block;
+  display: none;
 }
 
 .margin-card {
@@ -106,7 +106,7 @@
 
 /* Desktop View - Tabla */
 .desktop-view {
-  display: none;
+  display: block;
 }
 
 table {
@@ -120,23 +120,4 @@ th.mat-header-cell {
 
 td.mat-cell {
   padding: 12px 8px;
-}
-
-/* Responsive */
-@media (min-width: 768px) {
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-
-  .page-title {
-    font-size: 2rem;
-  }
-
-  .container {
-    padding: 24px;
-  }
 }

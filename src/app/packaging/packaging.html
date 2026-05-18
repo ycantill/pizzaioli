@@ -1,5 +1,5 @@
 <div class="page-header">
-  <h1 class="page-title">Configuración de Delivery</h1>
+  <h1 class="page-title">Configuración de Paquetería</h1>
 </div>
 
 <div class="container">
@@ -20,9 +20,9 @@
         <ng-container matColumnDef="items">
           <th mat-header-cell *matHeaderCellDef>Items</th>
           <td mat-cell *matCellDef="let recipeType">
-            @if (getDeliveryForType(recipeType.id!); as delivery) {
+            @if (getPackagingForType(recipeType.id!); as packaging) {
               <div class="items-summary">
-                @for (item of delivery.items; track $index) {
+                @for (item of packaging.items; track $index) {
                   <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
                 }
               </div>
@@ -36,11 +36,11 @@
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let recipeType">
             <button mat-icon-button color="primary" (click)="openDialog(recipeType)" 
-                    [matTooltip]="getDeliveryForType(recipeType.id!) ? 'Editar' : 'Configurar'">
-              <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
+                    [matTooltip]="getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar'">
+              <mat-icon>{{ getPackagingForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
             </button>
-            @if (getDeliveryForType(recipeType.id!); as delivery) {
-              <button mat-icon-button color="warn" (click)="deleteDelivery(delivery.id!)" matTooltip="Eliminar">
+            @if (getPackagingForType(recipeType.id!); as packaging) {
+              <button mat-icon-button color="warn" (click)="deletePackaging(packaging.id!)" matTooltip="Eliminar">
                 <mat-icon>delete</mat-icon>
               </button>
             }
@@ -54,12 +54,12 @@
 
     <div class="mobile-view">
       @for (recipeType of recipeTypes(); track recipeType.id) {
-        <div class="delivery-row">
-          <div class="delivery-info">
+        <div class="packaging-row">
+          <div class="packaging-info">
             <span class="type-name">{{ recipeType.name }}</span>
-            @if (getDeliveryForType(recipeType.id!); as delivery) {
+            @if (getPackagingForType(recipeType.id!); as packaging) {
               <div class="items-list">
-                @for (item of delivery.items; track $index) {
+                @for (item of packaging.items; track $index) {
                   <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
                 }
               </div>
@@ -67,12 +67,12 @@
               <span class="no-config">Sin configuración</span>
             }
           </div>
-          <div class="delivery-actions">
+          <div class="packaging-actions">
             <button mat-icon-button color="primary" (click)="openDialog(recipeType)">
-              <mat-icon>{{ getDeliveryForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
+              <mat-icon>{{ getPackagingForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
             </button>
-            @if (getDeliveryForType(recipeType.id!); as delivery) {
-              <button mat-icon-button color="warn" (click)="deleteDelivery(delivery.id!)">
+            @if (getPackagingForType(recipeType.id!); as packaging) {
+              <button mat-icon-button color="warn" (click)="deletePackaging(packaging.id!)">
                 <mat-icon>delete</mat-icon>
               </button>
             }
