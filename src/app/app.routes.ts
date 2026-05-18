@@ -7,7 +7,7 @@ import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
 import { CostTypes } from './cost-types/cost-types';
 import { RecipeTypes } from './recipe-types/recipe-types';
-import { DeliveryConfig } from './delivery/delivery';
+import { PackagingConfig } from './packaging/packaging';
 import { Consumptions } from './consumptions/consumptions';
 import { Prices } from './prices/prices';
 import { LaborConfig } from './labor/labor';
@@ -21,7 +21,7 @@ export const routes: Routes = [
   { path: 'costs', component: Costs, canActivate: [authGuard] },
   { path: 'cost-types', component: CostTypes, canActivate: [authGuard] },
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
-  { path: 'delivery', component: DeliveryConfig, canActivate: [authGuard] },
+  { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
   { path: 'consumptions', component: Consumptions, canActivate: [authGuard] },
   { path: 'margins', component: Margins, canActivate: [authGuard] },
   { path: 'units', component: Units, canActivate: [authGuard] },

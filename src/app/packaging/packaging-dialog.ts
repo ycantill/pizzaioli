@@ -6,20 +6,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
-import { Delivery, DeliveryItem } from '../models/delivery.model';
+import { Packaging, PackagingItem } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
 
-export interface DeliveryDialogData {
-  delivery?: Delivery;
+export interface PackagingDialogData {
+  packaging?: Packaging;
   recipeType: RecipeType;
   costs: Cost[];
   units: Unit[];
 }
 
 @Component({
-  selector: 'app-delivery-dialog',
+  selector: 'app-packaging-dialog',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -31,12 +31,12 @@ export interface DeliveryDialogData {
     MatSelectModule
   ],
   template: `
-    <h2 mat-dialog-title>Configurar Delivery - {{ data.recipeType.name }}</h2>
+    <h2 mat-dialog-title>Configurar Paquetería - {{ data.recipeType.name }}</h2>
     <mat-dialog-content>
       <form [formGroup]="form">
         <div class="items-section">
           <div class="section-header">
-            <h3>Costos de Delivery</h3>
+            <h3>Costos de Paquetería</h3>
             <button mat-icon-button type="button" (click)="addItem()" color="primary">
               <mat-icon>add_circle</mat-icon>
             </button>
@@ -148,15 +148,15 @@ export interface DeliveryDialogData {
     }
   `]
 })
-export class DeliveryDialog {
-  data: DeliveryDialogData = inject(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<DeliveryDialog>);
+export class PackagingDialog {
+  data: PackagingDialogData = inject(MAT_DIALOG_DATA);
+  private dialogRef = inject(MatDialogRef<PackagingDialog>);
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
     items: this.fb.array(
-      this.data.delivery?.items?.length 
-        ? this.data.delivery.items.map(item => this.createItemGroup(item))
+      this.data.packaging?.items?.length 
+        ? this.data.packaging.items.map(item => this.createItemGroup(item))
         : [this.createItemGroup()]
     )
   });
@@ -165,7 +165,7 @@ export class DeliveryDialog {
     return this.form.get('items') as FormArray;
   }
 
-  createItemGroup(item?: DeliveryItem) {
+  createItemGroup(item?: PackagingItem) {
     return this.fb.group({
       costId: [item?.costId || this.data.costs[0]?.id || '', Validators.required],
       quantity: [item?.quantity || 1, [Validators.required, Validators.min(1)]]
@@ -208,11 +208,11 @@ export class DeliveryDialog {
   onSave(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
-      const delivery: Delivery = {
+      const packaging: Packaging = {
         recipeTypeId: this.data.recipeType.id!,
-        items: formValue.items as DeliveryItem[]
+        items: formValue.items as PackagingItem[]
       };
-      this.dialogRef.close(delivery);
+      this.dialogRef.close(packaging);
     }
   }
 }

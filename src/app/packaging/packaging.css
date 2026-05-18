@@ -55,7 +55,7 @@
   display: none;
 }
 
-.delivery-row {
+.packaging-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -63,11 +63,11 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.delivery-row:last-child {
+.packaging-row:last-child {
   border-bottom: none;
 }
 
-.delivery-info {
+.packaging-info {
   flex: 1;
 }
 
@@ -85,7 +85,7 @@
   gap: 6px;
 }
 
-.delivery-actions {
+.packaging-actions {
   display: flex;
   gap: 4px;
   flex-shrink: 0;

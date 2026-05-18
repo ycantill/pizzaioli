@@ -6,16 +6,16 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { Delivery } from '../models/delivery.model';
+import { Packaging } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { Cost } from '../models/cost.model';
 import { CostType } from '../models/cost-type.model';
 import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
-import { DeliveryDialog } from './delivery-dialog';
+import { PackagingDialog } from './packaging-dialog';
 
 @Component({
-  selector: 'app-delivery',
+  selector: 'app-packaging',
   standalone: true,
   imports: [
     MatCardModule,
@@ -25,14 +25,14 @@ import { DeliveryDialog } from './delivery-dialog';
     MatProgressSpinnerModule,
     MatTooltipModule
   ],
-  templateUrl: './delivery.html',
-  styleUrl: './delivery.css'
+  templateUrl: './packaging.html',
+  styleUrl: './packaging.css'
 })
-export class DeliveryConfig implements OnInit {
+export class PackagingConfig implements OnInit {
   private firestoreService = inject(FirestoreService);
   private dialog = inject(MatDialog);
 
-  deliveries = signal<Delivery[]>([]);
+  packagings = signal<Packaging[]>([]);
   recipeTypes = signal<RecipeType[]>([]);
   costs = signal<Cost[]>([]);
   costTypes = signal<CostType[]>([]);
@@ -46,7 +46,7 @@ export class DeliveryConfig implements OnInit {
       this.loadCostTypes(),
       this.loadCosts(),
       this.loadUnits(),
-      this.loadDeliveries()
+      this.loadPackagings()
     ]);
   }
 
@@ -86,13 +86,13 @@ export class DeliveryConfig implements OnInit {
     }
   }
 
-  async loadDeliveries() {
+  async loadPackagings() {
     try {
       this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('deliveries');
-      this.deliveries.set(data as Delivery[]);
+      const data = await this.firestoreService.getDocuments('packagings');
+      this.packagings.set(data as Packaging[]);
     } catch (error) {
-      console.error('Error loading deliveries:', error);
+      console.error('Error loading packagings:', error);
     } finally {
       this.loading.set(false);
     }
@@ -108,12 +108,12 @@ export class DeliveryConfig implements OnInit {
     return cost ? cost.product : 'Desconocido';
   }
 
-  getDeliveryForType(recipeTypeId: string): Delivery | undefined {
-    return this.deliveries().find(d => d.recipeTypeId === recipeTypeId);
+  getPackagingForType(recipeTypeId: string): Packaging | undefined {
+    return this.packagings().find(d => d.recipeTypeId === recipeTypeId);
   }
 
   openDialog(recipeType: RecipeType) {
-    const existingDelivery = this.getDeliveryForType(recipeType.id!);
+    const existingPackaging = this.getPackagingForType(recipeType.id!);
     
     // Filtrar costos que NO sean ingredientes
     const ingredienteType = this.costTypes().find(t => t.name.toLowerCase() === 'ingrediente');
@@ -121,55 +121,55 @@ export class DeliveryConfig implements OnInit {
       ? this.costs().filter(cost => cost.typeId !== ingredienteType.id)
       : this.costs();
     
-    const dialogRef = this.dialog.open(DeliveryDialog, {
+    const dialogRef = this.dialog.open(PackagingDialog, {
       width: '600px',
       maxHeight: '90vh',
       data: {
-        delivery: existingDelivery,
+        packaging: existingPackaging,
         recipeType: recipeType,
         costs: filteredCosts,
         units: this.units()
       }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Delivery | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: Packaging | undefined) => {
       if (result) {
-        if (existingDelivery?.id) {
-          await this.updateDelivery(existingDelivery.id, result);
+        if (existingPackaging?.id) {
+          await this.updatePackaging(existingPackaging.id, result);
         } else {
-          await this.addDelivery(result);
+          await this.addPackaging(result);
         }
       }
     });
   }
 
-  async addDelivery(delivery: Delivery) {
+  async addPackaging(packaging: Packaging) {
     try {
-      const docRef = await this.firestoreService.addDocument('deliveries', delivery);
-      this.deliveries.update(list => [...list, { ...delivery, id: docRef.id }]);
+      const docRef = await this.firestoreService.addDocument('packagings', packaging);
+      this.packagings.update(list => [...list, { ...packaging, id: docRef.id }]);
     } catch (error) {
-      console.error('Error adding delivery:', error);
+      console.error('Error adding packaging:', error);
     }
   }
 
-  async updateDelivery(id: string, delivery: Delivery) {
+  async updatePackaging(id: string, packaging: Packaging) {
     try {
-      await this.firestoreService.updateDocument('deliveries', id, delivery);
-      this.deliveries.update(list => 
-        list.map(d => d.id === id ? { ...delivery, id } : d)
+      await this.firestoreService.updateDocument('packagings', id, packaging);
+      this.packagings.update(list => 
+        list.map(d => d.id === id ? { ...packaging, id } : d)
       );
     } catch (error) {
-      console.error('Error updating delivery:', error);
+      console.error('Error updating packaging:', error);
     }
   }
 
-  async deleteDelivery(id: string) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta configuración de delivery?')) {
+  async deletePackaging(id: string) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta configuración de paquetería?')) {
       try {
-        await this.firestoreService.deleteDocument('deliveries', id);
-        this.deliveries.update(list => list.filter(d => d.id !== id));
+        await this.firestoreService.deleteDocument('packagings', id);
+        this.packagings.update(list => list.filter(d => d.id !== id));
       } catch (error) {
-        console.error('Error deleting delivery:', error);
+        console.error('Error deleting packaging:', error);
       }
     }
   }

@@ -18,7 +18,7 @@ import { RecipeType } from '../models/recipe-type.model';
 import { Cost } from '../models/cost.model';
 import { Margin } from '../models/margin.model';
 import { Unit } from '../models/unit.model';
-import { Delivery } from '../models/delivery.model';
+import { Packaging } from '../models/packaging.model';
 import { Price } from '../models/price.model';
 import { Consumption } from '../models/consumption.model';
 import { Labor } from '../models/labor.model';
@@ -79,7 +79,7 @@ export class Prices implements OnInit {
   costs = signal<Cost[]>([]);
   margins = signal<Margin[]>([]);
   units = signal<Unit[]>([]);
-  deliveries = signal<Delivery[]>([]);
+  packagings = signal<Packaging[]>([]);
   consumptions = signal<Consumption[]>([]);
   labors = signal<Labor[]>([]);
   toppings = signal<Topping[]>([]);
@@ -121,14 +121,14 @@ export class Prices implements OnInit {
 
   async ngOnInit() {
     try {
-      const [doughs, recipes, recipeTypes, costs, margins, units, deliveries, consumptions, labors, prices, toppings] = await Promise.all([
+      const [doughs, recipes, recipeTypes, costs, margins, units, packagings, consumptions, labors, prices, toppings] = await Promise.all([
         this.firestoreService.getDocuments('doughs'),
         this.firestoreService.getDocuments('recipes'),
         this.firestoreService.getDocuments('recipe-types'),
         this.firestoreService.getDocuments('costs'),
         this.firestoreService.getDocuments('margins'),
         this.firestoreService.getDocuments('units'),
-        this.firestoreService.getDocuments('deliveries'),
+        this.firestoreService.getDocuments('packagings'),
         this.firestoreService.getDocuments('consumptions'),
         this.firestoreService.getDocuments('labors'),
         this.firestoreService.getDocuments('prices'),
@@ -140,7 +140,7 @@ export class Prices implements OnInit {
       this.costs.set(costs as Cost[]);
       this.margins.set(margins as Margin[]);
       this.units.set(units as Unit[]);
-      this.deliveries.set(deliveries as Delivery[]);
+      this.packagings.set(packagings as Packaging[]);
       this.consumptions.set(consumptions as Consumption[]);
       this.labors.set(labors as Labor[]);
       this.savedPrices.set(prices as Price[]);
@@ -305,20 +305,20 @@ export class Prices implements OnInit {
     };
   });
 
-  matchedDelivery = computed(() => {
+  matchedPackaging = computed(() => {
     const recipe = this.selectedRecipe();
     if (!recipe) return null;
-    return this.deliveries().find(d => d.recipeTypeId === recipe.recipeTypeId) ?? null;
+    return this.packagings().find(d => d.recipeTypeId === recipe.recipeTypeId) ?? null;
   });
 
-  deliveryLineItems = computed<CostLineItem[]>(() => {
-    const delivery = this.matchedDelivery();
-    if (!delivery) return [];
+  packagingLineItems = computed<CostLineItem[]>(() => {
+    const packaging = this.matchedPackaging();
+    if (!packaging) return [];
 
     const allCosts = this.costs();
     const allMargins = this.margins();
 
-    return delivery.items.map(item => {
+    return packaging.items.map(item => {
       const cost = allCosts.find(c => c.id === item.costId);
       if (!cost) return null;
 
@@ -403,8 +403,8 @@ export class Prices implements OnInit {
     };
   });
 
-  deliverySubtotal = computed(() => {
-    const items = this.deliveryLineItems();
+  packagingSubtotal = computed(() => {
+    const items = this.packagingLineItems();
     return {
       baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
       costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
@@ -420,14 +420,14 @@ export class Prices implements OnInit {
   });
 
   totalBaseCost = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.baseCost, 0);
     const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.baseCost, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   totalWithMargin = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.costWithMargin, 0);
     const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.costWithMargin, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
@@ -438,14 +438,14 @@ export class Prices implements OnInit {
   });
 
   totalBaseCostExcludingRecovery = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
     const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
     const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
   totalWithMarginProfitOnly = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.deliveryLineItems()];
+    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
     const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
     const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;

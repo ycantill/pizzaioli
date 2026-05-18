@@ -263,14 +263,14 @@
       </mat-card>
     }
 
-    <!-- Delivery Items -->
-    @if (matchedDelivery() && deliveryLineItems().length > 0) {
+    <!-- Packaging Items -->
+    @if (matchedPackaging() && packagingLineItems().length > 0) {
       <mat-card class="section-card">
         <mat-card-header>
-          <mat-card-title>Items de Delivery</mat-card-title>
+          <mat-card-title>Items de Paquetería</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <table mat-table [dataSource]="deliveryLineItems()">
+          <table mat-table [dataSource]="packagingLineItems()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Item</th>
                 <td mat-cell *matCellDef="let item">{{ item.name }}</td>
@@ -290,7 +290,7 @@
                 <th mat-header-cell *matHeaderCellDef>Costo Base</th>
                 <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
                 <td mat-footer-cell *matFooterCellDef>
-                  <strong>{{ deliverySubtotal().baseCost | number:'1.0-2' }}</strong>
+                  <strong>{{ packagingSubtotal().baseCost | number:'1.0-2' }}</strong>
                 </td>
               </ng-container>
               <ng-container matColumnDef="margin">
@@ -310,7 +310,7 @@
                   <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
                 </td>
                 <td mat-footer-cell *matFooterCellDef>
-                  <strong>{{ deliverySubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                  <strong>{{ packagingSubtotal().costWithMargin | number:'1.0-2' }}</strong>
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>
