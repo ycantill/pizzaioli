@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Cost } from '../models/cost.model';
 import { Unit } from '../models/unit.model';
 import { CostType } from '../models/cost-type.model';
@@ -39,9 +39,12 @@ export interface CostDialogData {
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Valor</mat-label>
-          <input matInput type="number" formControlName="value" placeholder="0.00">
+          <input matInput type="text" inputmode="decimal" formControlName="value" placeholder="0.00">
           @if (form.get('value')?.hasError('required')) {
             <mat-error>El valor es requerido</mat-error>
+          }
+          @if (form.get('value')?.hasError('invalidNumber')) {
+            <mat-error>Ingrese un número válido (ej: 1.50)</mat-error>
           }
           @if (form.get('value')?.hasError('min')) {
             <mat-error>El valor debe ser mayor a 0</mat-error>
@@ -103,9 +106,20 @@ export class CostDialog {
   private dialogRef = inject(MatDialogRef<CostDialog>);
   private fb = inject(FormBuilder);
 
+  private static decimalValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value && control.value !== 0) return null;
+    const normalized = String(control.value).replace(',', '.');
+    const num = parseFloat(normalized);
+    if (isNaN(num) || !/^\d+([.,]\d+)?$/.test(String(control.value).trim())) {
+      return { invalidNumber: true };
+    }
+    if (num <= 0) return { min: true };
+    return null;
+  }
+
   form = this.fb.group({
     product: [this.data.cost?.product || '', Validators.required],
-    value: [this.data.cost?.value || 0, [Validators.required, Validators.min(0.01)]],
+    value: [this.data.cost?.value ? String(this.data.cost.value) : '', [Validators.required, CostDialog.decimalValidator]],
     unitId: [this.data.cost?.unitId || '', Validators.required],
     typeId: [this.data.cost?.typeId || '', Validators.required]
   });
@@ -116,9 +130,13 @@ export class CostDialog {
 
   onSave(): void {
     if (this.form.valid) {
+      const rawValue = String(this.form.value.value ?? '').replace(',', '.');
       const cost: Cost = {
         ...this.data.cost,
-        ...this.form.value as { product: string; value: number; unitId: string; typeId: string }
+        product: this.form.value.product as string,
+        value: parseFloat(rawValue),
+        unitId: this.form.value.unitId as string,
+        typeId: this.form.value.typeId as string
       };
       this.dialogRef.close(cost);
     }
