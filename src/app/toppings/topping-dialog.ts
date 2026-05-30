@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,6 +18,7 @@ export interface ToppingDialogData {
   imports: [
     MatDialogModule,
     MatFormFieldModule,
+    MatInputModule,
     MatButtonModule,
     MatSelectModule,
     ReactiveFormsModule
