@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatRadioModule } from '@angular/material/radio';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
@@ -62,7 +62,7 @@ interface LaborLineItem {
     MatTableModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatRadioModule,
+    MatCheckboxModule,
     DecimalPipe
   ],
   templateUrl: './prices.html',
@@ -90,9 +90,7 @@ export class Prices implements OnInit {
   selectedRecipeId = signal<string | null>(null);
   ballWeight = signal(250);
   priceName = signal('');
-  ajuste = signal<number>(0);
-  ajusteDescription = signal('');
-  ajusteMode = signal<'manual' | 'auto'>('manual');
+  ajusteAuto = signal<boolean>(false);
   targetMarginPercent = signal<number>(200);
   selectedAdditionIds = signal<string[]>([]);
   removedIngredientIds = signal<string[]>([]);
@@ -487,7 +485,7 @@ export class Prices implements OnInit {
   });
 
   effectiveAjuste = computed(() =>
-    this.ajusteMode() === 'auto' ? this.autoAjuste() : this.ajuste()
+    this.ajusteAuto() ? this.autoAjuste() : 0
   );
 
   suggestedPrice = computed(() => {
@@ -559,10 +557,10 @@ export class Prices implements OnInit {
         doughId: this.selectedDoughId(),
         recipeId: this.selectedRecipeId(),
         ballWeight: this.ballWeight(),
-        ajuste: this.ajuste(),
-        ajusteDescription: this.ajusteDescription(),
-        additionToppingIds: this.selectedAdditionIds().length ? this.selectedAdditionIds() : undefined,
-        removedIngredientIds: this.removedIngredientIds().length ? this.removedIngredientIds() : undefined,
+        ajusteAuto: this.ajusteAuto(),
+        ...(this.ajusteAuto() ? { ajusteValue: this.autoAjuste(), targetMarginPercent: this.targetMarginPercent() } : {}),
+        ...(this.selectedAdditionIds().length ? { additionToppingIds: this.selectedAdditionIds() } : {}),
+        ...(this.removedIngredientIds().length ? { removedIngredientIds: this.removedIngredientIds() } : {}),
       };
       const docRef = await this.firestoreService.addDocument('prices', priceData);
       this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
@@ -578,8 +576,8 @@ export class Prices implements OnInit {
     this.selectedDoughId.set(price.doughId ?? null);
     this.selectedRecipeId.set(price.recipeId ?? null);
     this.ballWeight.set(price.ballWeight ?? 250);
-    this.ajuste.set(price.ajuste ?? 0);
-    this.ajusteDescription.set(price.ajusteDescription ?? '');
+    this.ajusteAuto.set(price.ajusteAuto ?? false);
+    this.targetMarginPercent.set(price.targetMarginPercent ?? 200);
     this.priceName.set(price.name);
     this.selectedAdditionIds.set(price.additionToppingIds ?? []);
     this.removedIngredientIds.set(price.removedIngredientIds ?? []);
