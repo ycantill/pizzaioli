@@ -490,6 +490,9 @@
                   <div class="saved-price-row">
                     <div class="saved-price-info">
                       <h3 class="item-name">{{ price.name }}</h3>
+                      @if (getRecipeIngredientNames(price)) {
+                        <span class="saved-price-ingredients">{{ getRecipeIngredientNames(price) }}</span>
+                      }
                       <span class="saved-price-value">{{ price.price | number:'1.0-0' }}</span>
                     </div>
                     <div>
@@ -518,6 +521,10 @@
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Nombre</th>
                 <td mat-cell *matCellDef="let price">{{ price.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="ingredients">
+                <th mat-header-cell *matHeaderCellDef>Ingredientes</th>
+                <td mat-cell *matCellDef="let price" class="ingredients-cell">{{ getRecipeIngredientNames(price) }}</td>
               </ng-container>
               <ng-container matColumnDef="price">
                 <th mat-header-cell *matHeaderCellDef>Precio</th>

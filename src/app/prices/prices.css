@@ -193,6 +193,17 @@ td.warning {
   color: #1976d2;
 }
 
+.saved-price-ingredients {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.ingredients-cell {
+  font-size: 0.85rem;
+  color: #666;
+  max-width: 300px;
+}
+
 
 .additions-input-row {
   display: flex;

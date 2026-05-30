@@ -103,7 +103,7 @@ export class Prices implements OnInit {
   recipeIngredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'remove'];
   additionColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'remove'];
   laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin'];
-  savedPricesColumns: string[] = ['name', 'price', 'actions'];
+  savedPricesColumns: string[] = ['name', 'ingredients', 'price', 'actions'];
 
   constructor() {
     effect(() => {
@@ -544,6 +544,30 @@ export class Prices implements OnInit {
     if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
     if (hours > 0) return `${hours}h`;
     return `${minutes}min`;
+  }
+
+  getRecipeIngredientNames(price: Price): string {
+    const recipe = price.recipeId ? this.recipes().find(r => r.id === price.recipeId) : null;
+    if (!recipe) return '';
+    const removed = new Set(price.removedIngredientIds ?? []);
+    const toppingIds = [
+      ...recipe.toppings.filter(id => !removed.has(id)),
+      ...(price.additionToppingIds ?? [])
+    ];
+    const allToppings = this.toppings();
+    const allCosts = this.costs();
+    const seen = new Set<string>();
+    return toppingIds
+      .map(id => {
+        const topping = allToppings.find(t => t.id === id);
+        if (!topping) return null;
+        const name = allCosts.find(c => c.id === topping.costId)?.product ?? null;
+        if (!name || seen.has(name)) return null;
+        seen.add(name);
+        return name;
+      })
+      .filter((n): n is string => n !== null)
+      .join(', ');
   }
 
   async savePrice() {
