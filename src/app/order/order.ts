@@ -87,6 +87,16 @@ export class Order implements OnInit {
     return this.toppingOptions().filter((option) => recipeToppingIds.has(option.id));
   });
 
+  readonly additionalToppingOptions = computed<ToppingOption[]>(() => {
+    const sizeM = new Set(
+      this.toppings()
+        .filter((t): t is Topping & { id: string } => !!t.id && t.size === 'M')
+        .map((t) => t.id)
+    );
+
+    return this.toppingOptions().filter((option) => sizeM.has(option.id));
+  });
+
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
     if (!selectedId) {
@@ -103,7 +113,7 @@ export class Order implements OnInit {
 
   readonly additionalOptions = computed(() => {
     const selected = new Set(this.additionalIngredientIds());
-    return this.toppingOptions().filter((option) => selected.has(option.id));
+    return this.additionalToppingOptions().filter((option) => selected.has(option.id));
   });
 
   readonly additionalTotal = computed(() => {

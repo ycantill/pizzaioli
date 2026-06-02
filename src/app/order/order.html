@@ -68,11 +68,11 @@
         <h2 id="step-3-title">Ingrediente adicional</h2>
       </div>
 
-      @if (toppingOptions().length === 0) {
+      @if (additionalToppingOptions().length === 0) {
         <p class="status">No hay toppings disponibles.</p>
       } @else {
         <div class="ingredient-list" role="group" aria-label="Agregar ingredientes">
-          @for (option of toppingOptions(); track option.id) {
+          @for (option of additionalToppingOptions(); track option.id) {
             <button
               type="button"
               class="ingredient-item"
