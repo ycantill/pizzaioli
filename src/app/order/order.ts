@@ -110,7 +110,15 @@ export class Order implements OnInit {
     }
 
     const recipeToppingIds = new Set(recipe.toppings);
-    return this.toppingOptions().filter((option) => recipeToppingIds.has(option.id));
+    const allowedSizes = new Set(
+      this.toppings()
+        .filter((t): t is Topping & { id: string } => !!t.id && (t.size === 'M' || t.size === 'S'))
+        .map((t) => t.id)
+    );
+
+    return this.toppingOptions().filter(
+      (option) => recipeToppingIds.has(option.id) && allowedSizes.has(option.id)
+    );
   });
 
   readonly additionalToppingOptions = computed<ToppingOption[]>(() => {
