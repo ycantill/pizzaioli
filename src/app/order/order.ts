@@ -67,6 +67,32 @@ export class Order implements OnInit {
       .sort((a, b) => a.label.localeCompare(b.label, 'es'));
   });
 
+  readonly menuIngredients = computed<Map<string, string[]>>(() => {
+    const result = new Map<string, string[]>();
+    const allToppings = this.toppings();
+    const allCosts = this.costs();
+
+    for (const price of this.menuOptions()) {
+      const recipe = this.recipes().find((r) => r.id === price.recipeId);
+      if (!recipe) {
+        result.set(price.id!, []);
+        continue;
+      }
+
+      const names = recipe.toppings
+        .map((tId) => {
+          const topping = allToppings.find((t) => t.id === tId);
+          if (!topping) return null;
+          return allCosts.find((c) => c.id === topping.costId)?.product ?? null;
+        })
+        .filter((n): n is string => n !== null);
+
+      result.set(price.id!, names);
+    }
+
+    return result;
+  });
+
   readonly selectedMenuRecipe = computed(() => {
     const selectedMenu = this.selectedMenuOption();
     const recipeId = selectedMenu?.recipeId;

@@ -27,8 +27,17 @@
               [attr.aria-checked]="selectedPriceId() === option.id"
               (click)="selectMenuOption(option.id!)"
             >
-              <span class="menu-name">{{ option.name }}</span>
-              <span class="menu-price">{{ formatPrice(option.price) }}</span>
+              <div class="menu-card-top">
+                <span class="menu-name">{{ option.name }}</span>
+                <span class="menu-price">{{ formatPrice(option.price) }}</span>
+              </div>
+              @if ((menuIngredients().get(option.id!) ?? []).length > 0) {
+                <ul class="menu-ingredients" aria-label="Ingredientes incluidos">
+                  @for (ing of menuIngredients().get(option.id!)!; track ing) {
+                    <li>{{ ing }}</li>
+                  }
+                </ul>
+              }
             </button>
           }
         </div>
@@ -104,15 +113,23 @@
   </div>
 
   <div class="summary-details">
-    <p>
-      Base:
-      <strong>{{ formatPrice(selectedMenuOption()?.price ?? 0) }}</strong>
-    </p>
-    <p>
-      Adicionales:
-      <strong>{{ formatPrice(additionalTotal()) }}</strong>
-    </p>
-    <p>Excluidos: <strong>{{ excludedOptions().length }}</strong></p>
+    <p>Base: <strong>{{ formatPrice(selectedMenuOption()?.price ?? 0) }}</strong></p>
+    @if (additionalOptions().length > 0) {
+      <div class="summary-tags-row">
+        <span class="summary-tag-label">+ Adicionales:</span>
+        @for (item of additionalOptions(); track item.id) {
+          <span class="summary-tag add">{{ item.label }}</span>
+        }
+      </div>
+    }
+    @if (excludedOptions().length > 0) {
+      <div class="summary-tags-row">
+        <span class="summary-tag-label">- Sin:</span>
+        @for (item of excludedOptions(); track item.id) {
+          <span class="summary-tag exclude">{{ item.label }}</span>
+        }
+      </div>
+    }
   </div>
 
   <button type="button" class="order-button" [disabled]="!selectedMenuOption()" (click)="placeOrder()">

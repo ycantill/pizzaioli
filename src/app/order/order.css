@@ -70,6 +70,63 @@ h2 {
   gap: 0.6rem;
 }
 
+.menu-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.menu-ingredients {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.menu-ingredients li {
+  font-size: 0.74rem;
+  color: #7a4020;
+  background: #fdebd8;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+.summary-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.summary-tag-label {
+  font-size: 0.78rem;
+  color: #844014;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.summary-tag {
+  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-weight: 600;
+}
+
+.summary-tag.add {
+  background: #fce4c8;
+  color: #8a3700;
+}
+
+.summary-tag.exclude {
+  background: #fde8e8;
+  color: #8a1000;
+}
+
 .menu-card,
 .ingredient-item {
   width: 100%;
@@ -79,12 +136,22 @@ h2 {
   color: inherit;
   text-align: left;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
   padding: 0.78rem 0.85rem;
   cursor: pointer;
   transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.12s ease;
+}
+
+.menu-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.ingredient-item {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .menu-card:active,
