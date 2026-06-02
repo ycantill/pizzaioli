@@ -9,7 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
@@ -62,7 +61,6 @@ interface LaborLineItem {
     MatTableModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatCheckboxModule,
     DecimalPipe
   ],
   templateUrl: './prices.html',
@@ -90,8 +88,6 @@ export class Prices implements OnInit {
   selectedRecipeId = signal<string | null>(null);
   ballWeight = signal(250);
   priceName = signal('');
-  ajusteAuto = signal<boolean>(false);
-  targetMarginPercent = signal<number>(200);
   selectedAdditionIds = signal<string[]>([]);
   removedIngredientIds = signal<string[]>([]);
   pendingAdditionId = signal<string | null>(null);
@@ -475,23 +471,10 @@ export class Prices implements OnInit {
     return Math.round((this.totalMarginAmount() / base) * 10000) / 100;
   });
 
-  autoSuggestedPrice = computed(() => {
-    const base = this.totalBaseCostExcludingRecovery();
-    return Math.round((this.totalBaseCost() + (this.targetMarginPercent() / 100) * base) * 100) / 100;
-  });
-
-  autoAjuste = computed(() => {
-    return Math.round((this.autoSuggestedPrice() - this.totalWithMargin()) * 100) / 100;
-  });
-
-  effectiveAjuste = computed(() =>
-    this.ajusteAuto() ? this.autoAjuste() : 0
-  );
-
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil((total + this.effectiveAjuste()) / 1000) * 1000;
+    return Math.ceil(total / 1000) * 1000;
   });
 
   canSave = computed(() => {
@@ -581,8 +564,6 @@ export class Prices implements OnInit {
         doughId: this.selectedDoughId(),
         recipeId: this.selectedRecipeId(),
         ballWeight: this.ballWeight(),
-        ajusteAuto: this.ajusteAuto(),
-        ...(this.ajusteAuto() ? { ajusteValue: this.autoAjuste(), targetMarginPercent: this.targetMarginPercent() } : {}),
         ...(this.selectedAdditionIds().length ? { additionToppingIds: this.selectedAdditionIds() } : {}),
         ...(this.removedIngredientIds().length ? { removedIngredientIds: this.removedIngredientIds() } : {}),
       };
@@ -600,8 +581,6 @@ export class Prices implements OnInit {
     this.selectedDoughId.set(price.doughId ?? null);
     this.selectedRecipeId.set(price.recipeId ?? null);
     this.ballWeight.set(price.ballWeight ?? 250);
-    this.ajusteAuto.set(price.ajusteAuto ?? false);
-    this.targetMarginPercent.set(price.targetMarginPercent ?? 200);
     this.priceName.set(price.name);
     this.selectedAdditionIds.set(price.additionToppingIds ?? []);
     this.removedIngredientIds.set(price.removedIngredientIds ?? []);

@@ -419,32 +419,10 @@
             </div>
           </div>
 
-          <div class="ajuste-section">
-            <mat-checkbox [checked]="ajusteAuto()" (change)="ajusteAuto.set($event.checked)">
-              Ajuste automático
-            </mat-checkbox>
-
-            @if (ajusteAuto()) {
-              <mat-form-field appearance="outline" class="ajuste-field">
-                <mat-label>Margen objetivo (%)</mat-label>
-                <input matInput type="number"
-                       [ngModel]="targetMarginPercent()"
-                       (ngModelChange)="targetMarginPercent.set(+$event || 0)">
-                <mat-hint>Margen de ganancia total objetivo</mat-hint>
-              </mat-form-field>
-            }
-          </div>
-
           <div class="summary-rows">
-            @if (effectiveAjuste() !== 0) {
-              <div class="summary-row">
-                <span class="summary-label">Ajuste:</span>
-                <span class="summary-value">{{ effectiveAjuste() | number:'1.0-2' }}</span>
-              </div>
-            }
             <div class="summary-row">
               <span class="summary-label">Redondeo:</span>
-              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() - effectiveAjuste() | number:'1.0-2' }}</span>
+              <span class="summary-value">{{ suggestedPrice() - totalWithMargin() | number:'1.0-2' }}</span>
             </div>
             <div class="summary-row highlight">
               <span class="summary-label">Precio sugerido:</span>

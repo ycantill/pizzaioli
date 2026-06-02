@@ -5,9 +5,6 @@ export interface Price {
   doughId?: string | null;
   recipeId?: string | null;
   ballWeight?: number;
-  ajusteAuto?: boolean;
-  ajusteValue?: number;
-  targetMarginPercent?: number;
   additionToppingIds?: string[];
   removedIngredientIds?: string[];
 }
