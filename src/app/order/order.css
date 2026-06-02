@@ -200,7 +200,7 @@ h2 {
 }
 
 .summary-spacer {
-  height: 210px;
+  height: 320px;
 }
 
 .summary-bar {
@@ -237,15 +237,63 @@ h2 {
 
 .summary-details {
   display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0;
   margin-top: 0.45rem;
 }
 
-.summary-details p {
-  margin: 0;
+.summary-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.4rem;
+}
+
+.summary-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #844014;
+}
+
+.summary-section-value {
   font-size: 0.84rem;
-  color: #6a3e17;
+  font-weight: 700;
+  color: #2d1a0a;
+}
+
+.summary-ingredient-list {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.summary-ingredient-list li {
+  font-size: 0.82rem;
+  color: #5a3010;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.summary-ingredient-list.excluded li {
+  color: #8a1000;
+  text-decoration: line-through;
+}
+
+.summary-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid #e7c5a1;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2d1a0a;
 }
 
 .order-button {
