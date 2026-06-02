@@ -95,64 +95,69 @@
         </div>
       }
     </section>
+    <section class="step" aria-labelledby="step-4-title">
+      <div class="step-header">
+        <p class="step-number">Paso 4</p>
+        <h2 id="step-4-title">Resumen de tu pedido</h2>
+      </div>
+
+      @if (!selectedMenuOption()) {
+        <p class="status">Selecciona una opcion de menu para ver el resumen.</p>
+      } @else {
+        <div class="summary-details">
+          <div class="summary-section">
+            <span class="summary-section-label">{{ selectedMenuOption()!.name }}</span>
+            <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
+          </div>
+          @if ((menuIngredients().get(selectedMenuOption()!.id!) ?? []).length > 0) {
+            <ul class="summary-ingredient-list">
+              @for (ing of menuIngredients().get(selectedMenuOption()!.id!)!; track ing) {
+                <li>{{ ing }}</li>
+              }
+            </ul>
+          }
+          @if (excludedOptions().length > 0) {
+            <div class="summary-section">
+              <span class="summary-section-label">Sin</span>
+            </div>
+            <ul class="summary-ingredient-list excluded">
+              @for (item of excludedOptions(); track item.id) {
+                <li>{{ item.label }}</li>
+              }
+            </ul>
+          }
+          @if (additionalOptions().length > 0) {
+            <div class="summary-section">
+              <span class="summary-section-label">Adicionales</span>
+              <span class="summary-section-value">{{ formatPrice(additionalTotal()) }}</span>
+            </div>
+            <ul class="summary-ingredient-list">
+              @for (item of additionalOptions(); track item.id) {
+                <li>
+                  <span>{{ item.label }}</span>
+                  <span>{{ formatPrice(item.extraPrice) }}</span>
+                </li>
+              }
+            </ul>
+          }
+          <div class="summary-total-row">
+            <span>Total</span>
+            <span>{{ formatPrice(total()) }}</span>
+          </div>
+        </div>
+      }
+    </section>
   }
 
-  <div class="summary-spacer" aria-hidden="true"></div>
+  <div class="order-button-spacer" aria-hidden="true"></div>
 </main>
 
-<section class="summary-bar" aria-label="Resumen del pedido">
-  <div class="summary-top">
-    <div>
-      <p class="summary-label">Menu</p>
-      <p class="summary-value">{{ selectedMenuOption()?.name ?? 'Sin seleccionar' }}</p>
-    </div>
-  </div>
-
-  <div class="summary-details">
-    @if (selectedMenuOption()) {
-      <div class="summary-section">
-        <span class="summary-section-label">Ingredientes</span>
-        <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
-      </div>
-      @if ((menuIngredients().get(selectedMenuOption()!.id!) ?? []).length > 0) {
-        <ul class="summary-ingredient-list">
-          @for (ing of menuIngredients().get(selectedMenuOption()!.id!)!; track ing) {
-            <li>{{ ing }}</li>
-          }
-        </ul>
-      }
-    }
-    @if (excludedOptions().length > 0) {
-      <div class="summary-section">
-        <span class="summary-section-label">Sin</span>
-      </div>
-      <ul class="summary-ingredient-list excluded">
-        @for (item of excludedOptions(); track item.id) {
-          <li>{{ item.label }}</li>
-        }
-      </ul>
-    }
-    @if (additionalOptions().length > 0) {
-      <div class="summary-section">
-        <span class="summary-section-label">Adicionales</span>
-        <span class="summary-section-value">{{ formatPrice(additionalTotal()) }}</span>
-      </div>
-      <ul class="summary-ingredient-list">
-        @for (item of additionalOptions(); track item.id) {
-          <li>
-            <span>{{ item.label }}</span>
-            <span>{{ formatPrice(item.extraPrice) }}</span>
-          </li>
-        }
-      </ul>
-    }
-    <div class="summary-total-row">
-      <span>Total</span>
-      <span>{{ formatPrice(total()) }}</span>
-    </div>
-  </div>
-
+<div class="sticky-order" aria-label="Ordenar">
   <button type="button" class="order-button" [disabled]="!selectedMenuOption()" (click)="placeOrder()">
-    Ordenar
+    @if (selectedMenuOption()) {
+      Ordenar &mdash; {{ formatPrice(total()) }}
+    } @else {
+      Ordenar
+    }
   </button>
-</section>
+</div>
