@@ -43,7 +43,7 @@ export class Toppings implements OnInit {
     const active = this.sortActive();
     const direction = this.sortDirection();
     const directionFactor = direction === 'asc' ? 1 : -1;
-    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3 };
+    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3, XXL: 4 };
 
     return [...this.toppings()].sort((a, b) => {
       if (active === 'ingredient') {

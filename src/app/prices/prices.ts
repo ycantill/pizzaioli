@@ -248,7 +248,7 @@ export class Prices implements OnInit {
     const recipeToppingIds = new Set(this.selectedRecipe()?.toppings ?? []);
     const alreadyAdded = new Set(this.selectedAdditionIds());
     const allCosts = this.costs();
-    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3 };
+    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3, XXL: 4 };
     return this.toppings()
       .filter(t => !recipeToppingIds.has(t.id!) && !alreadyAdded.has(t.id!))
       .sort((a, b) => {
