@@ -28,7 +28,7 @@
               (click)="selectMenuOption(option.id!)"
             >
               <span class="menu-name">{{ option.name }}</span>
-              <span class="menu-price">{{ option.price | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="menu-price">{{ formatPrice(option.price) }}</span>
             </button>
           }
         </div>
@@ -41,11 +41,13 @@
         <h2 id="step-2-title">Ingrediente que deseas excluir</h2>
       </div>
 
-      @if (toppingOptions().length === 0) {
+      @if (!selectedMenuOption()) {
+        <p class="status">Primero selecciona una opcion de menu.</p>
+      } @else if (excludableToppingOptions().length === 0) {
         <p class="status">No hay toppings disponibles.</p>
       } @else {
         <div class="ingredient-list" role="group" aria-label="Excluir ingredientes">
-          @for (option of toppingOptions(); track option.id) {
+          @for (option of excludableToppingOptions(); track option.id) {
             <button
               type="button"
               class="ingredient-item"
@@ -97,18 +99,18 @@
     </div>
     <div class="summary-total">
       <p class="summary-label">Total</p>
-      <p class="summary-price">{{ total() | currency:'MXN':'symbol':'1.2-2' }}</p>
+      <p class="summary-price">{{ formatPrice(total()) }}</p>
     </div>
   </div>
 
   <div class="summary-details">
     <p>
       Base:
-      <strong>{{ (selectedMenuOption()?.price ?? 0) | currency:'MXN':'symbol':'1.2-2' }}</strong>
+      <strong>{{ formatPrice(selectedMenuOption()?.price ?? 0) }}</strong>
     </p>
     <p>
       Adicionales:
-      <strong>{{ additionalTotal() | currency:'MXN':'symbol':'1.2-2' }}</strong>
+      <strong>{{ formatPrice(additionalTotal()) }}</strong>
     </p>
     <p>Excluidos: <strong>{{ excludedOptions().length }}</strong></p>
   </div>

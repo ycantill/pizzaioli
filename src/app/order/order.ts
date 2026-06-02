@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
 import { FirestoreService } from '../firestore.service';
 import { Price } from '../models/price.model';
 import { Topping } from '../models/topping.model';
 import { Cost } from '../models/cost.model';
 import { Margin } from '../models/margin.model';
+import { Recipe } from '../models/recipe.model';
 
 interface ToppingOption {
   id: string;
@@ -12,9 +12,14 @@ interface ToppingOption {
   extraPrice: number;
 }
 
+interface PublicToppingFields {
+  publicName?: string;
+  publicPrice?: number;
+}
+
 @Component({
   selector: 'app-order',
-  imports: [CurrencyPipe],
+  imports: [],
   templateUrl: './order.html',
   styleUrl: './order.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +33,7 @@ export class Order implements OnInit {
   readonly additionalIngredientIds = signal<string[]>([]);
 
   private readonly prices = signal<Price[]>([]);
+  private readonly recipes = signal<Recipe[]>([]);
   private readonly toppings = signal<Topping[]>([]);
   private readonly costs = signal<Cost[]>([]);
   private readonly margins = signal<Margin[]>([]);
@@ -46,6 +52,15 @@ export class Order implements OnInit {
     return this.toppings()
       .filter((topping): topping is Topping & { id: string } => !!topping.id)
       .map((topping) => {
+        const toppingView = topping as Topping & PublicToppingFields;
+        if (typeof toppingView.publicName === 'string' && typeof toppingView.publicPrice === 'number') {
+          return {
+            id: topping.id,
+            label: `${toppingView.publicName} (${topping.size})`,
+            extraPrice: Math.round(toppingView.publicPrice * 100) / 100,
+          };
+        }
+
         const cost = costs.find((item) => item.id === topping.costId);
         const margin = margins.find((item) => item.costId === topping.costId);
         const marginPercent = margin
@@ -74,6 +89,26 @@ export class Order implements OnInit {
       });
   });
 
+  readonly selectedMenuRecipe = computed(() => {
+    const selectedMenu = this.selectedMenuOption();
+    const recipeId = selectedMenu?.recipeId;
+    if (!recipeId) {
+      return null;
+    }
+
+    return this.recipes().find((recipe) => recipe.id === recipeId) ?? null;
+  });
+
+  readonly excludableToppingOptions = computed<ToppingOption[]>(() => {
+    const recipe = this.selectedMenuRecipe();
+    if (!recipe) {
+      return [];
+    }
+
+    const recipeToppingIds = new Set(recipe.toppings);
+    return this.toppingOptions().filter((option) => recipeToppingIds.has(option.id));
+  });
+
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
     if (!selectedId) {
@@ -85,7 +120,7 @@ export class Order implements OnInit {
 
   readonly excludedOptions = computed(() => {
     const selected = new Set(this.excludedIngredientIds());
-    return this.toppingOptions().filter((option) => selected.has(option.id));
+    return this.excludableToppingOptions().filter((option) => selected.has(option.id));
   });
 
   readonly additionalOptions = computed(() => {
@@ -104,17 +139,28 @@ export class Order implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const [prices, toppings, costs, margins] = await Promise.all([
+      const [prices, recipes, toppings] = await Promise.all([
         this.firestoreService.getDocuments('prices'),
+        this.firestoreService.getDocuments('recipes'),
         this.firestoreService.getDocuments('toppings'),
-        this.firestoreService.getDocuments('costs'),
-        this.firestoreService.getDocuments('margins'),
       ]);
 
       this.prices.set(prices as Price[]);
+      this.recipes.set(recipes as Recipe[]);
       this.toppings.set(toppings as Topping[]);
-      this.costs.set(costs as Cost[]);
-      this.margins.set(margins as Margin[]);
+
+      // Optional for authenticated/admin sessions. Public order flow can work without these.
+      try {
+        const [costs, margins] = await Promise.all([
+          this.firestoreService.getDocuments('costs'),
+          this.firestoreService.getDocuments('margins'),
+        ]);
+        this.costs.set(costs as Cost[]);
+        this.margins.set(margins as Margin[]);
+      } catch {
+        this.costs.set([]);
+        this.margins.set([]);
+      }
     } catch (error) {
       console.error('Error loading order data', error);
     } finally {
@@ -124,9 +170,15 @@ export class Order implements OnInit {
 
   selectMenuOption(id: string): void {
     this.selectedPriceId.set(id);
+    this.excludedIngredientIds.set([]);
+    this.additionalIngredientIds.set([]);
   }
 
   toggleExcludedIngredient(id: string): void {
+    if (!this.excludableToppingOptions().some((option) => option.id === id)) {
+      return;
+    }
+
     this.excludedIngredientIds.update((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     );
@@ -148,5 +200,15 @@ export class Order implements OnInit {
 
   placeOrder(): void {
     // Placeholder for order submission.
+  }
+
+  formatPrice(value: number): string {
+    const rounded = Math.round(value);
+    const formatter = new Intl.NumberFormat('es-CO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+
+    return `$ ${formatter.format(rounded)}`;
   }
 }
