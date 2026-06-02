@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Cambia a 'master' si ese es tu branch principal
+      - develop
   workflow_dispatch:  # Permite ejecutar manualmente el workflow
 
 # Permisos necesarios para desplegar a GitHub Pages
@@ -35,6 +36,9 @@ jobs:
 
       - name: Build Angular app
         run: npm run build -- --base-href=/pizzaioli/
+
+      - name: Add SPA fallback for deep links
+        run: cp dist/pizzaioli/browser/index.html dist/pizzaioli/browser/404.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
