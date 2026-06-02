@@ -170,6 +170,20 @@ export class Recipes implements OnInit {
     });
   }
 
+  async duplicateRecipe(recipe: Recipe) {
+    const copy: Recipe = {
+      name: `${recipe.name} (copia)`,
+      recipeTypeId: recipe.recipeTypeId,
+      toppings: [...recipe.toppings],
+    };
+    try {
+      const docRef = await this.firestoreService.addDocument('recipes', copy);
+      this.recipes.update(list => [...list, { ...copy, id: docRef.id }]);
+    } catch (error) {
+      console.error('Error duplicating recipe:', error);
+    }
+  }
+
   editRecipe(recipe: Recipe) {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
