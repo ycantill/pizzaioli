@@ -1,9 +1,10 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { Topping } from '../models/topping.model';
 import { Cost } from '../models/cost.model';
@@ -17,6 +18,7 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
+    MatSortModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -34,6 +36,29 @@ export class Toppings implements OnInit {
   units = signal<Unit[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'actions'];
+  sortActive = signal<'ingredient' | 'quantity' | 'size'>('ingredient');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+
+  sortedToppings = computed(() => {
+    const active = this.sortActive();
+    const direction = this.sortDirection();
+    const directionFactor = direction === 'asc' ? 1 : -1;
+    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3 };
+
+    return [...this.toppings()].sort((a, b) => {
+      if (active === 'ingredient') {
+        const aName = this.getCostName(a.costId);
+        const bName = this.getCostName(b.costId);
+        return aName.localeCompare(bName, 'es') * directionFactor;
+      }
+
+      if (active === 'quantity') {
+        return (a.quantity - b.quantity) * directionFactor;
+      }
+
+      return ((sizeOrder[a.size] ?? 99) - (sizeOrder[b.size] ?? 99)) * directionFactor;
+    });
+  });
 
   async ngOnInit() {
     await Promise.all([this.loadCosts(), this.loadUnits()]);
@@ -68,6 +93,17 @@ export class Toppings implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  onSortChange(sort: Sort) {
+    if (!sort.active || !sort.direction) {
+      this.sortActive.set('ingredient');
+      this.sortDirection.set('asc');
+      return;
+    }
+
+    this.sortActive.set(sort.active as 'ingredient' | 'quantity' | 'size');
+    this.sortDirection.set(sort.direction);
   }
 
   getCostName(costId: string): string {
