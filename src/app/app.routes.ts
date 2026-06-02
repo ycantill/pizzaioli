@@ -17,6 +17,7 @@ import { authGuard, noAuthGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [noAuthGuard] },
+  { path: 'order', loadComponent: () => import('./order/order').then((m) => m.Order) },
   { path: '', redirectTo: '/costs', pathMatch: 'full' },
   { path: 'costs', component: Costs, canActivate: [authGuard] },
   { path: 'cost-types', component: CostTypes, canActivate: [authGuard] },

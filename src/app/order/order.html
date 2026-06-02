@@ -1,0 +1,119 @@
+<main class="order-page" aria-labelledby="order-title">
+  <header class="hero">
+    <p class="eyebrow">Pedido en linea</p>
+    <h1 id="order-title">Arma tu pizza paso a paso</h1>
+    <p class="description">Selecciona tu opcion de menu, ajusta ingredientes y revisa tu total antes de ordenar.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando opciones...</p>
+  } @else {
+    <section class="step" aria-labelledby="step-1-title">
+      <div class="step-header">
+        <p class="step-number">Paso 1</p>
+        <h2 id="step-1-title">Elige tu opcion de menu</h2>
+      </div>
+
+      @if (menuOptions().length === 0) {
+        <p class="status">No hay precios guardados todavia.</p>
+      } @else {
+        <div class="cards-grid" role="radiogroup" aria-label="Opciones de menu">
+          @for (option of menuOptions(); track option.id) {
+            <button
+              type="button"
+              role="radio"
+              class="menu-card"
+              [class.selected]="selectedPriceId() === option.id"
+              [attr.aria-checked]="selectedPriceId() === option.id"
+              (click)="selectMenuOption(option.id!)"
+            >
+              <span class="menu-name">{{ option.name }}</span>
+              <span class="menu-price">{{ option.price | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="step" aria-labelledby="step-2-title">
+      <div class="step-header">
+        <p class="step-number">Paso 2</p>
+        <h2 id="step-2-title">Ingrediente que deseas excluir</h2>
+      </div>
+
+      @if (toppingOptions().length === 0) {
+        <p class="status">No hay toppings disponibles.</p>
+      } @else {
+        <div class="ingredient-list" role="group" aria-label="Excluir ingredientes">
+          @for (option of toppingOptions(); track option.id) {
+            <button
+              type="button"
+              class="ingredient-item"
+              [class.selected]="isExcludedIngredientSelected(option.id)"
+              (click)="toggleExcludedIngredient(option.id)"
+            >
+              <span>{{ option.label }}</span>
+              <span class="pill">Excluir</span>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="step" aria-labelledby="step-3-title">
+      <div class="step-header">
+        <p class="step-number">Paso 3</p>
+        <h2 id="step-3-title">Ingrediente adicional</h2>
+      </div>
+
+      @if (toppingOptions().length === 0) {
+        <p class="status">No hay toppings disponibles.</p>
+      } @else {
+        <div class="ingredient-list" role="group" aria-label="Agregar ingredientes">
+          @for (option of toppingOptions(); track option.id) {
+            <button
+              type="button"
+              class="ingredient-item"
+              [class.selected]="isAdditionalIngredientSelected(option.id)"
+              (click)="toggleAdditionalIngredient(option.id)"
+            >
+              <span>{{ option.label }}</span>
+              <span class="pill add">+ {{ option.extraPrice | currency:'MXN':'symbol':'1.2-2' }}</span>
+            </button>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <div class="summary-spacer" aria-hidden="true"></div>
+</main>
+
+<section class="summary-bar" aria-label="Resumen del pedido">
+  <div class="summary-top">
+    <div>
+      <p class="summary-label">Menu</p>
+      <p class="summary-value">{{ selectedMenuOption()?.name ?? 'Sin seleccionar' }}</p>
+    </div>
+    <div class="summary-total">
+      <p class="summary-label">Total</p>
+      <p class="summary-price">{{ total() | currency:'MXN':'symbol':'1.2-2' }}</p>
+    </div>
+  </div>
+
+  <div class="summary-details">
+    <p>
+      Base:
+      <strong>{{ (selectedMenuOption()?.price ?? 0) | currency:'MXN':'symbol':'1.2-2' }}</strong>
+    </p>
+    <p>
+      Adicionales:
+      <strong>{{ additionalTotal() | currency:'MXN':'symbol':'1.2-2' }}</strong>
+    </p>
+    <p>Excluidos: <strong>{{ excludedOptions().length }}</strong></p>
+  </div>
+
+  <button type="button" class="order-button" [disabled]="!selectedMenuOption()" (click)="placeOrder()">
+    Ordenar
+  </button>
+</section>
