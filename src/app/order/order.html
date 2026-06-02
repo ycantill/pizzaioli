@@ -80,7 +80,7 @@
               (click)="toggleAdditionalIngredient(option.id)"
             >
               <span>{{ option.label }}</span>
-              <span class="pill add">+ {{ option.extraPrice | currency:'MXN':'symbol':'1.2-2' }}</span>
+              <span class="pill add">+ {{ formatPrice(option.extraPrice) }}</span>
             </button>
           }
         </div>
