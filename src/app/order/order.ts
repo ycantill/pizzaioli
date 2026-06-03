@@ -212,7 +212,11 @@ export class Order implements OnInit {
     const included = this.summaryIncludedItems().map((o) => ({ ...o, excluded: false, additional: false }));
     const excluded = this.summaryExcludedItems().map((o) => ({ ...o, excluded: true, additional: false }));
     const additional = this.summaryAdditionalItems().map((o) => ({ ...o, excluded: false, additional: true }));
-    return [...included, ...excluded, ...additional].sort((a, b) => a.label.localeCompare(b.label, 'es'));
+    return [...included, ...excluded, ...additional].sort((a, b) => {
+      const rank = (o: typeof a) => o.salsaBase ? 0 : o.additional ? 2 : 1;
+      if (rank(a) !== rank(b)) return rank(a) - rank(b);
+      return a.label.localeCompare(b.label, 'es');
+    });
   });
 
   readonly selectedMenuOption = computed(() => {
