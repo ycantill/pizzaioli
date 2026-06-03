@@ -185,6 +185,29 @@ export class Order implements OnInit {
     this.allSalsaOptions().filter((o) => this.isIngredientActive(o)).length
   );
 
+  readonly summaryIncludedItems = computed(() => {
+    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
+    return all.filter((o) => o.excludable && this.isIngredientActive(o));
+  });
+
+  readonly summaryExcludedItems = computed(() => {
+    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
+    return all.filter((o) => o.excludable && !this.isIngredientActive(o));
+  });
+
+  readonly summaryAdditionalItems = computed(() => {
+    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
+    return all.filter((o) => o.addable && this.isIngredientActive(o));
+  });
+
+  readonly summaryAdditionalTotal = computed(() =>
+    this.summaryAdditionalItems().reduce((sum, o) => sum + o.price, 0)
+  );
+
+  readonly summaryTotal = computed(() =>
+    (this.selectedMenuOption()?.price ?? 0) + this.summaryAdditionalTotal()
+  );
+
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
     if (!selectedId) {
