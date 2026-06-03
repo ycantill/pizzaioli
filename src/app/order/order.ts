@@ -204,8 +204,12 @@ export class Order implements OnInit {
     this.summaryAdditionalItems().reduce((sum, o) => sum + o.price, 0)
   );
 
+  readonly summaryExcludedTotal = computed(() =>
+    this.summaryExcludedItems().reduce((sum, o) => sum + o.price, 0)
+  );
+
   readonly summaryTotal = computed(() =>
-    (this.selectedMenuOption()?.price ?? 0) + this.summaryAdditionalTotal()
+    (this.selectedMenuOption()?.price ?? 0) - this.summaryExcludedTotal() + this.summaryAdditionalTotal()
   );
 
   readonly summaryAllItems = computed(() => {

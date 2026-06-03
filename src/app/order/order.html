@@ -72,6 +72,10 @@
                   <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
                 </span>
+              } @else if (option.excludable && !isIngredientActive(option)) {
+                <span class="pill pill-excluded">
+                  - {{ formatPrice(option.price) }}
+                </span>
               } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
                   + {{ formatPrice(option.price) }}
@@ -108,6 +112,10 @@
                 <span class="pill">
                   <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
+                </span>
+              } @else if (option.excludable && !isIngredientActive(option)) {
+                <span class="pill pill-excluded">
+                  - {{ formatPrice(option.price) }}
                 </span>
               } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
