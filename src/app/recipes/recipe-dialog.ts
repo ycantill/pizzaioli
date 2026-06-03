@@ -75,8 +75,7 @@ export interface RecipeDialogData {
                 </mat-form-field>
 
                 <button mat-icon-button type="button" color="warn"
-                        (click)="removeTopping($index)"
-                        [disabled]="toppingsArray.length === 1">
+                        (click)="removeTopping($index)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -164,8 +163,8 @@ export class RecipeDialog {
     recipeTypeId: [this.data.recipe?.recipeTypeId ?? '', Validators.required],
     toppings: this.fb.array(
       this.data.recipe?.toppings?.length
-        ? this.data.recipe.toppings.map(id => this.fb.control(id, Validators.required))
-        : [this.fb.control(this.data.toppings[0]?.id ?? '', Validators.required)]
+        ? this.data.recipe.toppings.map(id => this.fb.control(id))
+        : []
     )
   });
 
@@ -190,14 +189,12 @@ export class RecipeDialog {
     const usedIds = this.toppingsArray.controls.map(ctrl => ctrl.value as string);
     const next = this.data.toppings.find(t => !usedIds.includes(t.id!));
     if (next) {
-      this.toppingsArray.push(this.fb.control(next.id!, Validators.required));
+      this.toppingsArray.push(this.fb.control(next.id!));
     }
   }
 
   removeTopping(index: number) {
-    if (this.toppingsArray.length > 1) {
-      this.toppingsArray.removeAt(index);
-    }
+    this.toppingsArray.removeAt(index);
   }
 
   onCancel(): void {
