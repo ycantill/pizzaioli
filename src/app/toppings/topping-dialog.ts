@@ -4,6 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Topping, ToppingSize, TOPPING_SIZES } from '../models/topping.model';
 import { Cost } from '../models/cost.model';
@@ -21,6 +22,7 @@ export interface ToppingDialogData {
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
+    MatCheckboxModule,
     ReactiveFormsModule
   ],
   template: `
@@ -61,6 +63,8 @@ export interface ToppingDialogData {
             <mat-error>El tamaño es requerido</mat-error>
           }
         </mat-form-field>
+
+        <mat-checkbox formControlName="salsaBase">Salsa base</mat-checkbox>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -98,7 +102,8 @@ export class ToppingDialog {
   form = this.fb.group({
     costId: [this.data.topping?.costId ?? '', Validators.required],
     quantity: [this.data.topping?.quantity ?? null, [Validators.required, Validators.min(0.01)]],
-    size: [this.data.topping?.size ?? 'M' as ToppingSize, Validators.required]
+    size: [this.data.topping?.size ?? 'M' as ToppingSize, Validators.required],
+    salsaBase: [this.data.topping?.salsaBase ?? false]
   });
 
   onCancel(): void {
@@ -109,7 +114,7 @@ export class ToppingDialog {
     if (this.form.valid) {
       const topping: Topping = {
         ...this.data.topping,
-        ...this.form.value as { costId: string; quantity: number; size: ToppingSize }
+        ...this.form.value as { costId: string; quantity: number; size: ToppingSize; salsaBase: boolean }
       };
       this.dialogRef.close(topping);
     }

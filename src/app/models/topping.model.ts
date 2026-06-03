@@ -7,4 +7,5 @@ export interface Topping {
   costId: string;
   quantity: number;
   size: ToppingSize;
+  salsaBase: boolean;
 }

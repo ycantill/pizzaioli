@@ -35,7 +35,7 @@ export class Toppings implements OnInit {
   costs = signal<Cost[]>([]);
   units = signal<Unit[]>([]);
   loading = signal(true);
-  displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'actions'];
+  displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'salsaBase', 'actions'];
   sortActive = signal<'ingredient' | 'quantity' | 'size'>('ingredient');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
