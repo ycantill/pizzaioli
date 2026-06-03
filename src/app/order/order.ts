@@ -62,8 +62,7 @@ export class Order implements OnInit {
           : 0;
 
         const baseCost = topping.quantity * (cost?.value ?? 0);
-        const marginAmount = baseCost * (marginPercent / 100);
-        const computedPrice = baseCost + marginAmount;
+        const computedPrice = baseCost * (marginPercent / 100);
         const extraPrice = this.ceilTo1000(computedPrice);
         const productName = cost?.product ?? 'Ingrediente';
 
