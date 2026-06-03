@@ -45,6 +45,7 @@ interface LaborLineItem {
   baseCost: number;
   marginPercent: number;
   costWithMargin: number;
+  roundedCost: number;
   isRecoveryOnly: boolean;
 }
 
@@ -99,7 +100,7 @@ export class Prices implements OnInit {
   ingredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost'];
   recipeIngredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost', 'remove'];
   additionColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost', 'remove'];
-  laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin'];
+  laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin', 'roundedCost'];
   savedPricesColumns: string[] = ['name', 'ingredients', 'price', 'actions'];
 
   constructor() {
@@ -379,13 +380,15 @@ export class Prices implements OnInit {
       const costWithMargin = baseCost * (totalMargin / 100);
       const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
 
+      const cwm = Math.round(costWithMargin * 100) / 100;
       return {
         name: consumption.name,
         hours,
         costPerHour: Math.round(costPerHour * 100) / 100,
         baseCost: Math.round(baseCost * 100) / 100,
         marginPercent: totalMargin,
-        costWithMargin: Math.round(costWithMargin * 100) / 100,
+        costWithMargin: cwm,
+        roundedCost: Math.ceil(cwm / 100) * 100,
         isRecoveryOnly
       };
     }).filter((item): item is LaborLineItem => item !== null);
@@ -422,7 +425,8 @@ export class Prices implements OnInit {
     const items = this.laborLineItems();
     return {
       baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100
+      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100,
+      roundedCost: items.reduce((sum, item) => sum + item.roundedCost, 0)
     };
   });
 
@@ -436,7 +440,7 @@ export class Prices implements OnInit {
   totalWithMargin = computed(() => {
     const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
     const ingredientTotal = ingredients.reduce((sum, item) => sum + item.roundedCost, 0);
-    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.costWithMargin, 0);
+    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.roundedCost, 0);
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
@@ -487,7 +491,7 @@ export class Prices implements OnInit {
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
     if (total <= 0) return 0;
-    return Math.ceil(total / 1000) * 1000;
+    return total;
   });
 
   canSave = computed(() => {
