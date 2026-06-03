@@ -62,9 +62,9 @@
               class="ingredient-item"
               [class.selected]="isIngredientActive(option)"
               [class.item-excluded]="option.excludable && !isIngredientActive(option)"
-              [class.item-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 2"
+              [class.item-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
               [attr.aria-pressed]="isIngredientActive(option)"
-              [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 2"
+              [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
               (click)="toggleIngredient(option)"
             >
               <span class="ingredient-name">{{ option.label }}</span>

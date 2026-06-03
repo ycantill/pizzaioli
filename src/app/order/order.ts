@@ -296,7 +296,7 @@ export class Order implements OnInit {
 
   toggleIngredient(option: IngredientOption): void {
     const willActivate = !this.isIngredientActive(option);
-    if (option.salsaBase && willActivate && this.activeSalsaCount() >= 2) {
+    if (option.salsaBase && willActivate && this.activeSalsaCount() >= 1) {
       return;
     }
     if (option.excludable) {
