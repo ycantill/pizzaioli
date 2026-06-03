@@ -36,7 +36,7 @@ export class Toppings implements OnInit {
   units = signal<Unit[]>([]);
   loading = signal(true);
   displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'salsaBase', 'actions'];
-  sortActive = signal<'ingredient' | 'quantity' | 'size'>('ingredient');
+  sortActive = signal<'ingredient' | 'quantity' | 'size' | 'salsaBase'>('ingredient');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   sortedToppings = computed(() => {
@@ -54,6 +54,10 @@ export class Toppings implements OnInit {
 
       if (active === 'quantity') {
         return (a.quantity - b.quantity) * directionFactor;
+      }
+
+      if (active === 'salsaBase') {
+        return ((a.salsaBase ? 1 : 0) - (b.salsaBase ? 1 : 0)) * directionFactor;
       }
 
       return ((sizeOrder[a.size] ?? 99) - (sizeOrder[b.size] ?? 99)) * directionFactor;
@@ -102,7 +106,7 @@ export class Toppings implements OnInit {
       return;
     }
 
-    this.sortActive.set(sort.active as 'ingredient' | 'quantity' | 'size');
+    this.sortActive.set(sort.active as 'ingredient' | 'quantity' | 'size' | 'salsaBase');
     this.sortDirection.set(sort.direction);
   }
 
