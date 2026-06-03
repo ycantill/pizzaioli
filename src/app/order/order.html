@@ -47,7 +47,46 @@
     <section class="step" aria-labelledby="step-2-title">
       <div class="step-header">
         <p class="step-number">Paso 2</p>
-        <h2 id="step-2-title">Personaliza tus ingredientes</h2>
+        <h2 id="step-2-title">Elige tu salsa base</h2>
+      </div>
+
+      @if (!selectedMenuOption()) {
+        <p class="status">Primero selecciona una opcion de menu.</p>
+      } @else if (allSalsaOptions().length === 0) {
+        <p class="status">No hay salsas disponibles.</p>
+      } @else {
+        <div class="ingredient-list" role="group" aria-label="Salsas">
+          @for (option of allSalsaOptions(); track option.id) {
+            <button
+              type="button"
+              class="ingredient-item"
+              [class.selected]="isIngredientActive(option)"
+              [class.item-excluded]="option.excludable && !isIngredientActive(option)"
+              [class.item-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 2"
+              [attr.aria-pressed]="isIngredientActive(option)"
+              [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 2"
+              (click)="toggleIngredient(option)"
+            >
+              <span class="ingredient-name">{{ option.label }}</span>
+              @if (option.excludable) {
+                <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+                  {{ formatPrice(option.price) }}
+                </span>
+              } @else {
+                <span class="pill add" [class.pill-active]="isIngredientActive(option)">
+                  + {{ formatPrice(option.price) }}
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="step" aria-labelledby="step-3-title">
+      <div class="step-header">
+        <p class="step-number">Paso 3</p>
+        <h2 id="step-3-title">Personaliza tus ingredientes</h2>
       </div>
 
       @if (!selectedMenuOption()) {
@@ -81,10 +120,10 @@
       }
     </section>
 
-    <section class="step" aria-labelledby="step-3-title">
+    <section class="step" aria-labelledby="step-4-title">
       <div class="step-header">
-        <p class="step-number">Paso 3</p>
-        <h2 id="step-3-title">Resumen de tu pedido</h2>
+        <p class="step-number">Paso 4</p>
+        <h2 id="step-4-title">Resumen de tu pedido</h2>
       </div>
 
       @if (!selectedMenuOption()) {

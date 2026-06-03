@@ -18,6 +18,7 @@ interface IngredientOption {
   price: number;
   excludable: boolean;
   addable: boolean;
+  salsaBase: boolean;
 }
 
 @Component({
@@ -148,18 +149,44 @@ export class Order implements OnInit {
     return this.toppingOptions()
       .flatMap((option): IngredientOption[] => {
         const topping = toppings.find((t) => t.id === option.id);
-        if (!topping) return [];
+        if (!topping || topping.salsaBase) return [];
         const inRecipe = recipeToppingIds.has(option.id);
         const excludable = inRecipe && excludableSizes.has(topping.size);
         const addable = !inRecipe && topping.size === 'M';
         if (!excludable && !addable) return [];
-        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable }];
+        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: false }];
       })
       .sort((a, b) => {
         if (a.excludable !== b.excludable) return a.excludable ? -1 : 1;
         return a.label.localeCompare(b.label, 'es');
       });
   });
+
+  readonly allSalsaOptions = computed<IngredientOption[]>(() => {
+    const recipe = this.selectedMenuRecipe();
+    const recipeToppingIds = new Set(recipe?.toppings ?? []);
+    const toppings = this.toppings();
+    const excludableSizes = new Set(['S', 'M']);
+
+    return this.toppingOptions()
+      .flatMap((option): IngredientOption[] => {
+        const topping = toppings.find((t) => t.id === option.id);
+        if (!topping || !topping.salsaBase) return [];
+        const inRecipe = recipeToppingIds.has(option.id);
+        const excludable = inRecipe && excludableSizes.has(topping.size);
+        const addable = !inRecipe && topping.size === 'M';
+        if (!excludable && !addable) return [];
+        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: true }];
+      })
+      .sort((a, b) => {
+        if (a.excludable !== b.excludable) return a.excludable ? -1 : 1;
+        return a.label.localeCompare(b.label, 'es');
+      });
+  });
+
+  readonly activeSalsaCount = computed(() =>
+    this.allSalsaOptions().filter((o) => this.isIngredientActive(o)).length
+  );
 
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
@@ -218,10 +245,6 @@ export class Order implements OnInit {
   }
 
   toggleExcludedIngredient(id: string): void {
-    if (!this.excludableToppingOptions().some((option) => option.id === id)) {
-      return;
-    }
-
     this.excludedIngredientIds.update((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
     );
@@ -241,6 +264,10 @@ export class Order implements OnInit {
   }
 
   toggleIngredient(option: IngredientOption): void {
+    const willActivate = !this.isIngredientActive(option);
+    if (option.salsaBase && willActivate && this.activeSalsaCount() >= 2) {
+      return;
+    }
     if (option.excludable) {
       this.toggleExcludedIngredient(option.id);
     } else if (option.addable) {

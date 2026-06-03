@@ -165,6 +165,12 @@ h2 {
   background: #fff5f3;
 }
 
+.ingredient-item.item-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .item-excluded .ingredient-name {
   text-decoration: line-through;
   color: #8a4030;
