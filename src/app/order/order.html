@@ -61,19 +61,18 @@
               type="button"
               class="ingredient-item"
               [class.selected]="isIngredientActive(option)"
-              [class.item-excluded]="option.excludable && !isIngredientActive(option)"
               [class.item-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
               [attr.aria-pressed]="isIngredientActive(option)"
               [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
               (click)="toggleIngredient(option)"
             >
               <span class="ingredient-name">{{ option.label }}</span>
-              @if (option.excludable) {
-                <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+              @if (option.excludable && isIngredientActive(option)) {
+                <span class="pill">
                   <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
                 </span>
-              } @else {
+              } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
                   + {{ formatPrice(option.price) }}
                 </span>
@@ -101,17 +100,16 @@
               type="button"
               class="ingredient-item"
               [class.selected]="isIngredientActive(option)"
-              [class.item-excluded]="option.excludable && !isIngredientActive(option)"
               [attr.aria-pressed]="isIngredientActive(option)"
               (click)="toggleIngredient(option)"
             >
               <span class="ingredient-name">{{ option.label }}</span>
-              @if (option.excludable) {
-                <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+              @if (option.excludable && isIngredientActive(option)) {
+                <span class="pill">
                   <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
                 </span>
-              } @else {
+              } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
                   + {{ formatPrice(option.price) }}
                 </span>
