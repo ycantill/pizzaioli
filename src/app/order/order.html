@@ -147,7 +147,13 @@
               @for (item of summaryAllItems(); track item.id) {
                 <li [class.excluded]="item.excluded" [class.additional]="item.additional">
                   <span>{{ item.label }}</span>
-                  <span>{{ formatPrice(item.price) }}</span>
+                  @if (item.excluded) {
+                    <span>- {{ formatPrice(item.price) }}</span>
+                  } @else if (item.additional) {
+                    <span>+ {{ formatPrice(item.price) }}</span>
+                  } @else {
+                    <span>{{ formatPrice(item.price) }}</span>
+                  }
                 </li>
               }
             </ul>
