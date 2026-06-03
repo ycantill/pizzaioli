@@ -144,15 +144,14 @@ export class Order implements OnInit {
     const recipe = this.selectedMenuRecipe();
     const recipeToppingIds = new Set(recipe?.toppings ?? []);
     const toppings = this.toppings();
-    const excludableSizes = new Set(['S', 'M']);
 
     return this.toppingOptions()
       .flatMap((option): IngredientOption[] => {
         const topping = toppings.find((t) => t.id === option.id);
         if (!topping || topping.salsaBase) return [];
         const inRecipe = recipeToppingIds.has(option.id);
-        const excludable = inRecipe && excludableSizes.has(topping.size);
-        const addable = !inRecipe && topping.size === 'M';
+        const excludable = inRecipe;
+        const addable = !inRecipe;
         if (!excludable && !addable) return [];
         return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: false }];
       })
@@ -166,15 +165,14 @@ export class Order implements OnInit {
     const recipe = this.selectedMenuRecipe();
     const recipeToppingIds = new Set(recipe?.toppings ?? []);
     const toppings = this.toppings();
-    const excludableSizes = new Set(['S', 'M']);
 
     return this.toppingOptions()
       .flatMap((option): IngredientOption[] => {
         const topping = toppings.find((t) => t.id === option.id);
         if (!topping || !topping.salsaBase) return [];
         const inRecipe = recipeToppingIds.has(option.id);
-        const excludable = inRecipe && excludableSizes.has(topping.size);
-        const addable = !inRecipe && topping.size === 'M';
+        const excludable = inRecipe;
+        const addable = !inRecipe;
         if (!excludable && !addable) return [];
         return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: true }];
       })

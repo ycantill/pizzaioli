@@ -70,6 +70,7 @@
               <span class="ingredient-name">{{ option.label }}</span>
               @if (option.excludable) {
                 <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+                  <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
                 </span>
               } @else {
@@ -107,6 +108,7 @@
               <span class="ingredient-name">{{ option.label }}</span>
               @if (option.excludable) {
                 <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+                  <span class="pill-included-label">Incluido</span>
                   {{ formatPrice(option.price) }}
                 </span>
               } @else {
