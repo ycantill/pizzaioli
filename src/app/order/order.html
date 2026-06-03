@@ -136,37 +136,10 @@
             <span class="summary-section-label">{{ selectedMenuOption()!.name }}</span>
             <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
           </div>
-          @if (summaryIncludedItems().length > 0) {
+          @if (summaryAllItems().length > 0) {
             <ul class="summary-ingredient-list">
-              @for (item of summaryIncludedItems(); track item.id) {
-                <li>
-                  <span>{{ item.label }}</span>
-                  <span>{{ formatPrice(item.price) }}</span>
-                </li>
-              }
-            </ul>
-          }
-          @if (summaryExcludedItems().length > 0) {
-            <div class="summary-section">
-              <span class="summary-section-label">Sin</span>
-            </div>
-            <ul class="summary-ingredient-list excluded">
-              @for (item of summaryExcludedItems(); track item.id) {
-                <li>
-                  <span>{{ item.label }}</span>
-                  <span>{{ formatPrice(item.price) }}</span>
-                </li>
-              }
-            </ul>
-          }
-          @if (summaryAdditionalItems().length > 0) {
-            <div class="summary-section">
-              <span class="summary-section-label">Adicionales</span>
-              <span class="summary-section-value">{{ formatPrice(summaryAdditionalTotal()) }}</span>
-            </div>
-            <ul class="summary-ingredient-list">
-              @for (item of summaryAdditionalItems(); track item.id) {
-                <li>
+              @for (item of summaryAllItems(); track item.id) {
+                <li [class.excluded]="item.excluded" [class.additional]="item.additional">
                   <span>{{ item.label }}</span>
                   <span>{{ formatPrice(item.price) }}</span>
                 </li>

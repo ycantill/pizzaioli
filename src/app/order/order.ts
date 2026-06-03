@@ -208,6 +208,13 @@ export class Order implements OnInit {
     (this.selectedMenuOption()?.price ?? 0) + this.summaryAdditionalTotal()
   );
 
+  readonly summaryAllItems = computed(() => {
+    const included = this.summaryIncludedItems().map((o) => ({ ...o, excluded: false, additional: false }));
+    const excluded = this.summaryExcludedItems().map((o) => ({ ...o, excluded: true, additional: false }));
+    const additional = this.summaryAdditionalItems().map((o) => ({ ...o, excluded: false, additional: true }));
+    return [...included, ...excluded, ...additional].sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  });
+
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
     if (!selectedId) {
