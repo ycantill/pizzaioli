@@ -290,7 +290,7 @@ export class Order implements OnInit {
 
   private ceilTo1000(value: number): number {
     if (!Number.isFinite(value) || value <= 0) return 0;
-    return Math.ceil(value / 1000) * 1000;
+    return Math.ceil(value / 100) * 100;
   }
 
   private toValidPrice(value: unknown): number | null {
