@@ -154,6 +154,22 @@ h2 {
   gap: 0.75rem;
 }
 
+.ingredient-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ingredient-item.item-excluded {
+  opacity: 0.6;
+  border-color: #e0b0a0;
+  background: #fff5f3;
+}
+
+.item-excluded .ingredient-name {
+  text-decoration: line-through;
+  color: #8a4030;
+}
+
 .menu-card:active,
 .ingredient-item:active {
   transform: scale(0.99);
@@ -188,10 +204,22 @@ h2 {
   background: #f7ded0;
   color: #8a3700;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .pill.add {
   background: #fce4c8;
+}
+
+.pill.pill-excluded {
+  background: #fde8e8;
+  color: #8a1000;
+}
+
+.pill.add.pill-active {
+  background: #ffecd8;
+  color: #6a2800;
 }
 
 .status {

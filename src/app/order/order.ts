@@ -12,6 +12,14 @@ interface ToppingOption {
   extraPrice: number;
 }
 
+interface IngredientOption {
+  id: string;
+  label: string;
+  price: number;
+  excludable: boolean;
+  addable: boolean;
+}
+
 @Component({
   selector: 'app-order',
   imports: [],
@@ -55,7 +63,7 @@ export class Order implements OnInit {
         const baseCost = topping.quantity * (cost?.value ?? 0);
         const marginAmount = baseCost * (marginPercent / 100);
         const computedPrice = baseCost + marginAmount;
-        const extraPrice = this.toValidPrice(computedPrice) ?? 0;
+        const extraPrice = this.ceilTo1000(computedPrice);
         const productName = cost?.product ?? 'Ingrediente';
 
         return {
@@ -131,6 +139,28 @@ export class Order implements OnInit {
     return this.toppingOptions().filter((option) => sizeM.has(option.id));
   });
 
+  readonly allIngredientOptions = computed<IngredientOption[]>(() => {
+    const recipe = this.selectedMenuRecipe();
+    const recipeToppingIds = new Set(recipe?.toppings ?? []);
+    const toppings = this.toppings();
+    const excludableSizes = new Set(['S', 'M']);
+
+    return this.toppingOptions()
+      .flatMap((option): IngredientOption[] => {
+        const topping = toppings.find((t) => t.id === option.id);
+        if (!topping) return [];
+        const inRecipe = recipeToppingIds.has(option.id);
+        const excludable = inRecipe && excludableSizes.has(topping.size);
+        const addable = !inRecipe && topping.size === 'M';
+        if (!excludable && !addable) return [];
+        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable }];
+      })
+      .sort((a, b) => {
+        if (a.excludable !== b.excludable) return a.excludable ? -1 : 1;
+        return a.label.localeCompare(b.label, 'es');
+      });
+  });
+
   readonly selectedMenuOption = computed(() => {
     const selectedId = this.selectedPriceId();
     if (!selectedId) {
@@ -203,12 +233,19 @@ export class Order implements OnInit {
     );
   }
 
-  isExcludedIngredientSelected(id: string): boolean {
-    return this.excludedIngredientIds().includes(id);
+  isIngredientActive(option: IngredientOption): boolean {
+    if (option.excludable) {
+      return !this.excludedIngredientIds().includes(option.id);
+    }
+    return this.additionalIngredientIds().includes(option.id);
   }
 
-  isAdditionalIngredientSelected(id: string): boolean {
-    return this.additionalIngredientIds().includes(id);
+  toggleIngredient(option: IngredientOption): void {
+    if (option.excludable) {
+      this.toggleExcludedIngredient(option.id);
+    } else if (option.addable) {
+      this.toggleAdditionalIngredient(option.id);
+    }
   }
 
   placeOrder(): void {
@@ -224,6 +261,11 @@ export class Order implements OnInit {
     });
 
     return `$ ${formatter.format(rounded)}`;
+  }
+
+  private ceilTo1000(value: number): number {
+    if (!Number.isFinite(value) || value <= 0) return 0;
+    return Math.ceil(value / 1000) * 1000;
   }
 
   private toValidPrice(value: unknown): number | null {

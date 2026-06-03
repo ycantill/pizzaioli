@@ -47,24 +47,34 @@
     <section class="step" aria-labelledby="step-2-title">
       <div class="step-header">
         <p class="step-number">Paso 2</p>
-        <h2 id="step-2-title">Ingrediente que deseas excluir</h2>
+        <h2 id="step-2-title">Personaliza tus ingredientes</h2>
       </div>
 
       @if (!selectedMenuOption()) {
         <p class="status">Primero selecciona una opcion de menu.</p>
-      } @else if (excludableToppingOptions().length === 0) {
-        <p class="status">No hay toppings disponibles.</p>
+      } @else if (allIngredientOptions().length === 0) {
+        <p class="status">No hay ingredientes disponibles.</p>
       } @else {
-        <div class="ingredient-list" role="group" aria-label="Excluir ingredientes">
-          @for (option of excludableToppingOptions(); track option.id) {
+        <div class="ingredient-list" role="group" aria-label="Ingredientes">
+          @for (option of allIngredientOptions(); track option.id) {
             <button
               type="button"
               class="ingredient-item"
-              [class.selected]="isExcludedIngredientSelected(option.id)"
-              (click)="toggleExcludedIngredient(option.id)"
+              [class.selected]="isIngredientActive(option)"
+              [class.item-excluded]="option.excludable && !isIngredientActive(option)"
+              [attr.aria-pressed]="isIngredientActive(option)"
+              (click)="toggleIngredient(option)"
             >
-              <span>{{ option.label }}</span>
-              <span class="pill">Excluir</span>
+              <span class="ingredient-name">{{ option.label }}</span>
+              @if (option.excludable) {
+                <span class="pill" [class.pill-excluded]="!isIngredientActive(option)">
+                  {{ formatPrice(option.price) }}
+                </span>
+              } @else {
+                <span class="pill add" [class.pill-active]="isIngredientActive(option)">
+                  + {{ formatPrice(option.price) }}
+                </span>
+              }
             </button>
           }
         </div>
@@ -74,31 +84,7 @@
     <section class="step" aria-labelledby="step-3-title">
       <div class="step-header">
         <p class="step-number">Paso 3</p>
-        <h2 id="step-3-title">Ingrediente adicional</h2>
-      </div>
-
-      @if (additionalToppingOptions().length === 0) {
-        <p class="status">No hay toppings disponibles.</p>
-      } @else {
-        <div class="ingredient-list" role="group" aria-label="Agregar ingredientes">
-          @for (option of additionalToppingOptions(); track option.id) {
-            <button
-              type="button"
-              class="ingredient-item"
-              [class.selected]="isAdditionalIngredientSelected(option.id)"
-              (click)="toggleAdditionalIngredient(option.id)"
-            >
-              <span>{{ option.label }}</span>
-              <span class="pill add">+ {{ formatPrice(option.extraPrice) }}</span>
-            </button>
-          }
-        </div>
-      }
-    </section>
-    <section class="step" aria-labelledby="step-4-title">
-      <div class="step-header">
-        <p class="step-number">Paso 4</p>
-        <h2 id="step-4-title">Resumen de tu pedido</h2>
+        <h2 id="step-3-title">Resumen de tu pedido</h2>
       </div>
 
       @if (!selectedMenuOption()) {
