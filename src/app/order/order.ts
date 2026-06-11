@@ -10,6 +10,7 @@ interface ToppingOption {
   id: string;
   label: string;
   extraPrice: number;
+  size: string;
 }
 
 interface IngredientOption {
@@ -19,6 +20,7 @@ interface IngredientOption {
   excludable: boolean;
   addable: boolean;
   salsaBase: boolean;
+  size: string;
 }
 
 @Component({
@@ -36,6 +38,18 @@ export class Order implements OnInit {
   readonly excludedIngredientIds = signal<string[]>([]);
   readonly additionalIngredientIds = signal<string[]>([]);
 
+  readonly isHalfAndHalf = signal<boolean>(false);
+  readonly activeHalf = signal<'A' | 'B'>('A');
+  readonly customizingHalf = signal<'A' | 'B'>('A');
+
+  readonly selectedPriceIdA = signal<string | null>(null);
+  readonly selectedPriceIdB = signal<string | null>(null);
+
+  readonly excludedIngredientIdsA = signal<string[]>([]);
+  readonly excludedIngredientIdsB = signal<string[]>([]);
+  readonly additionalIngredientIdsA = signal<string[]>([]);
+  readonly additionalIngredientIdsB = signal<string[]>([]);
+
   private readonly prices = signal<Price[]>([]);
   private readonly recipes = signal<Recipe[]>([]);
   private readonly toppings = signal<Topping[]>([]);
@@ -51,8 +65,9 @@ export class Order implements OnInit {
   readonly toppingOptions = computed<ToppingOption[]>(() => {
     const costs = this.costs();
     const margins = this.margins();
+    const allToppings = this.toppings();
 
-    return this.toppings()
+    return allToppings
       .filter((topping): topping is Topping & { id: string } => !!topping.id)
       .map((topping) => {
         const cost = costs.find((item) => item.id === topping.costId);
@@ -70,6 +85,9 @@ export class Order implements OnInit {
           id: topping.id,
           label: productName,
           extraPrice,
+          size: topping.size,
+          costId: topping.costId,
+          salsaBase: topping.salsaBase,
         };
       })
       .sort((a, b) => a.label.localeCompare(b.label, 'es'));
@@ -79,6 +97,7 @@ export class Order implements OnInit {
     const result = new Map<string, string[]>();
     const allToppings = this.toppings();
     const allCosts = this.costs();
+    const halfAndHalfMode = this.isHalfAndHalf();
 
     for (const price of this.menuOptions()) {
       const recipe = this.recipes().find((r) => r.id === price.recipeId);
@@ -87,11 +106,16 @@ export class Order implements OnInit {
         continue;
       }
 
-      const names = recipe.toppings
+      const toppingIds = halfAndHalfMode
+        ? Array.from(this.getMappedRecipeToppingIds(recipe, true))
+        : recipe.toppings;
+
+      const names = toppingIds
         .map((tId) => {
           const topping = allToppings.find((t) => t.id === tId);
           if (!topping) return null;
-          return allCosts.find((c) => c.id === topping.costId)?.product ?? null;
+          const product = allCosts.find((c) => c.id === topping.costId)?.product ?? null;
+          return product ? `${product} (${topping.size})` : null;
         })
         .filter((n): n is string => n !== null);
 
@@ -101,14 +125,76 @@ export class Order implements OnInit {
     return result;
   });
 
-  readonly selectedMenuRecipe = computed(() => {
-    const selectedMenu = this.selectedMenuOption();
+  readonly selectedMenuOptionSingle = computed(() => {
+    const selectedId = this.selectedPriceId();
+    if (!selectedId) {
+      return null;
+    }
+    return this.menuOptions().find((price) => price.id === selectedId) ?? null;
+  });
+
+  readonly selectedMenuRecipeSingle = computed(() => {
+    const selectedMenu = this.selectedMenuOptionSingle();
     const recipeId = selectedMenu?.recipeId;
     if (!recipeId) {
       return null;
     }
-
     return this.recipes().find((recipe) => recipe.id === recipeId) ?? null;
+  });
+
+  readonly selectedMenuOptionA = computed(() => {
+    const selectedId = this.selectedPriceIdA();
+    if (!selectedId) {
+      return null;
+    }
+    return this.menuOptions().find((price) => price.id === selectedId) ?? null;
+  });
+
+  readonly selectedMenuRecipeA = computed(() => {
+    const selectedMenu = this.selectedMenuOptionA();
+    const recipeId = selectedMenu?.recipeId;
+    if (!recipeId) {
+      return null;
+    }
+    return this.recipes().find((recipe) => recipe.id === recipeId) ?? null;
+  });
+
+  readonly selectedMenuOptionB = computed(() => {
+    const selectedId = this.selectedPriceIdB();
+    if (!selectedId) {
+      return null;
+    }
+    return this.menuOptions().find((price) => price.id === selectedId) ?? null;
+  });
+
+  readonly selectedMenuRecipeB = computed(() => {
+    const selectedMenu = this.selectedMenuOptionB();
+    const recipeId = selectedMenu?.recipeId;
+    if (!recipeId) {
+      return null;
+    }
+    return this.recipes().find((recipe) => recipe.id === recipeId) ?? null;
+  });
+
+  readonly currentCustomizingPriceId = computed(() => {
+    if (!this.isHalfAndHalf()) {
+      return this.selectedPriceId();
+    }
+    return this.customizingHalf() === 'A' ? this.selectedPriceIdA() : this.selectedPriceIdB();
+  });
+
+  readonly selectedMenuOption = computed(() => {
+    if (!this.isHalfAndHalf()) {
+      return this.selectedMenuOptionSingle();
+    }
+    return this.selectedMenuOptionA() && this.selectedMenuOptionB() ? this.selectedMenuOptionA() : null;
+  });
+
+  readonly selectedMenuRecipe = computed(() => {
+    if (!this.isHalfAndHalf()) {
+      return this.selectedMenuRecipeSingle();
+    }
+    return this.customizingHalf() === 'A' ? this.selectedMenuRecipeA() : this.selectedMenuRecipeB();
   });
 
   readonly excludableToppingOptions = computed<ToppingOption[]>(() => {
@@ -141,95 +227,214 @@ export class Order implements OnInit {
 
   readonly allIngredientOptions = computed<IngredientOption[]>(() => {
     const recipe = this.selectedMenuRecipe();
-    const recipeToppingIds = new Set(recipe?.toppings ?? []);
-    const toppings = this.toppings();
-
-    return this.toppingOptions()
-      .flatMap((option): IngredientOption[] => {
-        const topping = toppings.find((t) => t.id === option.id);
-        if (!topping || topping.salsaBase) return [];
-        const inRecipe = recipeToppingIds.has(option.id);
-        const excludable = inRecipe;
-        const addable = !inRecipe;
-        if (!excludable && !addable) return [];
-        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: false }];
-      })
-      .sort((a, b) => {
-        if (a.excludable !== b.excludable) return a.excludable ? -1 : 1;
-        return a.label.localeCompare(b.label, 'es');
-      });
+    const halfAndHalfMode = this.isHalfAndHalf();
+    return this.getIngredientOptionsForRecipe(recipe, halfAndHalfMode)
+      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
   });
 
   readonly allSalsaOptions = computed<IngredientOption[]>(() => {
     const recipe = this.selectedMenuRecipe();
-    const recipeToppingIds = new Set(recipe?.toppings ?? []);
-    const toppings = this.toppings();
-
-    return this.toppingOptions()
-      .flatMap((option): IngredientOption[] => {
-        const topping = toppings.find((t) => t.id === option.id);
-        if (!topping || !topping.salsaBase) return [];
-        const inRecipe = recipeToppingIds.has(option.id);
-        const excludable = inRecipe;
-        const addable = !inRecipe;
-        if (!excludable && !addable) return [];
-        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: true }];
-      })
-      .sort((a, b) => {
-        if (a.excludable !== b.excludable) return a.excludable ? -1 : 1;
-        return a.label.localeCompare(b.label, 'es');
-      });
+    const halfAndHalfMode = this.isHalfAndHalf();
+    return this.getSalsaOptionsForRecipe(recipe, halfAndHalfMode)
+      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
   });
 
   readonly activeSalsaCount = computed(() =>
     this.allSalsaOptions().filter((o) => this.isIngredientActive(o)).length
   );
 
-  readonly summaryIncludedItems = computed(() => {
-    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
-    return all.filter((o) => o.excludable && this.isIngredientActive(o));
-  });
+  private getSecondSmallerSize(size: string): string {
+    switch (size.trim().toUpperCase()) {
+      case 'XXL': return 'L';
+      case 'XL': return 'M';
+      case 'L': return 'S';
+      case 'M': return 'S';
+      default: return 'S';
+    }
+  }
 
-  readonly summaryExcludedItems = computed(() => {
-    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
-    return all.filter((o) => o.excludable && !this.isIngredientActive(o));
-  });
+  private getMappedRecipeToppingIds(recipe: Recipe | null, halfAndHalfMode: boolean): Set<string> {
+    if (!recipe) return new Set();
+    if (!halfAndHalfMode) return new Set(recipe.toppings);
 
-  readonly summaryAdditionalItems = computed(() => {
-    const all = [...this.allSalsaOptions(), ...this.allIngredientOptions()];
-    return all.filter((o) => o.addable && this.isIngredientActive(o));
-  });
+    const result = new Set<string>();
+    const allToppings = this.toppings();
 
-  readonly summaryAdditionalTotal = computed(() =>
-    this.summaryAdditionalItems().reduce((sum, o) => sum + o.price, 0)
-  );
+    for (const toppingId of recipe.toppings) {
+      const topping = allToppings.find((t) => t.id === toppingId);
+      if (!topping) continue;
 
-  readonly summaryExcludedTotal = computed(() =>
-    this.summaryExcludedItems().reduce((sum, o) => sum + o.price, 0)
-  );
+      const smallerSize = this.getSecondSmallerSize(topping.size);
+      const smallerTopping = allToppings.find(
+        (t) => t.costId.trim() === topping.costId.trim() &&
+               t.size.trim().toUpperCase() === smallerSize &&
+               !!t.salsaBase === !!topping.salsaBase
+      );
+      if (smallerTopping && smallerTopping.id) {
+        result.add(smallerTopping.id);
+      } else {
+        result.add(toppingId);
+      }
+    }
 
-  readonly summaryTotal = computed(() =>
-    (this.selectedMenuOption()?.price ?? 0) - this.summaryExcludedTotal() + this.summaryAdditionalTotal()
-  );
+    return result;
+  }
 
-  readonly summaryAllItems = computed(() => {
-    const included = this.summaryIncludedItems().map((o) => ({ ...o, excluded: false, additional: false }));
-    const excluded = this.summaryExcludedItems().map((o) => ({ ...o, excluded: true, additional: false }));
-    const additional = this.summaryAdditionalItems().map((o) => ({ ...o, excluded: false, additional: true }));
-    return [...included, ...excluded, ...additional].sort((a, b) => {
+  private getIngredientOptionsForRecipe(recipe: Recipe | null, halfAndHalfMode: boolean): IngredientOption[] {
+    if (!recipe) return [];
+    const recipeToppingIds = this.getMappedRecipeToppingIds(recipe, halfAndHalfMode);
+    const toppings = this.toppings();
+
+    return this.toppingOptions()
+      .flatMap((option): IngredientOption[] => {
+        const topping = toppings.find((t) => t.id === option.id);
+        if (!topping || topping.salsaBase) return [];
+
+        // Si es mitad y mitad, se quitan todos los ingredientes de tamaño XL
+        if (halfAndHalfMode && topping.size.trim().toUpperCase() === 'XL') return [];
+
+        const inRecipe = recipeToppingIds.has(option.id);
+
+        // Filter out incorrect sizes for additional toppings
+        if (!inRecipe) {
+          const targetSizeForAdd = halfAndHalfMode ? 'S' : 'M';
+          if (topping.size.trim().toUpperCase() !== targetSizeForAdd) return [];
+        }
+
+        const excludable = inRecipe;
+        const addable = !inRecipe;
+        if (!excludable && !addable) return [];
+        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: false, size: option.size }];
+      });
+  }
+
+  private getSalsaOptionsForRecipe(recipe: Recipe | null, halfAndHalfMode: boolean): IngredientOption[] {
+    if (!recipe) return [];
+    const recipeToppingIds = this.getMappedRecipeToppingIds(recipe, halfAndHalfMode);
+    const toppings = this.toppings();
+
+    // Buscar la salsa base original en la receta
+    const originalSalsaTopping = recipe.toppings
+      .map((tId) => toppings.find((t) => t.id === tId))
+      .find((t) => t?.salsaBase === true);
+
+    let targetSalsaSize = 'M'; // Fallback por defecto
+    if (originalSalsaTopping) {
+      targetSalsaSize = halfAndHalfMode
+        ? this.getSecondSmallerSize(originalSalsaTopping.size)
+        : originalSalsaTopping.size;
+    }
+
+    return this.toppingOptions()
+      .flatMap((option): IngredientOption[] => {
+        const topping = toppings.find((t) => t.id === option.id);
+        if (!topping || !topping.salsaBase) return [];
+
+        // Filtrado dinámico de tamaño de salsas según la fórmula
+        if (topping.size.trim().toUpperCase() !== targetSalsaSize) return [];
+
+        const inRecipe = recipeToppingIds.has(option.id);
+        const excludable = inRecipe;
+        const addable = !inRecipe;
+        if (!excludable && !addable) return [];
+        return [{ id: option.id, label: option.label, price: option.extraPrice, excludable, addable, salsaBase: true, size: option.size }];
+      });
+  }
+
+  private getHalfSummaryItems(
+    recipe: Recipe | null,
+    excludedIds: string[],
+    additionalIds: string[],
+    isHalf: boolean
+  ) {
+    const all = [
+      ...this.getSalsaOptionsForRecipe(recipe, isHalf),
+      ...this.getIngredientOptionsForRecipe(recipe, isHalf)
+    ];
+
+    const isOptionActive = (o: IngredientOption) => {
+      if (o.excludable) {
+        return !excludedIds.includes(o.id);
+      }
+      return additionalIds.includes(o.id);
+    };
+
+    const included = all.filter((o) => o.excludable && isOptionActive(o)).map(o => ({ ...o, excluded: false, additional: false }));
+    const excluded = all.filter((o) => o.excludable && !isOptionActive(o)).map(o => ({ ...o, excluded: true, additional: false }));
+    const additional = all.filter((o) => o.addable && isOptionActive(o)).map(o => ({ ...o, excluded: false, additional: true }));
+
+    const items = [...included, ...excluded, ...additional].sort((a, b) => {
       const rank = (o: typeof a) => o.salsaBase ? 0 : o.additional ? 2 : 1;
       if (rank(a) !== rank(b)) return rank(a) - rank(b);
       return a.label.localeCompare(b.label, 'es');
     });
+
+    // El precio del ingrediente se respeta por su tamaño, sin divisiones
+    const getEffectivePrice = (o: IngredientOption) => {
+      return o.price;
+    };
+
+    const excludedTotal = excluded.reduce((sum, o) => sum + getEffectivePrice(o), 0);
+    const additionalTotal = additional.reduce((sum, o) => sum + getEffectivePrice(o), 0);
+
+    return { items, excludedTotal, additionalTotal, getEffectivePrice };
+  }
+
+  readonly summarySingle = computed(() => {
+    return this.getHalfSummaryItems(
+      this.selectedMenuRecipeSingle(),
+      this.excludedIngredientIds(),
+      this.additionalIngredientIds(),
+      false
+    );
   });
 
-  readonly selectedMenuOption = computed(() => {
-    const selectedId = this.selectedPriceId();
-    if (!selectedId) {
-      return null;
-    }
+  readonly summaryA = computed(() => {
+    return this.getHalfSummaryItems(
+      this.selectedMenuRecipeA(),
+      this.excludedIngredientIdsA(),
+      this.additionalIngredientIdsA(),
+      true
+    );
+  });
 
-    return this.menuOptions().find((price) => price.id === selectedId) ?? null;
+  readonly summaryB = computed(() => {
+    return this.getHalfSummaryItems(
+      this.selectedMenuRecipeB(),
+      this.excludedIngredientIdsB(),
+      this.additionalIngredientIdsB(),
+      true
+    );
+  });
+
+  readonly halfAndHalfBasePrice = computed(() => {
+    const optA = this.selectedMenuOptionA();
+    const optB = this.selectedMenuOptionB();
+    if (!optA || !optB) return 0;
+    return (optA.price + optB.price) / 2;
+  });
+
+  readonly summaryTotal = computed(() => {
+    if (!this.isHalfAndHalf()) {
+      const opt = this.selectedMenuOptionSingle();
+      if (!opt) return 0;
+      const sum = this.summarySingle();
+      return opt.price - sum.excludedTotal + sum.additionalTotal;
+    } else {
+      const optA = this.selectedMenuOptionA();
+      const optB = this.selectedMenuOptionB();
+      if (!optA || !optB) return 0;
+
+      const sumA = this.summaryA();
+      const sumB = this.summaryB();
+
+      const basePrice = (optA.price + optB.price) / 2;
+      return basePrice - sumA.excludedTotal + sumA.additionalTotal - sumB.excludedTotal + sumB.additionalTotal;
+    }
+  });
+
+  readonly summaryAllItems = computed(() => {
+    return this.summarySingle().items;
   });
 
   readonly excludedOptions = computed(() => {
@@ -261,9 +466,57 @@ export class Order implements OnInit {
         this.firestoreService.getDocuments('margins'),
       ]);
 
+      // Generate virtual toppings for all standard sizes (S, M, L, XL, XXL) if they don't exist
+      const toppingsTyped = toppings as Topping[];
+      const virtualToppings: Topping[] = [];
+      
+      // Group all toppings by costId & salsaBase
+      const toppingsGroups = new Map<string, Topping[]>();
+      for (const t of toppingsTyped) {
+        const key = `${t.costId.trim()}_${!!t.salsaBase}`;
+        if (!toppingsGroups.has(key)) {
+          toppingsGroups.set(key, []);
+        }
+        toppingsGroups.get(key)!.push(t);
+      }
+
+      const SIZES: ('S' | 'M' | 'L' | 'XL' | 'XXL')[] = ['S', 'M', 'L', 'XL', 'XXL'];
+      const sizeScale: Record<string, number> = {
+        'S': 0.5,
+        'M': 1.0,
+        'L': 1.5,
+        'XL': 2.0,
+        'XXL': 2.5
+      };
+
+      for (const [key, list] of toppingsGroups.entries()) {
+        for (const targetSize of SIZES) {
+          const exists = list.some(t => t.size.trim().toUpperCase() === targetSize);
+          if (!exists) {
+            const baseTopping = list.find(t => t.size.trim().toUpperCase() === 'M') || list[0];
+            if (baseTopping && baseTopping.id) {
+              const baseSizeNormalized = baseTopping.size.trim().toUpperCase();
+              const baseScale = sizeScale[baseSizeNormalized] || 1.0;
+              const targetScale = sizeScale[targetSize] || 1.0;
+              const quantity = baseTopping.quantity * (targetScale / baseScale);
+
+              virtualToppings.push({
+                id: `${baseTopping.id}_virtual_${targetSize}`,
+                costId: baseTopping.costId.trim(),
+                quantity: quantity,
+                size: targetSize,
+                salsaBase: !!baseTopping.salsaBase
+              });
+            }
+          }
+        }
+      }
+
+      const allToppings = [...toppingsTyped, ...virtualToppings];
+
       this.prices.set(prices as Price[]);
       this.recipes.set(recipes as Recipe[]);
-      this.toppings.set(toppings as Topping[]);
+      this.toppings.set(allToppings as Topping[]);
       this.costs.set(costs as Cost[]);
       this.margins.set(margins as Margin[]);
     } catch (error) {
@@ -279,23 +532,92 @@ export class Order implements OnInit {
     this.additionalIngredientIds.set([]);
   }
 
-  toggleExcludedIngredient(id: string): void {
-    this.excludedIngredientIds.update((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
+  setHalfAndHalf(value: boolean): void {
+    this.isHalfAndHalf.set(value);
+    if (value) {
+      if (this.selectedPriceId()) {
+        this.selectedPriceIdA.set(this.selectedPriceId());
+        this.excludedIngredientIdsA.set([...this.excludedIngredientIds()]);
+        this.additionalIngredientIdsA.set([...this.additionalIngredientIds()]);
+      }
+      this.activeHalf.set('B');
+      this.customizingHalf.set('A');
+    } else {
+      if (this.selectedPriceIdA()) {
+        this.selectedPriceId.set(this.selectedPriceIdA());
+        this.excludedIngredientIds.set([...this.excludedIngredientIdsA()]);
+        this.additionalIngredientIds.set([...this.additionalIngredientIdsA()]);
+      }
+    }
   }
 
-  toggleAdditionalIngredient(id: string): void {
-    this.additionalIngredientIds.update((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    );
+  setActiveHalf(half: 'A' | 'B'): void {
+    this.activeHalf.set(half);
+    this.customizingHalf.set(half);
+  }
+
+  setCustomizingHalf(half: 'A' | 'B'): void {
+    this.customizingHalf.set(half);
+  }
+
+  isOptionSelected(id: string): boolean {
+    if (!this.isHalfAndHalf()) {
+      return this.selectedPriceId() === id;
+    }
+    return this.activeHalf() === 'A' ? this.selectedPriceIdA() === id : this.selectedPriceIdB() === id;
+  }
+
+  selectOption(id: string): void {
+    if (!this.isHalfAndHalf()) {
+      this.selectMenuOption(id);
+    } else {
+      if (this.activeHalf() === 'A') {
+        this.selectedPriceIdA.set(id);
+        this.excludedIngredientIdsA.set([]);
+        this.additionalIngredientIdsA.set([]);
+        if (!this.selectedPriceIdB()) {
+          this.activeHalf.set('B');
+          this.customizingHalf.set('B');
+        }
+      } else {
+        this.selectedPriceIdB.set(id);
+        this.excludedIngredientIdsB.set([]);
+        this.additionalIngredientIdsB.set([]);
+        if (!this.selectedPriceIdA()) {
+          this.activeHalf.set('A');
+          this.customizingHalf.set('A');
+        }
+      }
+    }
+  }
+
+  private getActiveExcludedSignal() {
+    if (!this.isHalfAndHalf()) {
+      return this.excludedIngredientIds;
+    }
+    return this.customizingHalf() === 'A' ? this.excludedIngredientIdsA : this.excludedIngredientIdsB;
+  }
+
+  private getActiveExcludedList(): string[] {
+    return this.getActiveExcludedSignal()();
+  }
+
+  private getActiveAdditionalSignal() {
+    if (!this.isHalfAndHalf()) {
+      return this.additionalIngredientIds;
+    }
+    return this.customizingHalf() === 'A' ? this.additionalIngredientIdsA : this.additionalIngredientIdsB;
+  }
+
+  private getActiveAdditionalList(): string[] {
+    return this.getActiveAdditionalSignal()();
   }
 
   isIngredientActive(option: IngredientOption): boolean {
     if (option.excludable) {
-      return !this.excludedIngredientIds().includes(option.id);
+      return !this.getActiveExcludedList().includes(option.id);
     }
-    return this.additionalIngredientIds().includes(option.id);
+    return this.getActiveAdditionalList().includes(option.id);
   }
 
   toggleIngredient(option: IngredientOption): void {
@@ -308,6 +630,22 @@ export class Order implements OnInit {
     } else if (option.addable) {
       this.toggleAdditionalIngredient(option.id);
     }
+  }
+
+  toggleExcludedIngredient(id: string): void {
+    this.getActiveExcludedSignal().update((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+  }
+
+  toggleAdditionalIngredient(id: string): void {
+    this.getActiveAdditionalSignal().update((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+  }
+
+  getIngredientDisplayPrice(option: IngredientOption): number {
+    return option.price;
   }
 
   placeOrder(): void {

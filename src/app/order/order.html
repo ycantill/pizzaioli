@@ -14,6 +14,50 @@
         <h2 id="step-1-title">Elige tu opcion de menu</h2>
       </div>
 
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="!isHalfAndHalf()"
+          (click)="setHalfAndHalf(false)"
+        >
+          Pizza Completa
+        </button>
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="isHalfAndHalf()"
+          (click)="setHalfAndHalf(true)"
+        >
+          Mitad y Mitad
+        </button>
+      </div>
+
+      <!-- Half Selection Tabs (only visible in Mitad y Mitad mode) -->
+      @if (isHalfAndHalf()) {
+        <div class="half-selection-tabs">
+          <button
+            type="button"
+            class="half-select-tab"
+            [class.active]="activeHalf() === 'A'"
+            (click)="setActiveHalf('A')"
+          >
+            <span>Mitad A</span>
+            <span class="selected-name">{{ selectedMenuOptionA()?.name ?? 'Seleccionar...' }}</span>
+          </button>
+          <button
+            type="button"
+            class="half-select-tab"
+            [class.active]="activeHalf() === 'B'"
+            (click)="setActiveHalf('B')"
+          >
+            <span>Mitad B</span>
+            <span class="selected-name">{{ selectedMenuOptionB()?.name ?? 'Seleccionar...' }}</span>
+          </button>
+        </div>
+      }
+
       @if (menuOptions().length === 0) {
         <p class="status">No hay precios guardados todavia.</p>
       } @else {
@@ -23,13 +67,13 @@
               type="button"
               role="radio"
               class="menu-card"
-              [class.selected]="selectedPriceId() === option.id"
-              [attr.aria-checked]="selectedPriceId() === option.id"
-              (click)="selectMenuOption(option.id!)"
+              [class.selected]="isOptionSelected(option.id!)"
+              [attr.aria-checked]="isOptionSelected(option.id!)"
+              (click)="selectOption(option.id!)"
             >
               <div class="menu-card-top">
                 <span class="menu-name">{{ option.name }}</span>
-                <span class="menu-price">{{ formatPrice(option.price) }}</span>
+                <span class="menu-price">{{ formatPrice(isHalfAndHalf() ? option.price / 2 : option.price) }}</span>
               </div>
               @if ((menuIngredients().get(option.id!) ?? []).length > 0) {
                 <ul class="menu-ingredients" aria-label="Ingredientes incluidos">
@@ -50,7 +94,29 @@
         <h2 id="step-2-title">Elige tu salsa base</h2>
       </div>
 
-      @if (!selectedMenuOption()) {
+      <!-- Half Customizer Tabs (only visible in Mitad y Mitad mode when menu option selected) -->
+      @if (isHalfAndHalf() && (selectedMenuOptionA() || selectedMenuOptionB())) {
+        <div class="half-customizer-tabs">
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'A'"
+            (click)="setCustomizingHalf('A')"
+          >
+            Mitad A: {{ selectedMenuOptionA()?.name ?? 'Sin selección' }}
+          </button>
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'B'"
+            (click)="setCustomizingHalf('B')"
+          >
+            Mitad B: {{ selectedMenuOptionB()?.name ?? 'Sin selección' }}
+          </button>
+        </div>
+      }
+
+      @if (!selectedMenuRecipe()) {
         <p class="status">Primero selecciona una opcion de menu.</p>
       } @else if (allSalsaOptions().length === 0) {
         <p class="status">No hay salsas disponibles.</p>
@@ -66,19 +132,22 @@
               [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
               (click)="toggleIngredient(option)"
             >
-              <span class="ingredient-name">{{ option.label }}</span>
+              <span class="ingredient-name">
+                {{ option.label }}
+                <span class="menu-size-badge">({{ option.size }})</span>
+              </span>
               @if (option.excludable && isIngredientActive(option)) {
                 <span class="pill">
                   <span class="pill-included-label">Incluido</span>
-                  {{ formatPrice(option.price) }}
+                  {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               } @else if (option.excludable && !isIngredientActive(option)) {
                 <span class="pill pill-excluded">
-                  - {{ formatPrice(option.price) }}
+                  - {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
-                  + {{ formatPrice(option.price) }}
+                  + {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               }
             </button>
@@ -93,7 +162,29 @@
         <h2 id="step-3-title">Personaliza tus ingredientes</h2>
       </div>
 
-      @if (!selectedMenuOption()) {
+      <!-- Half Customizer Tabs (only visible in Mitad y Mitad mode when menu option selected) -->
+      @if (isHalfAndHalf() && (selectedMenuOptionA() || selectedMenuOptionB())) {
+        <div class="half-customizer-tabs">
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'A'"
+            (click)="setCustomizingHalf('A')"
+          >
+            Mitad A: {{ selectedMenuOptionA()?.name ?? 'Sin selección' }}
+          </button>
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'B'"
+            (click)="setCustomizingHalf('B')"
+          >
+            Mitad B: {{ selectedMenuOptionB()?.name ?? 'Sin selección' }}
+          </button>
+        </div>
+      }
+
+      @if (!selectedMenuRecipe()) {
         <p class="status">Primero selecciona una opcion de menu.</p>
       } @else if (allIngredientOptions().length === 0) {
         <p class="status">No hay ingredientes disponibles.</p>
@@ -107,19 +198,22 @@
               [attr.aria-pressed]="isIngredientActive(option)"
               (click)="toggleIngredient(option)"
             >
-              <span class="ingredient-name">{{ option.label }}</span>
+              <span class="ingredient-name">
+                {{ option.label }}
+                <span class="menu-size-badge">({{ option.size }})</span>
+              </span>
               @if (option.excludable && isIngredientActive(option)) {
                 <span class="pill">
                   <span class="pill-included-label">Incluido</span>
-                  {{ formatPrice(option.price) }}
+                  {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               } @else if (option.excludable && !isIngredientActive(option)) {
                 <span class="pill pill-excluded">
-                  - {{ formatPrice(option.price) }}
+                  - {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               } @else if (option.addable) {
                 <span class="pill add" [class.pill-active]="isIngredientActive(option)">
-                  + {{ formatPrice(option.price) }}
+                  + {{ formatPrice(getIngredientDisplayPrice(option)) }}
                 </span>
               }
             </button>
@@ -138,26 +232,83 @@
         <p class="status">Selecciona una opcion de menu para ver el resumen.</p>
       } @else {
         <div class="summary-details">
-          <div class="summary-section">
-            <span class="summary-section-label">{{ selectedMenuOption()!.name }}</span>
-            <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
-          </div>
-          @if (summaryAllItems().length > 0) {
-            <ul class="summary-ingredient-list">
-              @for (item of summaryAllItems(); track item.id) {
-                <li [class.excluded]="item.excluded" [class.additional]="item.additional">
-                  <span>{{ item.label }}</span>
-                  @if (item.excluded) {
-                    <span>- {{ formatPrice(item.price) }}</span>
-                  } @else if (item.additional) {
-                    <span>+ {{ formatPrice(item.price) }}</span>
-                  } @else {
-                    <span>{{ formatPrice(item.price) }}</span>
-                  }
-                </li>
-              }
-            </ul>
+          @if (isHalfAndHalf()) {
+            <div class="summary-section-half-header">
+              <span class="summary-section-label">Base Pizza (Promedio)</span>
+              <span class="summary-section-value">{{ formatPrice(halfAndHalfBasePrice()) }}</span>
+            </div>
+
+            <span class="summary-half-info">
+              <strong>Mitad A:</strong> {{ selectedMenuOptionA()!.name }} ({{ formatPrice(selectedMenuOptionA()!.price / 2) }})
+            </span>
+            @if (summaryA().items.length > 0) {
+              <ul class="summary-ingredient-list">
+                @for (item of summaryA().items; track item.id) {
+                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
+                    <span>
+                      {{ item.label }} (Mitad A)
+                      <span class="menu-size-badge">({{ item.size }})</span>
+                    </span>
+                    @if (item.excluded) {
+                      <span>- {{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
+                    } @else if (item.additional) {
+                      <span>+ {{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
+                    } @else {
+                      <span>{{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+
+            <span class="summary-half-info">
+              <strong>Mitad B:</strong> {{ selectedMenuOptionB()!.name }} ({{ formatPrice(selectedMenuOptionB()!.price / 2) }})
+            </span>
+            @if (summaryB().items.length > 0) {
+              <ul class="summary-ingredient-list">
+                @for (item of summaryB().items; track item.id) {
+                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
+                    <span>
+                      {{ item.label }} (Mitad B)
+                      <span class="menu-size-badge">({{ item.size }})</span>
+                    </span>
+                    @if (item.excluded) {
+                      <span>- {{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
+                    } @else if (item.additional) {
+                      <span>+ {{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
+                    } @else {
+                      <span>{{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          } @else {
+            <div class="summary-section">
+              <span class="summary-section-label">{{ selectedMenuOption()!.name }}</span>
+              <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
+            </div>
+            @if (summaryAllItems().length > 0) {
+              <ul class="summary-ingredient-list">
+                @for (item of summaryAllItems(); track item.id) {
+                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
+                    <span>
+                      {{ item.label }}
+                      <span class="menu-size-badge">({{ item.size }})</span>
+                    </span>
+                    @if (item.excluded) {
+                      <span>- {{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
+                    } @else if (item.additional) {
+                      <span>+ {{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
+                    } @else {
+                      <span>{{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
           }
+
           <div class="summary-total-row">
             <span>Total</span>
             <span>{{ formatPrice(summaryTotal()) }}</span>
