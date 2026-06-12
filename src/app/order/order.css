@@ -95,37 +95,6 @@ h2 {
   padding: 0.15rem 0.5rem;
 }
 
-.summary-tags-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.3rem;
-}
-
-.summary-tag-label {
-  font-size: 0.78rem;
-  color: #844014;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.summary-tag {
-  font-size: 0.75rem;
-  border-radius: 999px;
-  padding: 0.15rem 0.5rem;
-  font-weight: 600;
-}
-
-.summary-tag.add {
-  background: #fce4c8;
-  color: #8a3700;
-}
-
-.summary-tag.exclude {
-  background: #fde8e8;
-  color: #8a1000;
-}
 
 .menu-card,
 .ingredient-item {
@@ -256,23 +225,6 @@ h2 {
   background: linear-gradient(to top, #fffaf4 70%, transparent);
 }
 
-.summary-top {
-  display: none;
-}
-
-.summary-label {
-  margin: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  color: #844014;
-}
-
-.summary-value,
-.summary-price {
-  margin: 0.12rem 0 0;
-  font-size: 1.03rem;
-  font-weight: 700;
-}
 
 .summary-details {
   display: flex;
@@ -318,10 +270,6 @@ h2 {
   gap: 0.5rem;
 }
 
-.summary-ingredient-list.excluded li {
-  color: #8a1000;
-  text-decoration: line-through;
-}
 
 .summary-total-row {
   display: flex;
@@ -610,9 +558,6 @@ h2 {
   text-decoration: line-through;
 }
 
-.cart-ingredient-list li.additional {
-  color: #5a3010;
-}
 
 .cart-item-total {
   margin-top: 0.45rem;
