@@ -23,6 +23,31 @@ interface IngredientOption {
   size: string;
 }
 
+interface CartSummaryIngredient {
+  id: string;
+  label: string;
+  size: string;
+  price: number;
+  excluded: boolean;
+  additional: boolean;
+}
+
+interface CartHalf {
+  priceId: string;
+  name: string;
+  basePrice: number;
+  items: CartSummaryIngredient[];
+}
+
+interface CartItem {
+  id: string;
+  isHalfAndHalf: boolean;
+  single?: CartHalf;
+  halfA?: CartHalf;
+  halfB?: CartHalf;
+  total: number;
+}
+
 @Component({
   selector: 'app-order',
   imports: [],
@@ -37,6 +62,8 @@ export class Order implements OnInit {
   readonly selectedPriceId = signal<string | null>(null);
   readonly excludedIngredientIds = signal<string[]>([]);
   readonly additionalIngredientIds = signal<string[]>([]);
+
+  readonly cart = signal<CartItem[]>([]);
 
   readonly isHalfAndHalf = signal<boolean>(false);
   readonly activeHalf = signal<'A' | 'B'>('A');
@@ -437,6 +464,10 @@ export class Order implements OnInit {
     return this.summarySingle().items;
   });
 
+  readonly cartTotal = computed(() =>
+    this.cart().reduce((sum, item) => sum + item.total, 0)
+  );
+
   readonly excludedOptions = computed(() => {
     const selected = new Set(this.excludedIngredientIds());
     return this.excludableToppingOptions().filter((option) => selected.has(option.id));
@@ -648,8 +679,152 @@ export class Order implements OnInit {
     return option.price;
   }
 
-  placeOrder(): void {
-    // Placeholder for order submission.
+  addToCart(): void {
+    if (!this.selectedMenuOption()) return;
+    this.cart.update((items) => [...items, this.buildCartItem()]);
+    this.resetForm();
+    setTimeout(() => {
+      document.querySelector('.cart-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  scrollToTop(): void {
+    document.querySelector('.hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  handleStickyAction(): void {
+    if (this.selectedMenuOption()) {
+      this.addToCart();
+    } else {
+      this.scrollToTop();
+    }
+  }
+
+  removeFromCart(id: string): void {
+    this.cart.update((items) => items.filter((item) => item.id !== id));
+  }
+
+  editCartItem(id: string): void {
+    const item = this.cart().find((i) => i.id === id);
+    if (!item) return;
+
+    this.removeFromCart(id);
+
+    if (!item.isHalfAndHalf) {
+      const half = item.single!;
+      this.isHalfAndHalf.set(false);
+      this.selectedPriceId.set(half.priceId);
+      this.excludedIngredientIds.set(half.items.filter((i) => i.excluded).map((i) => i.id));
+      this.additionalIngredientIds.set(half.items.filter((i) => i.additional).map((i) => i.id));
+    } else {
+      this.isHalfAndHalf.set(true);
+      this.selectedPriceIdA.set(item.halfA!.priceId);
+      this.excludedIngredientIdsA.set(item.halfA!.items.filter((i) => i.excluded).map((i) => i.id));
+      this.additionalIngredientIdsA.set(item.halfA!.items.filter((i) => i.additional).map((i) => i.id));
+      this.selectedPriceIdB.set(item.halfB!.priceId);
+      this.excludedIngredientIdsB.set(item.halfB!.items.filter((i) => i.excluded).map((i) => i.id));
+      this.additionalIngredientIdsB.set(item.halfB!.items.filter((i) => i.additional).map((i) => i.id));
+      this.activeHalf.set('A');
+      this.customizingHalf.set('A');
+    }
+
+    this.scrollToTop();
+  }
+
+  confirmOrder(): void {
+    const toIngredient = (i: CartSummaryIngredient) => i.id;
+
+    const mapHalf = (half: CartHalf) => ({
+      priceId: half.priceId,
+      excluded: half.items.filter((i) => i.excluded).map(toIngredient),
+      additional: half.items.filter((i) => i.additional).map(toIngredient),
+    });
+
+    const payload = {
+      items: this.cart().map((item) => ({
+        halves: item.isHalfAndHalf
+          ? [mapHalf(item.halfA!), mapHalf(item.halfB!)]
+          : [mapHalf(item.single!)],
+      })),
+    };
+
+    console.log('[Order] Datos a guardar:', payload);
+  }
+
+  private buildCartItem(): CartItem {
+    const id = crypto.randomUUID();
+    if (!this.isHalfAndHalf()) {
+      const opt = this.selectedMenuOptionSingle()!;
+      const summary = this.summarySingle();
+      return {
+        id,
+        isHalfAndHalf: false,
+        single: {
+          priceId: opt.id!,
+          name: opt.name,
+          basePrice: opt.price,
+          items: summary.items.map((i) => ({
+            id: i.id,
+            label: i.label,
+            size: i.size,
+            price: summary.getEffectivePrice(i),
+            excluded: i.excluded,
+            additional: i.additional,
+          })),
+        },
+        total: this.summaryTotal(),
+      };
+    }
+    const optA = this.selectedMenuOptionA()!;
+    const optB = this.selectedMenuOptionB()!;
+    const sumA = this.summaryA();
+    const sumB = this.summaryB();
+    return {
+      id,
+      isHalfAndHalf: true,
+      halfA: {
+        priceId: optA.id!,
+        name: optA.name,
+        basePrice: optA.price / 2,
+        items: sumA.items.map((i) => ({
+          id: i.id,
+          label: i.label,
+          size: i.size,
+          price: sumA.getEffectivePrice(i),
+          excluded: i.excluded,
+          additional: i.additional,
+        })),
+      },
+      halfB: {
+        priceId: optB.id!,
+        name: optB.name,
+        basePrice: optB.price / 2,
+        items: sumB.items.map((i) => ({
+          id: i.id,
+          label: i.label,
+          size: i.size,
+          price: sumB.getEffectivePrice(i),
+          excluded: i.excluded,
+          additional: i.additional,
+        })),
+      },
+      total: this.summaryTotal(),
+    };
+  }
+
+  private resetForm(): void {
+    this.isHalfAndHalf.set(false);
+    this.selectedPriceId.set(null);
+    this.excludedIngredientIds.set([]);
+    this.additionalIngredientIds.set([]);
+    this.selectedPriceIdA.set(null);
+    this.selectedPriceIdB.set(null);
+    this.excludedIngredientIdsA.set([]);
+    this.excludedIngredientIdsB.set([]);
+    this.additionalIngredientIdsA.set([]);
+    this.additionalIngredientIdsB.set([]);
+    this.activeHalf.set('A');
+    this.customizingHalf.set('A');
   }
 
   formatPrice(value: number): string {

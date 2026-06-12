@@ -318,15 +318,108 @@
     </section>
   }
 
+  @if (cart().length > 0) {
+    <section class="step cart-section" aria-label="Tu pedido">
+      <div class="step-header">
+        <h2 class="cart-title">Tu pedido</h2>
+      </div>
+      <ul class="cart-list">
+        @for (item of cart(); track item.id) {
+          <li class="cart-item">
+            <div class="cart-item-header">
+              @if (!item.isHalfAndHalf) {
+                <span class="cart-item-name">{{ item.single!.name }}</span>
+              } @else {
+                <span class="cart-item-name">{{ item.halfA!.name }} + {{ item.halfB!.name }}</span>
+              }
+              <div class="cart-item-actions">
+                <button
+                  type="button"
+                  class="cart-edit-btn"
+                  aria-label="Editar pizza"
+                  (click)="editCartItem(item.id)"
+                >Editar</button>
+                <button
+                  type="button"
+                  class="cart-remove-btn"
+                  aria-label="Eliminar pizza del pedido"
+                  (click)="removeFromCart(item.id)"
+                >✕</button>
+              </div>
+            </div>
+            @if (!item.isHalfAndHalf) {
+              <ul class="cart-ingredient-list">
+                @for (ing of item.single!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="cart-half-label">Mitad A: {{ item.halfA!.name }}</p>
+              <ul class="cart-ingredient-list">
+                @for (ing of item.halfA!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+              <p class="cart-half-label">Mitad B: {{ item.halfB!.name }}</p>
+              <ul class="cart-ingredient-list">
+                @for (ing of item.halfB!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+            <div class="cart-item-total">{{ formatPrice(item.total) }}</div>
+          </li>
+        }
+      </ul>
+      <div class="cart-footer">
+        <div class="cart-grand-total">
+          <span>Total del pedido</span>
+          <span>{{ formatPrice(cartTotal()) }}</span>
+        </div>
+        <button type="button" class="confirm-button" (click)="confirmOrder()">
+          Confirmar pedido
+        </button>
+      </div>
+    </section>
+  }
+
   <div class="order-button-spacer" aria-hidden="true"></div>
 </main>
 
-<div class="sticky-order" aria-label="Ordenar">
-  <button type="button" class="order-button" [disabled]="!selectedMenuOption()" (click)="placeOrder()">
+<div class="sticky-order" aria-label="Agregar pizza al pedido">
+  <button
+    type="button"
+    class="order-button"
+    [disabled]="!selectedMenuOption() && cart().length === 0"
+    (click)="handleStickyAction()"
+  >
     @if (selectedMenuOption()) {
-      Ordenar &mdash; {{ formatPrice(summaryTotal()) }}
+      Agregar al pedido &mdash; {{ formatPrice(summaryTotal()) }}
+    } @else if (cart().length > 0) {
+      + Añadir otra pizza
     } @else {
-      Ordenar
+      Agregar al pedido
     }
   </button>
 </div>

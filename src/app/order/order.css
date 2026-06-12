@@ -494,3 +494,170 @@ h2 {
   font-weight: 500;
 }
 
+/* Cart */
+.cart-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #c25b0a;
+}
+
+.cart-section {
+  border-color: #d4a870;
+  background: rgba(255, 248, 239, 0.92);
+}
+
+.cart-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cart-item {
+  border: 1px solid #e5c19a;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.7rem 0.85rem;
+}
+
+.cart-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.cart-item-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.cart-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.cart-edit-btn {
+  border: 1px solid #e5c19a;
+  background: transparent;
+  color: #7a4020;
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.15s ease;
+}
+
+.cart-edit-btn:hover {
+  background: #fff2e3;
+}
+
+.cart-remove-btn {
+  border: none;
+  background: #fde8e8;
+  color: #8a1000;
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+
+.cart-remove-btn:hover {
+  background: #fbc8c8;
+}
+
+.cart-half-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c25b0a;
+  margin: 0.4rem 0 0.15rem;
+}
+
+.cart-ingredient-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.cart-ingredient-list li {
+  font-size: 0.78rem;
+  color: #5a3010;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cart-ingredient-list li.excluded {
+  color: #8a1000;
+  text-decoration: line-through;
+}
+
+.cart-ingredient-list li.additional {
+  color: #5a3010;
+}
+
+.cart-item-total {
+  margin-top: 0.45rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #f0d8be;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: right;
+  color: #ad4d04;
+}
+
+.cart-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #e7c5a1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+
+.cart-grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2d1a0a;
+}
+
+.confirm-button {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #2d7a3a 0%, #48b85c 100%);
+  color: #fff;
+  font-size: 0.97rem;
+  font-weight: 700;
+  min-height: 46px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 120, 40, 0.28);
+  transition: opacity 0.15s ease;
+}
+
+.confirm-button:hover {
+  opacity: 0.92;
+}
+
