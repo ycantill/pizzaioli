@@ -10,7 +10,6 @@ import { RecipeTypeDialog } from './recipe-type-dialog';
 
 @Component({
   selector: 'app-recipe-types',
-  standalone: true,
   imports: [
     MatCardModule,
     MatButtonModule,

@@ -12,10 +12,10 @@ import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
 import { ConsumptionDialog } from './consumption-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { getCostName, getUnitName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-consumptions',
-  standalone: true,
   imports: [
     MatButtonModule,
     MatIconModule,
@@ -93,15 +93,13 @@ export class Consumptions implements OnInit {
   }
 
   getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+    return getCostName(this.costs(), costId);
   }
 
   getUnitName(costId: string): string {
     const cost = this.costs().find(c => c.id === costId);
     if (!cost) return '';
-    const unit = this.units().find(u => u.id === cost.unitId);
-    return unit ? unit.name : '';
+    return getUnitName(this.units(), cost.unitId);
   }
 
   addConsumption() {

@@ -17,7 +17,6 @@ interface DialogData {
 
 @Component({
   selector: 'app-dough-dialog',
-  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,

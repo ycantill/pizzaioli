@@ -12,7 +12,6 @@ export interface CostTypeDialogData {
 
 @Component({
   selector: 'app-cost-type-dialog',
-  standalone: true,
   imports: [
     MatDialogModule,
     MatFormFieldModule,

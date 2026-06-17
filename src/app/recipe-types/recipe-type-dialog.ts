@@ -8,7 +8,6 @@ import { RecipeType } from '../models/recipe-type.model';
 
 @Component({
   selector: 'app-recipe-type-dialog',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
@@ -28,7 +27,7 @@ export class RecipeTypeDialog {
     name: [this.data?.name || '', Validators.required]
   });
 
-  save() {
+  onSave() {
     if (this.form.valid) {
       this.dialogRef.close(this.form.value);
     }

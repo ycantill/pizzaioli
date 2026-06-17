@@ -12,6 +12,7 @@ import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
 import { ToppingDialog } from './topping-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-toppings',
@@ -111,8 +112,7 @@ export class Toppings implements OnInit {
   }
 
   getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+    return getCostName(this.costs(), costId);
   }
 
   openPrintWindow() {

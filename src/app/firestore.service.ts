@@ -14,9 +14,9 @@ import {
 })
 export class FirestoreService {
   
-  async addDocument(collectionName: string, data: Record<string, unknown>) {
+  async addDocument(collectionName: string, data: object) {
     const colRef = collection(db, collectionName);
-    return await addDoc(colRef, data);
+    return await addDoc(colRef, data as Record<string, unknown>);
   }
 
   async getDocuments(collectionName: string) {
@@ -29,9 +29,9 @@ export class FirestoreService {
     }));
   }
 
-  async updateDocument(collectionName: string, docId: string, data: Record<string, unknown>) {
+  async updateDocument(collectionName: string, docId: string, data: object) {
     const docRef = doc(db, collectionName, docId);
-    return await updateDoc(docRef, data);
+    return await updateDoc(docRef, data as Record<string, unknown>);
   }
 
   async deleteDocument(collectionName: string, docId: string) {

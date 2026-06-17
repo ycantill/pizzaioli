@@ -17,7 +17,6 @@ export interface ConsumptionDialogData {
 
 @Component({
   selector: 'app-consumption-dialog',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,

@@ -12,6 +12,7 @@ import { DoughIngredient, Dough } from '../models/dough.model';
 import { Cost } from '../models/cost.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
+import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-dough-calculator',
@@ -126,8 +127,7 @@ export class DoughCalculator implements OnInit {
   }
 
   getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Seleccionar...';
+    return getCostName(this.costs(), costId, 'Seleccionar...');
   }
 
   isFlour(costId: string): boolean {

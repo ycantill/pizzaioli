@@ -11,10 +11,10 @@ import { CostType } from '../models/cost-type.model';
 import { FirestoreService } from '../firestore.service';
 import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-doughs',
-  standalone: true,
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -80,8 +80,7 @@ export class Doughs implements OnInit {
   }
 
   getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+    return getCostName(this.costs(), costId);
   }
 
   addDough() {

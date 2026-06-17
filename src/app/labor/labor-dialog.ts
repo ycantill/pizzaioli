@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Labor, LaborItem } from '../models/labor.model';
+import { getCostName } from '../shared/lookup.utils';
 import { RecipeType } from '../models/recipe-type.model';
 import { Consumption } from '../models/consumption.model';
 import { Cost } from '../models/cost.model';
@@ -61,8 +62,7 @@ export class LaborDialog {
   }
 
   getCostName(costId: string): string {
-    const cost = this.data.costs.find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+    return getCostName(this.data.costs, costId);
   }
 
   availableConsumptions(currentIndex: number): Consumption[] {

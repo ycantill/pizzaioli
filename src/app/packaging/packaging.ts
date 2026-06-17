@@ -13,10 +13,10 @@ import { CostType } from '../models/cost-type.model';
 import { Unit } from '../models/unit.model';
 import { FirestoreService } from '../firestore.service';
 import { PackagingDialog } from './packaging-dialog';
+import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-packaging',
-  standalone: true,
   imports: [
     MatCardModule,
     MatButtonModule,
@@ -104,8 +104,7 @@ export class PackagingConfig implements OnInit {
   }
 
   getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+    return getCostName(this.costs(), costId);
   }
 
   getPackagingForType(recipeTypeId: string): Packaging | undefined {

@@ -20,7 +20,6 @@ export interface PackagingDialogData {
 
 @Component({
   selector: 'app-packaging-dialog',
-  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
