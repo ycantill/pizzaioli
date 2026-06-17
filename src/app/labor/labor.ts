@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,13 +8,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Labor } from '../models/labor.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { Consumption } from '../models/consumption.model';
-import { Cost } from '../models/cost.model';
-import { FirestoreService } from '../firestore.service';
+import { CostsDataService } from '../services/costs-data.service';
+import { RecipeTypesDataService } from '../services/recipe-types-data.service';
+import { ConsumptionsDataService } from '../services/consumptions-data.service';
+import { LaborsDataService } from '../services/labors-data.service';
 import { LaborDialog } from './labor-dialog';
 
 @Component({
   selector: 'app-labor',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCardModule,
     MatButtonModule,
@@ -26,35 +28,21 @@ import { LaborDialog } from './labor-dialog';
   templateUrl: './labor.html',
   styleUrl: './labor.css'
 })
-export class LaborConfig implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class LaborConfig {
   private dialog = inject(MatDialog);
+  private costsService = inject(CostsDataService);
+  private recipeTypesService = inject(RecipeTypesDataService);
+  private consumptionsService = inject(ConsumptionsDataService);
+  private laborsService = inject(LaborsDataService);
 
-  labors = signal<Labor[]>([]);
-  recipeTypes = signal<RecipeType[]>([]);
-  consumptions = signal<Consumption[]>([]);
-  costs = signal<Cost[]>([]);
-  loading = signal(true);
+  labors = this.laborsService.labors;
+  recipeTypes = this.recipeTypesService.recipeTypes;
+  consumptions = this.consumptionsService.consumptions;
+  loading = computed(() =>
+    this.recipeTypesService.isLoading() || this.consumptionsService.isLoading() ||
+    this.costsService.isLoading() || this.laborsService.isLoading()
+  );
   displayedColumns: string[] = ['name', 'items', 'actions'];
-
-  async ngOnInit() {
-    try {
-      const [recipeTypes, consumptions, costs, labors] = await Promise.all([
-        this.firestoreService.getDocuments('recipe-types'),
-        this.firestoreService.getDocuments('consumptions'),
-        this.firestoreService.getDocuments('costs'),
-        this.firestoreService.getDocuments('labors')
-      ]);
-      this.recipeTypes.set(recipeTypes as RecipeType[]);
-      this.consumptions.set(consumptions as Consumption[]);
-      this.costs.set(costs as Cost[]);
-      this.labors.set(labors as Labor[]);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   getConsumptionName(consumptionId: string): string {
     const consumption = this.consumptions().find(c => c.id === consumptionId);
@@ -83,45 +71,28 @@ export class LaborConfig implements OnInit {
         labor: existingLabor,
         recipeType,
         consumptions: this.consumptions(),
-        costs: this.costs()
+        costs: this.costsService.costs()
       }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Labor | undefined) => {
       if (result) {
-        if (existingLabor?.id) {
-          await this.updateLabor(existingLabor.id, result);
-        } else {
-          await this.addLabor(result);
+        try {
+          if (existingLabor?.id) {
+            await this.laborsService.update(existingLabor.id, result);
+          } else {
+            await this.laborsService.add(result);
+          }
+        } catch (error) {
+          console.error('Error saving labor:', error);
         }
       }
     });
   }
 
-  async addLabor(labor: Labor) {
-    try {
-      const docRef = await this.firestoreService.addDocument('labors', labor);
-      this.labors.update(list => [...list, { ...labor, id: docRef.id }]);
-    } catch (error) {
-      console.error('Error adding labor:', error);
-    }
-  }
-
-  async updateLabor(id: string, labor: Labor) {
-    try {
-      await this.firestoreService.updateDocument('labors', id, labor);
-      this.labors.update(list =>
-        list.map(l => l.id === id ? { ...labor, id } : l)
-      );
-    } catch (error) {
-      console.error('Error updating labor:', error);
-    }
-  }
-
   async deleteLabor(id: string) {
     try {
-      await this.firestoreService.deleteDocument('labors', id);
-      this.labors.update(list => list.filter(l => l.id !== id));
+      await this.laborsService.remove(id);
     } catch (error) {
       console.error('Error deleting labor:', error);
     }

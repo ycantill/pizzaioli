@@ -1,15 +1,16 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RecipeType } from '../models/recipe-type.model';
-import { FirestoreService } from '../firestore.service';
+import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { RecipeTypeDialog } from './recipe-type-dialog';
 
 @Component({
   selector: 'app-recipe-types',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCardModule,
     MatButtonModule,
@@ -20,25 +21,12 @@ import { RecipeTypeDialog } from './recipe-type-dialog';
   templateUrl: './recipe-types.html',
   styleUrl: './recipe-types.css'
 })
-export class RecipeTypes implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class RecipeTypes {
   private dialog = inject(MatDialog);
+  private recipeTypesService = inject(RecipeTypesDataService);
 
-  recipeTypes = signal<RecipeType[]>([]);
+  recipeTypes = this.recipeTypesService.recipeTypes;
   displayedColumns: string[] = ['name', 'actions'];
-
-  async ngOnInit() {
-    await this.loadRecipeTypes();
-  }
-
-  async loadRecipeTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('recipe-types');
-      this.recipeTypes.set(data as RecipeType[]);
-    } catch (error) {
-      console.error('Error loading recipe types:', error);
-    }
-  }
 
   openDialog(recipeType?: RecipeType) {
     const dialogRef = this.dialog.open(RecipeTypeDialog, {
@@ -46,40 +34,25 @@ export class RecipeTypes implements OnInit {
       data: recipeType || null
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe(async (result: RecipeType | undefined) => {
       if (result) {
-        if (recipeType?.id) {
-          this.updateRecipeType(recipeType.id, result);
-        } else {
-          this.addRecipeType(result);
+        try {
+          if (recipeType?.id) {
+            await this.recipeTypesService.update(recipeType.id, result);
+          } else {
+            await this.recipeTypesService.add(result);
+          }
+        } catch (error) {
+          console.error('Error saving recipe type:', error);
         }
       }
     });
   }
 
-  async addRecipeType(recipeType: RecipeType) {
-    try {
-      await this.firestoreService.addDocument('recipe-types', recipeType);
-      await this.loadRecipeTypes();
-    } catch (error) {
-      console.error('Error adding recipe type:', error);
-    }
-  }
-
-  async updateRecipeType(id: string, recipeType: RecipeType) {
-    try {
-      await this.firestoreService.updateDocument('recipe-types', id, recipeType);
-      await this.loadRecipeTypes();
-    } catch (error) {
-      console.error('Error updating recipe type:', error);
-    }
-  }
-
   async deleteRecipeType(id: string) {
     if (confirm('¿Estás seguro de que deseas eliminar este tipo de receta?')) {
       try {
-        await this.firestoreService.deleteDocument('recipe-types', id);
-        await this.loadRecipeTypes();
+        await this.recipeTypesService.remove(id);
       } catch (error) {
         console.error('Error deleting recipe type:', error);
       }

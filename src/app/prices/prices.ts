@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,19 +11,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { Dough } from '../models/dough.model';
-import { Recipe } from '../models/recipe.model';
-import { RecipeType } from '../models/recipe-type.model';
-import { Cost } from '../models/cost.model';
-import { Margin } from '../models/margin.model';
-import { Unit } from '../models/unit.model';
-import { Packaging } from '../models/packaging.model';
 import { Price } from '../models/price.model';
-import { Consumption } from '../models/consumption.model';
-import { Labor } from '../models/labor.model';
-import { Topping } from '../models/topping.model';
-import { FirestoreService } from '../firestore.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
+import { DoughsDataService } from '../services/doughs-data.service';
+import { RecipesDataService } from '../services/recipes-data.service';
+import { RecipeTypesDataService } from '../services/recipe-types-data.service';
+import { CostsDataService } from '../services/costs-data.service';
+import { MarginsDataService } from '../services/margins-data.service';
+import { UnitsDataService } from '../services/units-data.service';
+import { PackagingsDataService } from '../services/packagings-data.service';
+import { ConsumptionsDataService } from '../services/consumptions-data.service';
+import { LaborsDataService } from '../services/labors-data.service';
+import { PricesDataService } from '../services/prices-data.service';
+import { ToppingsDataService } from '../services/toppings-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 interface CostLineItem {
@@ -68,22 +68,31 @@ interface LaborLineItem {
   templateUrl: './prices.html',
   styleUrl: './prices.css'
 })
-export class Prices implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Prices {
   private doughCalcService = inject(DoughCalculationService);
   private dialog = inject(MatDialog);
+  private doughsService = inject(DoughsDataService);
+  private recipesService = inject(RecipesDataService);
+  private recipeTypesService = inject(RecipeTypesDataService);
+  private costsService = inject(CostsDataService);
+  private marginsService = inject(MarginsDataService);
+  private unitsService = inject(UnitsDataService);
+  private packagingsService = inject(PackagingsDataService);
+  private consumptionsService = inject(ConsumptionsDataService);
+  private laborsService = inject(LaborsDataService);
+  private pricesService = inject(PricesDataService);
+  private toppingsService = inject(ToppingsDataService);
 
-  doughs = signal<Dough[]>([]);
-  recipes = signal<Recipe[]>([]);
-  recipeTypes = signal<RecipeType[]>([]);
-  costs = signal<Cost[]>([]);
-  margins = signal<Margin[]>([]);
-  units = signal<Unit[]>([]);
-  packagings = signal<Packaging[]>([]);
-  consumptions = signal<Consumption[]>([]);
-  labors = signal<Labor[]>([]);
-  toppings = signal<Topping[]>([]);
-  savedPrices = signal<Price[]>([]);
+  doughs = this.doughsService.doughs;
+  recipes = this.recipesService.recipes;
+  recipeTypes = this.recipeTypesService.recipeTypes;
+  costs = this.costsService.costs;
+  margins = this.marginsService.margins;
+  packagings = this.packagingsService.packagings;
+  consumptions = this.consumptionsService.consumptions;
+  labors = this.laborsService.labors;
+  toppings = this.toppingsService.toppings;
+  savedPrices = this.pricesService.prices;
   sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
 
   selectedDoughId = signal<string | null>(null);
@@ -94,7 +103,14 @@ export class Prices implements OnInit {
   removedIngredientIds = signal<string[]>([]);
   pendingAdditionId = signal<string | null>(null);
 
-  loading = signal(true);
+  loading = computed(() =>
+    this.doughsService.isLoading() || this.recipesService.isLoading() ||
+    this.recipeTypesService.isLoading() || this.costsService.isLoading() ||
+    this.marginsService.isLoading() || this.unitsService.isLoading() ||
+    this.packagingsService.isLoading() || this.consumptionsService.isLoading() ||
+    this.laborsService.isLoading() || this.pricesService.isLoading() ||
+    this.toppingsService.isLoading()
+  );
   saving = signal(false);
 
   ingredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost'];
@@ -108,44 +124,9 @@ export class Prices implements OnInit {
       const doughId = this.selectedDoughId();
       if (doughId) {
         const dough = this.doughs().find(d => d.id === doughId);
-        if (dough) {
-          this.ballWeight.set(dough.ballWeight);
-        }
+        if (dough) this.ballWeight.set(dough.ballWeight);
       }
     });
-  }
-
-  async ngOnInit() {
-    try {
-      const [doughs, recipes, recipeTypes, costs, margins, units, packagings, consumptions, labors, prices, toppings] = await Promise.all([
-        this.firestoreService.getDocuments('doughs'),
-        this.firestoreService.getDocuments('recipes'),
-        this.firestoreService.getDocuments('recipe-types'),
-        this.firestoreService.getDocuments('costs'),
-        this.firestoreService.getDocuments('margins'),
-        this.firestoreService.getDocuments('units'),
-        this.firestoreService.getDocuments('packagings'),
-        this.firestoreService.getDocuments('consumptions'),
-        this.firestoreService.getDocuments('labors'),
-        this.firestoreService.getDocuments('prices'),
-        this.firestoreService.getDocuments('toppings')
-      ]);
-      this.doughs.set(doughs as Dough[]);
-      this.recipes.set(recipes as Recipe[]);
-      this.recipeTypes.set(recipeTypes as RecipeType[]);
-      this.costs.set(costs as Cost[]);
-      this.margins.set(margins as Margin[]);
-      this.units.set(units as Unit[]);
-      this.packagings.set(packagings as Packaging[]);
-      this.consumptions.set(consumptions as Consumption[]);
-      this.labors.set(labors as Labor[]);
-      this.savedPrices.set(prices as Price[]);
-      this.toppings.set(toppings as Topping[]);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      this.loading.set(false);
-    }
   }
 
   selectedDough = computed(() => {
@@ -175,9 +156,7 @@ export class Prices implements OnInit {
     const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(dough, allCosts);
     if (bakerPercentages.length === 0) return [];
 
-    const totalBakerPercentage = bakerPercentages.reduce(
-      (sum, bp) => sum + bp.bakerPercentage, 0
-    );
+    const totalBakerPercentage = bakerPercentages.reduce((sum, bp) => sum + bp.bakerPercentage, 0);
     if (totalBakerPercentage === 0) return [];
 
     const ingredientMultiplier = weight / totalBakerPercentage;
@@ -227,7 +206,6 @@ export class Prices implements OnInit {
       if (!cost) return null;
 
       const baseCost = topping.quantity * cost.value;
-
       const margin = allMargins.find(m => m.costId === topping.costId);
       const totalMargin = margin
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
@@ -326,7 +304,6 @@ export class Prices implements OnInit {
       if (!cost) return null;
 
       const baseCost = item.quantity * cost.value;
-
       const margin = allMargins.find(m => m.costId === item.costId);
       const totalMargin = margin
         ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
@@ -444,9 +421,9 @@ export class Prices implements OnInit {
     return Math.round((ingredientTotal + laborTotal) * 100) / 100;
   });
 
-  totalMarginAmount = computed(() => {
-    return Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100;
-  });
+  totalMarginAmount = computed(() =>
+    Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100
+  );
 
   totalBaseCostExcludingRecovery = computed(() => {
     const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
@@ -474,13 +451,13 @@ export class Prices implements OnInit {
     return Math.round((this.totalWithMarginProfitOnly() / base) * 10000) / 100;
   });
 
-  totalRecoveryWithMargin = computed(() => {
-    return Math.round((this.totalWithMargin() - this.totalWithMarginProfitOnly()) * 100) / 100;
-  });
+  totalRecoveryWithMargin = computed(() =>
+    Math.round((this.totalWithMargin() - this.totalWithMarginProfitOnly()) * 100) / 100
+  );
 
-  totalProfitAndReinvestmentAmount = computed(() => {
-    return Math.round((this.totalWithMarginProfitOnly() - this.totalBaseCostExcludingRecovery()) * 100) / 100;
-  });
+  totalProfitAndReinvestmentAmount = computed(() =>
+    Math.round((this.totalWithMarginProfitOnly() - this.totalBaseCostExcludingRecovery()) * 100) / 100
+  );
 
   totalMarginPercent = computed(() => {
     const base = this.totalBaseCostExcludingRecovery();
@@ -490,13 +467,12 @@ export class Prices implements OnInit {
 
   suggestedPrice = computed(() => {
     const total = this.totalWithMargin();
-    if (total <= 0) return 0;
-    return total;
+    return total <= 0 ? 0 : total;
   });
 
-  canSave = computed(() => {
-    return this.priceName().trim().length > 0 && this.suggestedPrice() > 0 && !this.saving();
-  });
+  canSave = computed(() =>
+    this.priceName().trim().length > 0 && this.suggestedPrice() > 0 && !this.saving()
+  );
 
   onDoughSelected(doughId: string | null) {
     this.selectedDoughId.set(doughId);
@@ -584,8 +560,7 @@ export class Prices implements OnInit {
         ...(this.selectedAdditionIds().length ? { additionToppingIds: this.selectedAdditionIds() } : {}),
         ...(this.removedIngredientIds().length ? { removedIngredientIds: this.removedIngredientIds() } : {}),
       };
-      const docRef = await this.firestoreService.addDocument('prices', priceData);
-      this.savedPrices.update(list => [...list, { ...priceData, id: docRef.id }]);
+      await this.pricesService.add(priceData);
       this.priceName.set('');
     } catch (error) {
       console.error('Error saving price:', error);
@@ -618,8 +593,7 @@ export class Prices implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('prices', price.id!);
-          this.savedPrices.update(list => list.filter(p => p.id !== price.id));
+          await this.pricesService.remove(price.id!);
         } catch (error) {
           console.error('Error deleting price:', error);
         }

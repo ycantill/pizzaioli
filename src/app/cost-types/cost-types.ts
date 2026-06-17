@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,12 +6,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { CostType } from '../models/cost-type.model';
-import { FirestoreService } from '../firestore.service';
+import { CostTypesDataService } from '../services/cost-types-data.service';
 import { CostTypeDialog } from './cost-type-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-cost-types',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -22,29 +23,13 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   templateUrl: './cost-types.html',
   styleUrl: './cost-types.css'
 })
-export class CostTypes implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class CostTypes {
   private dialog = inject(MatDialog);
-  
-  costTypes = signal<CostType[]>([]);
-  loading = signal(true);
+  private costTypesService = inject(CostTypesDataService);
+
+  costTypes = this.costTypesService.costTypes;
+  loading = this.costTypesService.isLoading;
   displayedColumns: string[] = ['name', 'actions'];
-
-  async ngOnInit() {
-    await this.loadCostTypes();
-  }
-
-  async loadCostTypes() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('cost-types');
-      this.costTypes.set(data as CostType[]);
-    } catch (error) {
-      console.error('Error loading cost types:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   addCostType() {
     const dialogRef = this.dialog.open(CostTypeDialog, {
@@ -54,8 +39,7 @@ export class CostTypes implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: CostType | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('cost-types', result);
-          this.costTypes.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.costTypesService.add(result);
         } catch (error) {
           console.error('Error adding cost type:', error);
         }
@@ -72,10 +56,7 @@ export class CostTypes implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: CostType | undefined) => {
       if (result && costType.id) {
         try {
-          await this.firestoreService.updateDocument('cost-types', costType.id, result);
-          this.costTypes.update(list => 
-            list.map(t => t.id === costType.id ? { ...result, id: costType.id } : t)
-          );
+          await this.costTypesService.update(costType.id, result);
         } catch (error) {
           console.error('Error updating cost type:', error);
         }
@@ -94,8 +75,7 @@ export class CostTypes implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed && costType.id) {
         try {
-          await this.firestoreService.deleteDocument('cost-types', costType.id);
-          this.costTypes.update(list => list.filter(t => t.id !== costType.id));
+          await this.costTypesService.remove(costType.id);
         } catch (error) {
           console.error('Error deleting cost type:', error);
         }

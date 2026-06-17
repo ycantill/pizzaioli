@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FirestoreService } from '../firestore.service';
-import { Price } from '../models/price.model';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { PricesDataService } from '../services/prices-data.service';
+import { RecipesDataService } from '../services/recipes-data.service';
+import { ToppingsDataService } from '../services/toppings-data.service';
+import { CostsDataService } from '../services/costs-data.service';
+import { MarginsDataService } from '../services/margins-data.service';
 import { Topping } from '../models/topping.model';
-import { Cost } from '../models/cost.model';
-import { Margin } from '../models/margin.model';
 import { Recipe } from '../models/recipe.model';
 
 interface ToppingOption {
@@ -55,10 +56,18 @@ interface CartItem {
   styleUrl: './order.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Order implements OnInit {
-  private readonly firestoreService = inject(FirestoreService);
+export class Order {
+  private readonly pricesService = inject(PricesDataService);
+  private readonly recipesService = inject(RecipesDataService);
+  private readonly toppingsService = inject(ToppingsDataService);
+  private readonly costsService = inject(CostsDataService);
+  private readonly marginsService = inject(MarginsDataService);
 
-  readonly loading = signal(true);
+  readonly loading = computed(() =>
+    this.pricesService.isLoading() || this.recipesService.isLoading() ||
+    this.toppingsService.isLoading() || this.costsService.isLoading() ||
+    this.marginsService.isLoading()
+  );
   readonly selectedPriceId = signal<string | null>(null);
   readonly excludedIngredientIds = signal<string[]>([]);
   readonly additionalIngredientIds = signal<string[]>([]);
@@ -77,11 +86,43 @@ export class Order implements OnInit {
   readonly additionalIngredientIdsA = signal<string[]>([]);
   readonly additionalIngredientIdsB = signal<string[]>([]);
 
-  private readonly prices = signal<Price[]>([]);
-  private readonly recipes = signal<Recipe[]>([]);
-  private readonly toppings = signal<Topping[]>([]);
-  private readonly costs = signal<Cost[]>([]);
-  private readonly margins = signal<Margin[]>([]);
+  private readonly prices = this.pricesService.prices;
+  private readonly recipes = this.recipesService.recipes;
+  private readonly costs = this.costsService.costs;
+  private readonly margins = this.marginsService.margins;
+
+  // toppings includes virtual sizes generated from raw data
+  private readonly toppings = computed<Topping[]>(() => {
+    const raw = this.toppingsService.toppings();
+    const SIZES: ('S' | 'M' | 'L' | 'XL' | 'XXL')[] = ['S', 'M', 'L', 'XL', 'XXL'];
+    const sizeScale: Record<string, number> = { S: 0.5, M: 1.0, L: 1.5, XL: 2.0, XXL: 2.5 };
+
+    const groups = new Map<string, Topping[]>();
+    for (const t of raw) {
+      const key = `${t.costId.trim()}_${!!t.salsaBase}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(t);
+    }
+
+    const virtual: Topping[] = [];
+    for (const [, list] of groups.entries()) {
+      for (const targetSize of SIZES) {
+        if (list.some(t => t.size.trim().toUpperCase() === targetSize)) continue;
+        const base = list.find(t => t.size.trim().toUpperCase() === 'M') ?? list[0];
+        if (base?.id) {
+          const baseScale = sizeScale[base.size.trim().toUpperCase()] ?? 1.0;
+          virtual.push({
+            id: `${base.id}_virtual_${targetSize}`,
+            costId: base.costId.trim(),
+            quantity: base.quantity * ((sizeScale[targetSize] ?? 1.0) / baseScale),
+            size: targetSize,
+            salsaBase: !!base.salsaBase
+          });
+        }
+      }
+    }
+    return [...raw, ...virtual];
+  });
 
   readonly menuOptions = computed(() => {
     return [...this.prices()]
@@ -487,76 +528,6 @@ export class Order implements OnInit {
     return Math.round((base + this.additionalTotal()) * 100) / 100;
   });
 
-  async ngOnInit(): Promise<void> {
-    try {
-      const [prices, recipes, toppings, costs, margins] = await Promise.all([
-        this.firestoreService.getDocuments('prices'),
-        this.firestoreService.getDocuments('recipes'),
-        this.firestoreService.getDocuments('toppings'),
-        this.firestoreService.getDocuments('costs'),
-        this.firestoreService.getDocuments('margins'),
-      ]);
-
-      // Generate virtual toppings for all standard sizes (S, M, L, XL, XXL) if they don't exist
-      const toppingsTyped = toppings as Topping[];
-      const virtualToppings: Topping[] = [];
-      
-      // Group all toppings by costId & salsaBase
-      const toppingsGroups = new Map<string, Topping[]>();
-      for (const t of toppingsTyped) {
-        const key = `${t.costId.trim()}_${!!t.salsaBase}`;
-        if (!toppingsGroups.has(key)) {
-          toppingsGroups.set(key, []);
-        }
-        toppingsGroups.get(key)!.push(t);
-      }
-
-      const SIZES: ('S' | 'M' | 'L' | 'XL' | 'XXL')[] = ['S', 'M', 'L', 'XL', 'XXL'];
-      const sizeScale: Record<string, number> = {
-        'S': 0.5,
-        'M': 1.0,
-        'L': 1.5,
-        'XL': 2.0,
-        'XXL': 2.5
-      };
-
-      for (const [, list] of toppingsGroups.entries()) {
-        for (const targetSize of SIZES) {
-          const exists = list.some(t => t.size.trim().toUpperCase() === targetSize);
-          if (!exists) {
-            const baseTopping = list.find(t => t.size.trim().toUpperCase() === 'M') || list[0];
-            if (baseTopping && baseTopping.id) {
-              const baseSizeNormalized = baseTopping.size.trim().toUpperCase();
-              const baseScale = sizeScale[baseSizeNormalized] || 1.0;
-              const targetScale = sizeScale[targetSize] || 1.0;
-              const quantity = baseTopping.quantity * (targetScale / baseScale);
-
-              virtualToppings.push({
-                id: `${baseTopping.id}_virtual_${targetSize}`,
-                costId: baseTopping.costId.trim(),
-                quantity: quantity,
-                size: targetSize,
-                salsaBase: !!baseTopping.salsaBase
-              });
-            }
-          }
-        }
-      }
-
-      const allToppings = [...toppingsTyped, ...virtualToppings];
-
-      this.prices.set(prices as Price[]);
-      this.recipes.set(recipes as Recipe[]);
-      this.toppings.set(allToppings as Topping[]);
-      this.costs.set(costs as Cost[]);
-      this.margins.set(margins as Margin[]);
-    } catch (error) {
-      console.error('Error loading order data', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   selectMenuOption(id: string): void {
     this.selectedPriceId.set(id);
     this.excludedIngredientIds.set([]);
@@ -842,5 +813,4 @@ export class Order implements OnInit {
     if (!Number.isFinite(value) || value <= 0) return 0;
     return Math.ceil(value / 100) * 100;
   }
-
 }

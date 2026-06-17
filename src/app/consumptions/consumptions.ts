@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -6,16 +6,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Consumption } from '../models/consumption.model';
-import { Cost } from '../models/cost.model';
-import { CostType } from '../models/cost-type.model';
-import { Unit } from '../models/unit.model';
-import { FirestoreService } from '../firestore.service';
+import { CostsDataService } from '../services/costs-data.service';
+import { UnitsDataService } from '../services/units-data.service';
+import { CostTypesDataService } from '../services/cost-types-data.service';
+import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { ConsumptionDialog } from './consumption-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { getCostName, getUnitName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-consumptions',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatButtonModule,
     MatIconModule,
@@ -26,67 +27,24 @@ import { getCostName, getUnitName } from '../shared/lookup.utils';
   templateUrl: './consumptions.html',
   styleUrl: './consumptions.css'
 })
-export class Consumptions implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Consumptions {
   private dialog = inject(MatDialog);
+  private costsService = inject(CostsDataService);
+  private unitsService = inject(UnitsDataService);
+  private costTypesService = inject(CostTypesDataService);
+  private consumptionsService = inject(ConsumptionsDataService);
 
-  consumptions = signal<Consumption[]>([]);
-  costs = signal<Cost[]>([]);
-  costTypes = signal<CostType[]>([]);
-  units = signal<Unit[]>([]);
-  loading = signal(true);
+  consumptions = this.consumptionsService.consumptions;
+  costs = this.costsService.costs;
+  units = this.unitsService.units;
+  loading = computed(() =>
+    this.costTypesService.isLoading() || this.costsService.isLoading() ||
+    this.unitsService.isLoading() || this.consumptionsService.isLoading()
+  );
   displayedColumns: string[] = ['name', 'service', 'quantity', 'actions'];
 
-  async ngOnInit() {
-    await Promise.all([
-      this.loadCostTypes(),
-      this.loadCosts(),
-      this.loadUnits(),
-      this.loadConsumptions()
-    ]);
-  }
-
-  async loadCostTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('cost-types');
-      this.costTypes.set(data as CostType[]);
-    } catch (error) {
-      console.error('Error loading cost types:', error);
-    }
-  }
-
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadUnits() {
-    try {
-      const data = await this.firestoreService.getDocuments('units');
-      this.units.set(data as Unit[]);
-    } catch (error) {
-      console.error('Error loading units:', error);
-    }
-  }
-
-  async loadConsumptions() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('consumptions');
-      this.consumptions.set(data as Consumption[]);
-    } catch (error) {
-      console.error('Error loading consumptions:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  getServiceCosts(): Cost[] {
-    const servicioType = this.costTypes().find(t => t.name.toLowerCase() === 'servicio');
+  getServiceCosts() {
+    const servicioType = this.costTypesService.costTypes().find(t => t.name.toLowerCase() === 'servicio');
     return servicioType
       ? this.costs().filter(cost => cost.typeId === servicioType.id)
       : [];
@@ -114,8 +72,7 @@ export class Consumptions implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Consumption | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('consumptions', result);
-          this.consumptions.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.consumptionsService.add(result);
         } catch (error) {
           console.error('Error adding consumption:', error);
         }
@@ -136,10 +93,7 @@ export class Consumptions implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Consumption | undefined) => {
       if (result && consumption.id) {
         try {
-          await this.firestoreService.updateDocument('consumptions', consumption.id, result);
-          this.consumptions.update(list =>
-            list.map(c => c.id === consumption.id ? { ...result, id: consumption.id } : c)
-          );
+          await this.consumptionsService.update(consumption.id, result);
         } catch (error) {
           console.error('Error updating consumption:', error);
         }
@@ -161,8 +115,7 @@ export class Consumptions implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('consumptions', consumption.id!);
-          this.consumptions.update(list => list.filter(c => c.id !== consumption.id));
+          await this.consumptionsService.remove(consumption.id!);
         } catch (error) {
           console.error('Error deleting consumption:', error);
         }

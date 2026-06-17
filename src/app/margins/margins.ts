@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,14 +6,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Margin } from '../models/margin.model';
-import { Cost } from '../models/cost.model';
-import { FirestoreService } from '../firestore.service';
+import { CostsDataService } from '../services/costs-data.service';
+import { MarginsDataService } from '../services/margins-data.service';
 import { MarginDialog } from './margin-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-margins',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -24,40 +25,15 @@ import { getCostName } from '../shared/lookup.utils';
   templateUrl: './margins.html',
   styleUrl: './margins.css'
 })
-export class Margins implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Margins {
   private dialog = inject(MatDialog);
-  
-  margins = signal<Margin[]>([]);
-  costs = signal<Cost[]>([]);
-  loading = signal(true);
+  private costsService = inject(CostsDataService);
+  private marginsService = inject(MarginsDataService);
+
+  margins = this.marginsService.margins;
+  costs = this.costsService.costs;
+  loading = computed(() => this.costsService.isLoading() || this.marginsService.isLoading());
   displayedColumns: string[] = ['cost', 'recovery', 'reinvestment', 'profit', 'total', 'actions'];
-
-  async ngOnInit() {
-    await this.loadCosts();
-    await this.loadMargins();
-  }
-
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadMargins() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('margins');
-      this.margins.set(data as Margin[]);
-    } catch (error) {
-      console.error('Error loading margins:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   getCostName(costId: string): string {
     return getCostName(this.costs(), costId);
@@ -76,8 +52,7 @@ export class Margins implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Margin | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('margins', result);
-          this.margins.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.marginsService.add(result);
         } catch (error) {
           console.error('Error adding margin:', error);
         }
@@ -94,10 +69,7 @@ export class Margins implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Margin | undefined) => {
       if (result && margin.id) {
         try {
-          await this.firestoreService.updateDocument('margins', margin.id, result);
-          this.margins.update(list => 
-            list.map(m => m.id === margin.id ? { ...result, id: margin.id } : m)
-          );
+          await this.marginsService.update(margin.id, result);
         } catch (error) {
           console.error('Error updating margin:', error);
         }
@@ -107,7 +79,7 @@ export class Margins implements OnInit {
 
   async deleteMargin(margin: Margin) {
     if (!margin.id) return;
-    
+
     const costName = this.getCostName(margin.costId);
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
@@ -120,8 +92,7 @@ export class Margins implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('margins', margin.id!);
-          this.margins.update(list => list.filter(m => m.id !== margin.id));
+          await this.marginsService.remove(margin.id!);
         } catch (error) {
           console.error('Error deleting margin:', error);
         }
