@@ -101,7 +101,7 @@ export class LaborDialog {
   onSave(): void {
     if (this.form.valid) {
       const formValue = this.form.value;
-      const items: LaborItem[] = (formValue.items as Array<{ consumptionId: string; hours: number; minutes: number }>)
+      const items: LaborItem[] = (formValue.items as { consumptionId: string; hours: number; minutes: number }[])
         .map(item => ({
           consumptionId: item.consumptionId,
           minutes: (item.hours * 60) + item.minutes

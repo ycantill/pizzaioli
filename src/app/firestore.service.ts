@@ -14,7 +14,7 @@ import {
 })
 export class FirestoreService {
   
-  async addDocument(collectionName: string, data: any) {
+  async addDocument(collectionName: string, data: Record<string, unknown>) {
     const colRef = collection(db, collectionName);
     return await addDoc(colRef, data);
   }
@@ -29,7 +29,7 @@ export class FirestoreService {
     }));
   }
 
-  async updateDocument(collectionName: string, docId: string, data: any) {
+  async updateDocument(collectionName: string, docId: string, data: Record<string, unknown>) {
     const docRef = doc(db, collectionName, docId);
     return await updateDoc(docRef, data);
   }

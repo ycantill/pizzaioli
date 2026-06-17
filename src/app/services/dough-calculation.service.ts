@@ -49,7 +49,7 @@ export class DoughCalculationService {
   getDoughBakerPercentages(
     dough: Dough,
     costs: Cost[]
-  ): Array<{ costId: string; bakerPercentage: number }> {
+  ): { costId: string; bakerPercentage: number }[] {
     const flourIngredient = this.findFlourIngredient(dough, costs);
     if (!flourIngredient) return [];
 

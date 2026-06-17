@@ -1,4 +1,4 @@
-import { inject, signal } from '@angular/core';
+import { inject, signal, Type } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FirestoreService } from '../firestore.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -11,7 +11,7 @@ export abstract class BaseCrudService<T extends { id?: string }> {
   loading = signal(true);
 
   protected abstract collectionName: string;
-  protected abstract dialogComponent: any;
+  protected abstract dialogComponent: Type<unknown>;
   protected abstract dialogWidth: string;
 
   async loadItems() {
@@ -26,7 +26,7 @@ export abstract class BaseCrudService<T extends { id?: string }> {
     }
   }
 
-  addItem(data: any = {}) {
+  addItem(data: Record<string, unknown> = {}) {
     const dialogRef = this.dialog.open(this.dialogComponent, {
       width: this.dialogWidth,
       data
@@ -44,7 +44,7 @@ export abstract class BaseCrudService<T extends { id?: string }> {
     });
   }
 
-  editItem(item: T, data: any = {}) {
+  editItem(item: T, data: Record<string, unknown> = {}) {
     const dialogRef = this.dialog.open(this.dialogComponent, {
       width: this.dialogWidth,
       data: { ...data, [this.getItemKey()]: item }

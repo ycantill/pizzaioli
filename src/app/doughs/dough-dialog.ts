@@ -1,4 +1,4 @@
-import { Component, inject, Inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -34,10 +34,9 @@ interface DialogData {
 export class DoughDialog implements OnInit {
   private fb = inject(FormBuilder);
   dialogRef = inject(MatDialogRef<DoughDialog>);
-  
-  form!: FormGroup;
+  data = inject<DialogData>(MAT_DIALOG_DATA);
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: DialogData) {}
+  form!: FormGroup;
 
   ngOnInit() {
     this.form = this.fb.group({
@@ -59,7 +58,7 @@ export class DoughDialog implements OnInit {
     return this.form.get('ingredients') as FormArray;
   }
 
-  createIngredient(costId: string = '', quantity: number = 0): FormGroup {
+  createIngredient(costId = '', quantity = 0): FormGroup {
     return this.fb.group({
       costId: [costId, Validators.required],
       quantity: [quantity, [Validators.required, Validators.min(0.01)]]
