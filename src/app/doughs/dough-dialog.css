@@ -1,0 +1,66 @@
+.dialog-content {
+  padding: 20px;
+  min-width: 500px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.ingredients-section {
+  margin-top: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #666;
+  font-weight: 500;
+}
+
+.ingredients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ingredient-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cost-field {
+  flex: 2;
+}
+
+.quantity-field {
+  flex: 1;
+}
+
+mat-dialog-actions {
+  padding: 16px 20px;
+}
+
+@media (max-width: 600px) {
+  .dialog-content {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .ingredient-row {
+    flex-wrap: wrap;
+  }
+
+  .cost-field,
+  .quantity-field {
+    flex: 1 1 100%;
+  }
+}

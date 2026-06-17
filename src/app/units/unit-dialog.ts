@@ -19,51 +19,8 @@ export interface UnitDialogData {
     MatButtonModule,
     ReactiveFormsModule
   ],
-  template: `
-    <h2 mat-dialog-title>{{ data.unit ? 'Editar' : 'Nueva' }} Unidad</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="name" placeholder="Ej: KILOGRAMO">
-          @if (form.get('name')?.hasError('required')) {
-            <mat-error>El nombre es requerido</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Abreviación</mat-label>
-          <input matInput formControlName="abbreviation" placeholder="Ej: KG">
-          @if (form.get('abbreviation')?.hasError('required')) {
-            <mat-error>La abreviación es requerida</mat-error>
-          }
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancelar</button>
-      <button mat-flat-button color="primary" 
-              (click)="onSave()" 
-              [disabled]="!form.valid">
-        {{ data.unit ? 'Guardar' : 'Crear' }}
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    mat-dialog-content {
-      min-width: 300px;
-      padding-top: 20px;
-    }
-
-    .full-width {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-
-    mat-dialog-actions {
-      padding: 16px 24px;
-    }
-  `]
+  templateUrl: './unit-dialog.html',
+  styleUrl: './unit-dialog.css'
 })
 export class UnitDialog {
   data: UnitDialogData = inject(MAT_DIALOG_DATA);

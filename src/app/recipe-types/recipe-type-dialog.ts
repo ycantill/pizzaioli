@@ -16,30 +16,8 @@ import { RecipeType } from '../models/recipe-type.model';
     MatInputModule,
     MatButtonModule
   ],
-  template: `
-    <h2 mat-dialog-title>{{ data ? 'Editar' : 'Nuevo' }} Tipo de Receta</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="name" required>
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="dialogRef.close()">Cancelar</button>
-      <button mat-raised-button color="primary" 
-              [disabled]="form.invalid"
-              (click)="save()">
-        Guardar
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    .full-width {
-      width: 100%;
-    }
-  `]
+  templateUrl: './recipe-type-dialog.html',
+  styleUrl: './recipe-type-dialog.css'
 })
 export class RecipeTypeDialog {
   private fb = inject(FormBuilder);

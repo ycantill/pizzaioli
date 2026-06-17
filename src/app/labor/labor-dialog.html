@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Mano de Obra - {{ data.recipeType.name }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <div class="items-section">
+      <div class="section-header">
+        <h3>Consumos</h3>
+        <button mat-icon-button type="button" (click)="addItem()" color="primary">
+          <mat-icon>add_circle</mat-icon>
+        </button>
+      </div>
+
+      <div formArrayName="items" class="items-list">
+        @for (item of itemsArray.controls; track $index) {
+          <div [formGroupName]="$index" class="item-row">
+            <mat-form-field appearance="outline" class="consumption-field">
+              <mat-label>Consumo</mat-label>
+              <mat-select formControlName="consumptionId">
+                @for (consumption of availableConsumptions($index); track consumption.id) {
+                  <mat-option [value]="consumption.id">{{ consumption.name }} ({{ getCostName(consumption.costId) }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="time-field">
+              <mat-label>Horas</mat-label>
+              <input matInput type="number" formControlName="hours" min="0">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="time-field">
+              <mat-label>Minutos</mat-label>
+              <input matInput type="number" formControlName="minutes" min="0" max="59">
+            </mat-form-field>
+
+            <button mat-icon-button type="button" color="warn"
+                    (click)="removeItem($index)"
+                    [disabled]="itemsArray.length === 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          (click)="onSave()"
+          [disabled]="!form.valid">
+    Guardar
+  </button>
+</mat-dialog-actions>

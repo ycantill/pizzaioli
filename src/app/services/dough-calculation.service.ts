@@ -32,7 +32,6 @@ export class DoughCalculationService {
   calculateBakerPercentages(
     dough: Dough,
     flourBaseWeight: number,
-    costs: Cost[]
   ): Map<string, number> {
     const percentages = new Map<string, number>();
     
@@ -54,7 +53,7 @@ export class DoughCalculationService {
     const flourIngredient = this.findFlourIngredient(dough, costs);
     if (!flourIngredient) return [];
 
-    const percentages = this.calculateBakerPercentages(dough, flourIngredient.quantity, costs);
+    const percentages = this.calculateBakerPercentages(dough, flourIngredient.quantity);
     
     return dough.ingredients.map(ing => ({
       costId: ing.costId,
@@ -78,7 +77,7 @@ export class DoughCalculationService {
     if (!flourIngredient) return [];
 
     const flourBaseWeight = flourIngredient.quantity;
-    const percentages = this.calculateBakerPercentages(dough, flourBaseWeight, costs);
+    const percentages = this.calculateBakerPercentages(dough, flourBaseWeight);
 
     // Calculate total baker's percentage
     const totalBakerPercentage = Array.from(percentages.values()).reduce((sum, p) => sum + p, 0);

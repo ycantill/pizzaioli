@@ -7,7 +7,6 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  type QueryConstraint
 } from 'firebase/firestore';
 
 @Injectable({
@@ -20,7 +19,7 @@ export class FirestoreService {
     return await addDoc(colRef, data);
   }
 
-  async getDocuments(collectionName: string, ...queryConstraints: QueryConstraint[]) {
+  async getDocuments(collectionName: string) {
     const colRef = collection(db, collectionName);
     const querySnapshot = await getDocs(colRef);
     

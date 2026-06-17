@@ -20,43 +20,8 @@ export interface CostTypeDialogData {
     MatButtonModule,
     ReactiveFormsModule
   ],
-  template: `
-    <h2 mat-dialog-title>{{ data.costType ? 'Editar' : 'Nuevo' }} Tipo de Costo</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="name" placeholder="Ej: Ingrediente">
-          @if (form.get('name')?.hasError('required')) {
-            <mat-error>El nombre es requerido</mat-error>
-          }
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancelar</button>
-      <button mat-flat-button color="primary" 
-              (click)="onSave()" 
-              [disabled]="!form.valid">
-        {{ data.costType ? 'Guardar' : 'Crear' }}
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    mat-dialog-content {
-      min-width: 300px;
-      padding-top: 20px;
-    }
-
-    .full-width {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-
-    mat-dialog-actions {
-      padding: 16px 24px;
-    }
-  `]
+  templateUrl: './cost-type-dialog.html',
+  styleUrl: './cost-type-dialog.css'
 })
 export class CostTypeDialog {
   data: CostTypeDialogData = inject(MAT_DIALOG_DATA, { optional: true }) || {};

@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>{{ data.topping ? 'Editar' : 'Nuevo' }} Topping</h2>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Ingrediente</mat-label>
+      <mat-select formControlName="costId">
+        @for (cost of data.costs; track cost.id) {
+          <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('costId')?.hasError('required')) {
+        <mat-error>El ingrediente es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Cantidad</mat-label>
+      <input matInput type="number" formControlName="quantity" placeholder="0">
+      @if (form.get('quantity')?.hasError('required')) {
+        <mat-error>La cantidad es requerida</mat-error>
+      }
+      @if (form.get('quantity')?.hasError('min')) {
+        <mat-error>La cantidad debe ser mayor a 0</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tamaño</mat-label>
+      <mat-select formControlName="size">
+        @for (size of sizes; track size) {
+          <mat-option [value]="size">{{ size }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('size')?.hasError('required')) {
+        <mat-error>El tamaño es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-checkbox formControlName="salsaBase">Salsa base</mat-checkbox>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          (click)="onSave()"
+          [disabled]="!form.valid">
+    {{ data.topping ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>

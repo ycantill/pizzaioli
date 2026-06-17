@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -30,123 +30,8 @@ export interface PackagingDialogData {
     MatIconModule,
     MatSelectModule
   ],
-  template: `
-    <h2 mat-dialog-title>Configurar Paquetería - {{ data.recipeType.name }}</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form">
-        <div class="items-section">
-          <div class="section-header">
-            <h3>Costos de Paquetería</h3>
-            <button mat-icon-button type="button" (click)="addItem()" color="primary">
-              <mat-icon>add_circle</mat-icon>
-            </button>
-          </div>
-
-          <div formArrayName="items" class="items-list">
-            @for (item of itemsArray.controls; track $index) {
-              <div [formGroupName]="$index" class="item-row">
-                <mat-form-field appearance="outline" class="cost-field">
-                  <mat-label>Costo</mat-label>
-                  <mat-select formControlName="costId">
-                    @for (cost of availableCosts($index); track cost.id) {
-                      <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="quantity-field">
-                  <mat-label>Cantidad</mat-label>
-                  <input matInput type="number" formControlName="quantity" min="1">
-                </mat-form-field>
-
-                <button mat-icon-button type="button" color="warn" 
-                        (click)="removeItem($index)"
-                        [disabled]="itemsArray.length === 1">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            }
-          </div>
-        </div>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancelar</button>
-      <button mat-flat-button color="primary" 
-              (click)="onSave()" 
-              [disabled]="!form.valid">
-        Guardar
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    mat-dialog-content {
-      min-width: 500px;
-      padding-top: 20px;
-    }
-
-    .items-section {
-      margin-top: 16px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .section-header h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: #666;
-      font-weight: 500;
-    }
-
-    .items-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 4px;
-    }
-
-    .item-row {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .cost-field {
-      flex: 2;
-      margin: 0;
-    }
-
-    .quantity-field {
-      flex: 1;
-      margin: 0;
-    }
-
-    mat-dialog-actions {
-      padding: 16px 24px;
-    }
-
-    @media (max-width: 600px) {
-      mat-dialog-content {
-        min-width: auto;
-      }
-
-      .item-row {
-        flex-wrap: wrap;
-      }
-
-      .cost-field,
-      .quantity-field {
-        flex: 1 1 100%;
-      }
-    }
-  `]
+  templateUrl: './packaging-dialog.html',
+  styleUrl: './packaging-dialog.css'
 })
 export class PackagingDialog {
   data: PackagingDialogData = inject(MAT_DIALOG_DATA);

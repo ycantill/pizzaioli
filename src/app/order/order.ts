@@ -520,7 +520,7 @@ export class Order implements OnInit {
         'XXL': 2.5
       };
 
-      for (const [key, list] of toppingsGroups.entries()) {
+      for (const [, list] of toppingsGroups.entries()) {
         for (const targetSize of SIZES) {
           const exists = list.some(t => t.size.trim().toUpperCase() === targetSize);
           if (!exists) {
@@ -843,11 +843,4 @@ export class Order implements OnInit {
     return Math.ceil(value / 100) * 100;
   }
 
-  private toValidPrice(value: unknown): number | null {
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
-      return null;
-    }
-
-    return Math.round(value * 100) / 100;
-  }
 }
