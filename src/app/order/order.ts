@@ -475,13 +475,6 @@ export class Order {
     );
   });
 
-  readonly halfAndHalfBasePrice = computed(() => {
-    const optA = this.selectedMenuOptionA();
-    const optB = this.selectedMenuOptionB();
-    if (!optA || !optB) return 0;
-    return (optA.price + optB.price) / 2;
-  });
-
   readonly summaryTotal = computed(() => {
     if (!this.isHalfAndHalf()) {
       const opt = this.selectedMenuOptionSingle();
@@ -499,10 +492,6 @@ export class Order {
       const basePrice = (optA.price + optB.price) / 2;
       return basePrice - sumA.excludedTotal + sumA.additionalTotal - sumB.excludedTotal + sumB.additionalTotal;
     }
-  });
-
-  readonly summaryAllItems = computed(() => {
-    return this.summarySingle().items;
   });
 
   readonly cartTotal = computed(() =>

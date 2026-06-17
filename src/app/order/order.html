@@ -222,100 +222,6 @@
       }
     </section>
 
-    <section class="step" aria-labelledby="step-4-title">
-      <div class="step-header">
-        <p class="step-number">Paso 4</p>
-        <h2 id="step-4-title">Resumen de tu pedido</h2>
-      </div>
-
-      @if (!selectedMenuOption()) {
-        <p class="status">Selecciona una opcion de menu para ver el resumen.</p>
-      } @else {
-        <div class="summary-details">
-          @if (isHalfAndHalf()) {
-            <div class="summary-section-half-header">
-              <span class="summary-section-label">Base Pizza (Promedio)</span>
-              <span class="summary-section-value">{{ formatPrice(halfAndHalfBasePrice()) }}</span>
-            </div>
-
-            <span class="summary-half-info">
-              <strong>Mitad A:</strong> {{ selectedMenuOptionA()!.name }} ({{ formatPrice(selectedMenuOptionA()!.price / 2) }})
-            </span>
-            @if (summaryA().items.length > 0) {
-              <ul class="summary-ingredient-list">
-                @for (item of summaryA().items; track item.id) {
-                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
-                    <span>
-                      {{ item.label }} (Mitad A)
-                      <span class="menu-size-badge">({{ item.size }})</span>
-                    </span>
-                    @if (item.excluded) {
-                      <span>- {{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
-                    } @else if (item.additional) {
-                      <span>+ {{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
-                    } @else {
-                      <span>{{ formatPrice(summaryA().getEffectivePrice(item)) }}</span>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-
-            <span class="summary-half-info">
-              <strong>Mitad B:</strong> {{ selectedMenuOptionB()!.name }} ({{ formatPrice(selectedMenuOptionB()!.price / 2) }})
-            </span>
-            @if (summaryB().items.length > 0) {
-              <ul class="summary-ingredient-list">
-                @for (item of summaryB().items; track item.id) {
-                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
-                    <span>
-                      {{ item.label }} (Mitad B)
-                      <span class="menu-size-badge">({{ item.size }})</span>
-                    </span>
-                    @if (item.excluded) {
-                      <span>- {{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
-                    } @else if (item.additional) {
-                      <span>+ {{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
-                    } @else {
-                      <span>{{ formatPrice(summaryB().getEffectivePrice(item)) }}</span>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          } @else {
-            <div class="summary-section">
-              <span class="summary-section-label">{{ selectedMenuOption()!.name }}</span>
-              <span class="summary-section-value">{{ formatPrice(selectedMenuOption()!.price) }}</span>
-            </div>
-            @if (summaryAllItems().length > 0) {
-              <ul class="summary-ingredient-list">
-                @for (item of summaryAllItems(); track item.id) {
-                  <li [class.excluded]="item.excluded" [class.additional]="item.additional">
-                    <span>
-                      {{ item.label }}
-                      <span class="menu-size-badge">({{ item.size }})</span>
-                    </span>
-                    @if (item.excluded) {
-                      <span>- {{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
-                    } @else if (item.additional) {
-                      <span>+ {{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
-                    } @else {
-                      <span>{{ formatPrice(summarySingle().getEffectivePrice(item)) }}</span>
-                    }
-                  </li>
-                }
-              </ul>
-            }
-          }
-
-          <div class="summary-total-row">
-            <span>Total</span>
-            <span>{{ formatPrice(summaryTotal()) }}</span>
-          </div>
-        </div>
-      }
-    </section>
   }
 
   @if (cart().length > 0) {
@@ -397,9 +303,6 @@
           <span>Total del pedido</span>
           <span>{{ formatPrice(cartTotal()) }}</span>
         </div>
-        <button type="button" class="confirm-button" (click)="confirmOrder()">
-          Confirmar pedido
-        </button>
       </div>
     </section>
   }
@@ -407,19 +310,29 @@
   <div class="order-button-spacer" aria-hidden="true"></div>
 </main>
 
-<div class="sticky-order" aria-label="Agregar pizza al pedido">
-  <button
-    type="button"
-    class="order-button"
-    [disabled]="!selectedMenuOption() && cart().length === 0"
-    (click)="handleStickyAction()"
-  >
-    @if (selectedMenuOption()) {
+<div class="sticky-order" aria-label="Acciones del pedido">
+  @if (!selectedMenuOption() && cart().length === 0) {
+    <button type="button" class="sticky-btn sticky-primary" disabled>
+      Selecciona una pizza para comenzar
+    </button>
+  } @else if (selectedMenuOption() && cart().length === 0) {
+    <button type="button" class="sticky-btn sticky-primary" (click)="addToCart()">
       Agregar al pedido &mdash; {{ formatPrice(summaryTotal()) }}
-    } @else if (cart().length > 0) {
-      + Añadir otra pizza
-    } @else {
-      Agregar al pedido
-    }
-  </button>
+    </button>
+  } @else if (!selectedMenuOption()) {
+    <button type="button" class="sticky-btn sticky-confirm" (click)="confirmOrder()">
+      Confirmar pedido &mdash; {{ formatPrice(cartTotal()) }}
+      <span class="sticky-sub">{{ cart().length }} {{ cart().length === 1 ? 'pizza' : 'pizzas' }}</span>
+    </button>
+  } @else {
+    <div class="sticky-split">
+      <button type="button" class="sticky-btn sticky-primary" (click)="addToCart()">
+        Agregar &mdash; {{ formatPrice(summaryTotal()) }}
+      </button>
+      <button type="button" class="sticky-btn sticky-confirm" (click)="confirmOrder()">
+        Confirmar &mdash; {{ formatPrice(cartTotal()) }}
+        <span class="sticky-sub">{{ cart().length }} {{ cart().length === 1 ? 'pizza' : 'pizzas' }}</span>
+      </button>
+    </div>
+  }
 </div>
