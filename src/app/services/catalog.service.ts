@@ -55,6 +55,20 @@ export class CatalogService {
     return kinds;
   });
 
+  /**
+   * Categorías que sirven para clasificar un insumo.
+   *
+   * Deja fuera las que quedaron de cuando esta colección también clasificaba
+   * servicios y mano de obra: esos pasaron a ser tarifas y no llevan
+   * categoría. Un insumo con una de esas categorías no caería ni en
+   * ingredientes ni en paquetería y desaparecería de los dos selectores.
+   */
+  readonly supplyCategories = computed(() =>
+    this.costTypesService.costTypes().filter(category =>
+      category.id !== undefined && this.categoryKinds().has(category.id)
+    )
+  );
+
   readonly ingredients = computed(() => this.suppliesOfKind('ingrediente'));
 
   readonly packagingSupplies = computed(() => this.suppliesOfKind('paqueteria'));

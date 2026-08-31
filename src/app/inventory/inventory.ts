@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { StockEntry } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
+import { CatalogService } from '../services/catalog.service';
 import { CostTypesDataService } from '../services/cost-types-data.service';
 import { InventoryService } from '../services/inventory.service';
 import { SuppliesDataService } from '../services/supplies-data.service';
@@ -38,6 +39,7 @@ export class Inventory {
   private inventoryService = inject(InventoryService);
   private unitsService = inject(UnitsDataService);
   private costTypesService = inject(CostTypesDataService);
+  private catalog = inject(CatalogService);
   private suppliesService = inject(SuppliesDataService);
 
   readonly loading = computed(() =>
@@ -59,7 +61,7 @@ export class Inventory {
   readonly displayedColumns = ['name', 'stock', 'unitCost', 'stockValue', 'actions'];
 
   readonly units = this.unitsService.units;
-  readonly categories = this.costTypesService.costTypes;
+  readonly categories = this.catalog.supplyCategories;
 
   unitName(unitId: string): string {
     return getUnitName(this.unitsService.units(), unitId) || unitId;
