@@ -4,11 +4,9 @@ import {
   collection,
   doc,
   addDoc,
-  setDoc,
   getDocs,
   updateDoc,
   deleteDoc,
-  deleteField,
   writeBatch,
 } from 'firebase/firestore';
 
@@ -17,14 +15,7 @@ const BATCH_LIMIT = 500;
 
 export type BatchOperation =
   | { type: 'set'; collection: string; id: string; data: object }
-  | {
-      type: 'update';
-      collection: string;
-      id: string;
-      data: object;
-      /** Campos a eliminar del documento en la misma operación. */
-      deleteFields?: string[];
-    }
+  | { type: 'update'; collection: string; id: string; data: object }
   | { type: 'delete'; collection: string; id: string };
 
 @Injectable({
@@ -35,12 +26,6 @@ export class FirestoreService {
   async addDocument(collectionName: string, data: object) {
     const colRef = collection(db, collectionName);
     return await addDoc(colRef, data as Record<string, unknown>);
-  }
-
-  /** Crea o reemplaza un documento con un id explícito. */
-  async setDocument(collectionName: string, docId: string, data: object) {
-    const docRef = doc(db, collectionName, docId);
-    return await setDoc(docRef, data as Record<string, unknown>);
   }
 
   /** Reserva un id sin escribir nada, para armar lotes antes de enviarlos. */
@@ -83,10 +68,7 @@ export class FirestoreService {
         if (operation.type === 'set') {
           batch.set(docRef, operation.data as Record<string, unknown>);
         } else if (operation.type === 'update') {
-          const removals = Object.fromEntries(
-            (operation.deleteFields ?? []).map(field => [field, deleteField()])
-          );
-          batch.update(docRef, { ...operation.data, ...removals } as Record<string, unknown>);
+          batch.update(docRef, operation.data as Record<string, unknown>);
         } else {
           batch.delete(docRef);
         }

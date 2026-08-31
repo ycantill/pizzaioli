@@ -33,8 +33,4 @@ export class SuppliesDataService {
   patchLocal(id: string, data: Supply): void {
     this._resource.update(list => list?.map(s => s.id === id ? { ...data, id } : s) ?? []);
   }
-
-  reload(): void {
-    this._resource.reload();
-  }
 }

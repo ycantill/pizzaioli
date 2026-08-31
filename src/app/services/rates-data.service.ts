@@ -28,8 +28,4 @@ export class RatesDataService {
     await this.firestoreService.deleteDocument('rates', id);
     this._resource.update(list => list?.filter(r => r.id !== id) ?? []);
   }
-
-  reload(): void {
-    this._resource.reload();
-  }
 }

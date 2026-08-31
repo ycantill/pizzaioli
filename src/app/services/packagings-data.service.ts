@@ -1,14 +1,13 @@
 import { Injectable, inject, resource, computed } from '@angular/core';
 import { FirestoreService } from '../firestore.service';
 import { Packaging } from '../models/packaging.model';
-import { normalizePackaging } from '../shared/legacy-fields';
 
 @Injectable({ providedIn: 'root' })
 export class PackagingsDataService {
   private firestoreService = inject(FirestoreService);
 
   private _resource = resource({
-    loader: () => this.firestoreService.getDocuments('packagings').then(data => (data as Packaging[]).map(normalizePackaging))
+    loader: () => this.firestoreService.getDocuments('packagings').then(data => data as Packaging[])
   });
 
   readonly packagings = computed(() => this._resource.value() ?? []);

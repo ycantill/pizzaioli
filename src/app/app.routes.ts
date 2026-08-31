@@ -36,11 +36,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'mantenimiento',
-    loadComponent: () => import('./maintenance/maintenance').then((m) => m.Maintenance),
-    canActivate: [authGuard]
-  },
-  {
     path: 'tarifas',
     loadComponent: () => import('./rates/rates').then((m) => m.Rates),
     canActivate: [authGuard]

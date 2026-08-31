@@ -25,8 +25,4 @@ export class StockEntriesDataService {
   appendLocal(entry: StockEntry): void {
     this._resource.update(list => [...(list ?? []), entry]);
   }
-
-  reload(): void {
-    this._resource.reload();
-  }
 }
