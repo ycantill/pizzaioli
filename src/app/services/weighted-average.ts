@@ -77,9 +77,7 @@ export function replayEntries(entries: StockEntry[]): StockBalance {
 
   return ordered.reduce((balance, entry) => {
     if (entry.kind === 'ajuste') return applyCount(balance, entry.quantity);
-    if (entry.kind === 'salida' || entry.kind === 'merma') {
-      return applyExit(balance, entry.quantity);
-    }
+    if (entry.kind === 'salida') return applyExit(balance, entry.quantity);
     return applyEntry(balance, entry.quantity, entry.totalPaid);
   }, EMPTY_BALANCE);
 }

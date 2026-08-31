@@ -8,13 +8,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { EXIT_REASONS, ExitReason } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
 import { InventoryService } from '../services/inventory.service';
 import { compatibleUnits } from '../services/unit-conversion';
 import { applyCount, applyExit } from '../services/weighted-average';
 
-export type MovementKind = 'entrada' | 'salida' | 'merma' | 'ajuste';
+export type MovementKind = 'entrada' | 'salida' | 'ajuste';
 
 export interface MovementDialogData {
   supply: Supply;
@@ -24,6 +25,8 @@ export interface MovementDialogData {
 
 export interface MovementDialogResult {
   kind: MovementKind;
+  /** Solo en las salidas. */
+  reason?: ExitReason;
   quantity: number;
   unitId: string;
   totalPaid: number;
@@ -55,6 +58,7 @@ export class MovementDialog {
 
   form = this.fb.nonNullable.group({
     kind: ['entrada' as MovementKind, Validators.required],
+    reason: ['produccion' as ExitReason, Validators.required],
     quantity: [0, [Validators.required, Validators.min(0)]],
     unitId: [this.data.supply.unitId, Validators.required],
     totalPaid: [0, [Validators.required, Validators.min(0)]],
@@ -68,6 +72,8 @@ export class MovementDialog {
 
   readonly kind = computed(() => this.formValue().kind ?? 'entrada');
   readonly isPurchase = computed(() => this.kind() === 'entrada');
+  readonly isExit = computed(() => this.kind() === 'salida');
+  readonly exitReasons = EXIT_REASONS;
 
   /** Solo se ofrecen unidades de la misma dimensión que la del insumo. */
   readonly purchaseUnits = computed(() =>
@@ -128,11 +134,11 @@ export class MovementDialog {
       case 'entrada':
         return 'Una compra recalcula el costo promedio y por lo tanto mueve los precios de venta.';
       case 'salida':
-        return 'Un consumo de producción baja el stock al costo actual. Los precios no cambian.';
-      case 'merma':
-        return 'La merma baja el stock igual que un consumo, pero se registra aparte para poder medirla.';
+        return 'Una salida resta del stock al costo actual. El motivo no cambia el saldo, pero '
+          + 'permite medir después cuánto se fue en cada cosa. Los precios no cambian.';
       default:
-        return 'Un conteo corrige la cantidad sin tocar el costo unitario. Los precios no cambian.';
+        return 'Un conteo fija la cantidad en lo que contaste, sin tocar el costo unitario. '
+          + 'A diferencia de una salida, el número no se resta: reemplaza al anterior.';
     }
   }
 
@@ -150,6 +156,7 @@ export class MovementDialog {
     const value = this.form.getRawValue();
     const result: MovementDialogResult = {
       kind: value.kind,
+      ...(this.isExit() ? { reason: value.reason } : {}),
       quantity: value.quantity,
       unitId: this.isPurchase() ? value.unitId : this.data.supply.unitId,
       totalPaid: this.isPurchase() ? value.totalPaid : 0,

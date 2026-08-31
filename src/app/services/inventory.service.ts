@@ -1,6 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { FirestoreService } from '../firestore.service';
-import { StockEntry, StockEntryKind } from '../models/stock-entry.model';
+import { ExitReason, StockEntry, StockEntryKind } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
 import { SuppliesDataService } from './supplies-data.service';
@@ -157,12 +157,12 @@ export class InventoryService {
   }
 
   /**
-   * Registra un consumo de producción o una merma. No mueve el PPP, así que
-   * nunca cambia los precios de venta.
+   * Registra una salida. El motivo no altera el saldo —producción y merma
+   * restan igual— pero queda guardado para poder medir cada uno.
    */
   async registerExit(
     supply: Supply,
-    kind: 'salida' | 'merma',
+    reason: ExitReason,
     quantity: number,
     date: string,
     note?: string
@@ -170,7 +170,8 @@ export class InventoryService {
     const balance = applyExit(this.balanceOf(supply), quantity);
 
     await this.writeMovement(supply, balance, {
-      kind,
+      kind: 'salida',
+      reason,
       quantity,
       totalPaid: 0,
       unitCost: supply.unitCost,
@@ -228,6 +229,7 @@ export class InventoryService {
     balance: StockBalance,
     movement: {
       kind: StockEntryKind;
+      reason?: ExitReason;
       quantity: number;
       totalPaid: number;
       unitCost: number;
@@ -242,6 +244,7 @@ export class InventoryService {
       supplyId: supply.id,
       date: movement.date,
       kind: movement.kind,
+      ...(movement.reason ? { reason: movement.reason } : {}),
       quantity: movement.quantity,
       unitId: supply.unitId,
       totalPaid: movement.totalPaid,

@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { StockEntry } from '../models/stock-entry.model';
+import { EXIT_REASONS, ExitReason, StockEntry } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { CatalogService } from '../services/catalog.service';
 import { SupplyCategoriesDataService } from '../services/supply-categories-data.service';
@@ -18,6 +18,10 @@ import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { getUnitName } from '../shared/lookup.utils';
 import { describeUnit } from '../services/unit-conversion';
 import { MovementDialog, MovementDialogResult } from './movement-dialog';
+
+function exitReasonLabel(reason: ExitReason | undefined): string {
+  return EXIT_REASONS.find(r => r.value === reason)?.label ?? 'Salida';
+}
 import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
 
 @Component({
@@ -114,12 +118,12 @@ export class Inventory {
     this.expandedId.update(current => (current === supplyId ? null : supplyId));
   }
 
+  /** En las salidas manda el motivo, que es lo que distingue una de otra. */
   movementLabel(entry: StockEntry): string {
     switch (entry.kind) {
       case 'apertura': return 'Apertura';
       case 'ajuste': return 'Conteo';
-      case 'salida': return 'Consumo';
-      case 'merma': return 'Merma';
+      case 'salida': return exitReasonLabel(entry.reason);
       default: return 'Compra';
     }
   }
@@ -225,7 +229,7 @@ export class Inventory {
           });
         } else {
           await this.inventoryService.registerExit(
-            supply, result.kind, result.quantity, result.date, result.note
+            supply, result.reason ?? 'otro', result.quantity, result.date, result.note
           );
         }
       } catch (error) {

@@ -166,13 +166,24 @@ describe('replayEntries con salidas', () => {
     const balance = replayEntries([
       entry({ id: 'a', date: '2026-01-01', quantity: 25, totalPaid: 150000 }),
       entry({ id: 'b', date: '2026-02-01', quantity: 25, totalPaid: 180000 }),
-      entry({ id: 'c', date: '2026-02-10', kind: 'salida', quantity: 10, totalPaid: 0 }),
-      entry({ id: 'd', date: '2026-02-20', kind: 'merma', quantity: 2, totalPaid: 0 })
+      entry({ id: 'c', date: '2026-02-10', kind: 'salida', reason: 'produccion', quantity: 10, totalPaid: 0 }),
+      entry({ id: 'd', date: '2026-02-20', kind: 'salida', reason: 'merma', quantity: 2, totalPaid: 0 })
     ]);
 
     expect(balance.stock).toBe(38);
     expect(balance.unitCost).toBe(6600);
     expect(balance.stockValue).toBe(250800);
+  });
+
+  it('el motivo no cambia el efecto sobre el saldo', () => {
+    const compra = entry({ id: 'a', quantity: 25, totalPaid: 150000 });
+    const porMotivo = (reason: 'produccion' | 'merma' | 'otro') => replayEntries([
+      compra,
+      entry({ id: 'b', date: '2026-02-01', kind: 'salida', reason, quantity: 10, totalPaid: 0 })
+    ]);
+
+    expect(porMotivo('merma')).toEqual(porMotivo('produccion'));
+    expect(porMotivo('otro')).toEqual(porMotivo('produccion'));
   });
 });
 

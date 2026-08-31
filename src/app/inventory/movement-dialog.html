@@ -4,14 +4,24 @@
     <mat-button-toggle-group formControlName="kind" aria-label="Tipo de movimiento"
                              class="kind-toggle">
       <mat-button-toggle value="entrada">Compra</mat-button-toggle>
-      <mat-button-toggle value="salida">Consumo</mat-button-toggle>
-      <mat-button-toggle value="merma">Merma</mat-button-toggle>
+      <mat-button-toggle value="salida">Salida</mat-button-toggle>
       <mat-button-toggle value="ajuste">Conteo</mat-button-toggle>
     </mat-button-toggle-group>
 
     <p class="kind-hint">{{ kindHint() }}</p>
 
     <div class="fields">
+      @if (isExit()) {
+        <mat-form-field appearance="outline">
+          <mat-label>Motivo</mat-label>
+          <mat-select formControlName="reason">
+            @for (reason of exitReasons; track reason.value) {
+              <mat-option [value]="reason.value">{{ reason.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
       <div class="quantity-row">
         <mat-form-field appearance="outline" class="quantity-field">
           <mat-label>{{ quantityLabel() }}</mat-label>
