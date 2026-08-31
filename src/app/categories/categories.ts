@@ -5,14 +5,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
-import { CostType } from '../models/cost-type.model';
-import { inferCostTypeKind } from '../services/catalog.service';
-import { CostTypesDataService } from '../services/cost-types-data.service';
-import { CostTypeDialog } from './cost-type-dialog';
+import { SupplyCategory } from '../models/supply-category.model';
+import { inferCategoryKind } from '../services/catalog.service';
+import { SupplyCategoriesDataService } from '../services/supply-categories-data.service';
+import { CategoryDialog } from './category-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
-  selector: 'app-cost-types',
+  selector: 'app-categories',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
@@ -21,33 +21,33 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
     MatCardModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './cost-types.html',
-  styleUrl: './cost-types.css'
+  templateUrl: './categories.html',
+  styleUrl: './categories.css'
 })
-export class CostTypes {
+export class Categories {
   private dialog = inject(MatDialog);
-  private costTypesService = inject(CostTypesDataService);
+  private categoriesService = inject(SupplyCategoriesDataService);
 
-  costTypes = this.costTypesService.costTypes;
-  loading = this.costTypesService.isLoading;
+  categories = this.categoriesService.categories;
+  loading = this.categoriesService.isLoading;
   displayedColumns: string[] = ['name', 'kind', 'actions'];
 
-  kindLabel(costType: CostType): string {
-    const kind = costType.kind ?? inferCostTypeKind(costType.name);
+  kindLabel(category: SupplyCategory): string {
+    const kind = category.kind ?? inferCategoryKind(category.name);
     if (kind === 'paqueteria') return 'Paquetería';
     if (kind === 'ingrediente') return 'Ingrediente';
     return 'Sin clasificar';
   }
 
-  addCostType() {
-    const dialogRef = this.dialog.open(CostTypeDialog, {
+  addCategory() {
+    const dialogRef = this.dialog.open(CategoryDialog, {
       width: '400px'
     });
 
-    dialogRef.afterClosed().subscribe(async (result: CostType | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result: SupplyCategory | undefined) => {
       if (result) {
         try {
-          await this.costTypesService.add(result);
+          await this.categoriesService.add(result);
         } catch (error) {
           console.error('Error adding cost type:', error);
         }
@@ -55,16 +55,16 @@ export class CostTypes {
     });
   }
 
-  editCostType(costType: CostType) {
-    const dialogRef = this.dialog.open(CostTypeDialog, {
+  editCategory(category: SupplyCategory) {
+    const dialogRef = this.dialog.open(CategoryDialog, {
       width: '400px',
-      data: { costType }
+      data: { category }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: CostType | undefined) => {
-      if (result && costType.id) {
+    dialogRef.afterClosed().subscribe(async (result: SupplyCategory | undefined) => {
+      if (result && category.id) {
         try {
-          await this.costTypesService.update(costType.id, result);
+          await this.categoriesService.update(category.id, result);
         } catch (error) {
           console.error('Error updating cost type:', error);
         }
@@ -72,18 +72,18 @@ export class CostTypes {
     });
   }
 
-  deleteCostType(costType: CostType) {
+  deleteCategory(category: SupplyCategory) {
     const dialogRef = this.dialog.open(ConfirmDialog, {
       data: {
         title: 'Confirmar eliminación',
-        message: `¿Estás seguro de que deseas eliminar el tipo "${costType.name}"?`
+        message: `¿Estás seguro de que deseas eliminar la categoría "${category.name}"?`
       }
     });
 
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (confirmed && costType.id) {
+      if (confirmed && category.id) {
         try {
-          await this.costTypesService.remove(costType.id);
+          await this.categoriesService.remove(category.id);
         } catch (error) {
           console.error('Error deleting cost type:', error);
         }

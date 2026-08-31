@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { CostType } from '../models/cost-type.model';
+import { SupplyCategory } from '../models/supply-category.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
 import { convert } from '../services/unit-conversion';
@@ -17,7 +17,7 @@ import { rescaleBalance, StockBalance } from '../services/weighted-average';
 export interface SupplyDialogData {
   supply?: Supply;
   units: Unit[];
-  categories: CostType[];
+  categories: SupplyCategory[];
 }
 
 export interface SupplyDialogResult {

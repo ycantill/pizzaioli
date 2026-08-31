@@ -4,7 +4,7 @@ import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
 import { Doughs } from './doughs/doughs';
 import { Margins } from './margins/margins';
-import { CostTypes } from './cost-types/cost-types';
+import { Categories } from './categories/categories';
 import { RecipeTypes } from './recipe-types/recipe-types';
 import { PackagingConfig } from './packaging/packaging';
 import { Consumptions } from './consumptions/consumptions';
@@ -18,7 +18,7 @@ export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [noAuthGuard] },
   { path: 'order', loadComponent: () => import('./order/order').then((m) => m.Order) },
   { path: '', redirectTo: '/inventario', pathMatch: 'full' },
-  { path: 'cost-types', component: CostTypes, canActivate: [authGuard] },
+  { path: 'categorias', component: Categories, canActivate: [authGuard] },
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
   { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
   { path: 'consumptions', component: Consumptions, canActivate: [authGuard] },

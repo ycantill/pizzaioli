@@ -5,15 +5,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CostType, CostTypeKind } from '../models/cost-type.model';
-import { inferCostTypeKind } from '../services/catalog.service';
+import { SupplyCategory, SupplyCategoryKind } from '../models/supply-category.model';
+import { inferCategoryKind } from '../services/catalog.service';
 
-export interface CostTypeDialogData {
-  costType?: CostType;
+export interface CategoryDialogData {
+  category?: SupplyCategory;
 }
 
 @Component({
-  selector: 'app-cost-type-dialog',
+  selector: 'app-category-dialog',
   imports: [
     MatDialogModule,
     MatFormFieldModule,
@@ -22,20 +22,20 @@ export interface CostTypeDialogData {
     MatSelectModule,
     ReactiveFormsModule
   ],
-  templateUrl: './cost-type-dialog.html',
-  styleUrl: './cost-type-dialog.css'
+  templateUrl: './category-dialog.html',
+  styleUrl: './category-dialog.css'
 })
-export class CostTypeDialog {
-  data: CostTypeDialogData = inject(MAT_DIALOG_DATA, { optional: true }) || {};
-  private dialogRef = inject(MatDialogRef<CostTypeDialog>);
+export class CategoryDialog {
+  data: CategoryDialogData = inject(MAT_DIALOG_DATA, { optional: true }) || {};
+  private dialogRef = inject(MatDialogRef<CategoryDialog>);
   private fb = inject(FormBuilder);
 
   form = this.fb.nonNullable.group({
-    name: [this.data.costType?.name || '', Validators.required],
+    name: [this.data.category?.name || '', Validators.required],
     // Si el tipo viene sin clasificar, se propone lo que hoy se deduce del nombre.
     kind: [
-      this.data.costType?.kind ?? inferCostTypeKind(this.data.costType?.name ?? '') ?? 'ingrediente'
-    ] as [CostTypeKind]
+      this.data.category?.kind ?? inferCategoryKind(this.data.category?.name ?? '') ?? 'ingrediente'
+    ] as [SupplyCategoryKind]
   });
 
   onCancel(): void {
@@ -44,11 +44,11 @@ export class CostTypeDialog {
 
   onSave(): void {
     if (this.form.valid) {
-      const costType: CostType = {
-        ...this.data.costType,
+      const category: SupplyCategory = {
+        ...this.data.category,
         ...this.form.getRawValue()
       };
-      this.dialogRef.close(costType);
+      this.dialogRef.close(category);
     }
   }
 }

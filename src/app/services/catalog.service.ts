@@ -1,10 +1,10 @@
 import { Injectable, computed, inject } from '@angular/core';
-import { CostTypeKind } from '../models/cost-type.model';
+import { SupplyCategoryKind } from '../models/supply-category.model';
 import { MarginConfig } from '../models/margin-config.model';
 import { PricedItem } from '../models/priced-item.model';
 import { Rate } from '../models/rate.model';
 import { Supply } from '../models/supply.model';
-import { CostTypesDataService } from './cost-types-data.service';
+import { SupplyCategoriesDataService } from './supply-categories-data.service';
 import { RatesDataService } from './rates-data.service';
 import { SuppliesDataService } from './supplies-data.service';
 
@@ -18,7 +18,7 @@ import { SuppliesDataService } from './supplies-data.service';
 export class CatalogService {
   private suppliesService = inject(SuppliesDataService);
   private ratesService = inject(RatesDataService);
-  private costTypesService = inject(CostTypesDataService);
+  private categoriesService = inject(SupplyCategoriesDataService);
 
   readonly isLoading = computed(() =>
     this.suppliesService.isLoading() || this.ratesService.isLoading()
@@ -44,11 +44,11 @@ export class CatalogService {
 
   /** Categorías agrupadas por función, resolviendo las que aún no la declaran. */
   private readonly categoryKinds = computed(() => {
-    const kinds = new Map<string, CostTypeKind>();
+    const kinds = new Map<string, SupplyCategoryKind>();
 
-    for (const category of this.costTypesService.costTypes()) {
+    for (const category of this.categoriesService.categories()) {
       if (!category.id) continue;
-      const kind = category.kind ?? inferCostTypeKind(category.name);
+      const kind = category.kind ?? inferCategoryKind(category.name);
       if (kind) kinds.set(category.id, kind);
     }
 
@@ -64,7 +64,7 @@ export class CatalogService {
    * ingredientes ni en paquetería y desaparecería de los dos selectores.
    */
   readonly supplyCategories = computed(() =>
-    this.costTypesService.costTypes().filter(category =>
+    this.categoriesService.categories().filter(category =>
       category.id !== undefined && this.categoryKinds().has(category.id)
     )
   );
@@ -73,7 +73,7 @@ export class CatalogService {
 
   readonly packagingSupplies = computed(() => this.suppliesOfKind('paqueteria'));
 
-  private suppliesOfKind(kind: CostTypeKind): PricedItem[] {
+  private suppliesOfKind(kind: SupplyCategoryKind): PricedItem[] {
     const kinds = this.categoryKinds();
     // Sin ninguna categoría clasificada no se puede filtrar: se ofrece todo.
     if (kinds.size === 0) return this.supplyItems();
@@ -128,7 +128,7 @@ export class CatalogService {
  * al campo `kind`. Es el último resto de la clasificación por texto y se puede
  * borrar en cuanto todas las categorías estén clasificadas a mano.
  */
-export function inferCostTypeKind(name: string): CostTypeKind | undefined {
+export function inferCategoryKind(name: string): SupplyCategoryKind | undefined {
   const normalized = name.trim().toLowerCase();
   if (normalized.includes('ingrediente')) return 'ingrediente';
   if (normalized.includes('paquet') || normalized.includes('empaque')) return 'paqueteria';

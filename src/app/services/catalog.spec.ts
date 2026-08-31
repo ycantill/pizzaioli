@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { inferCostTypeKind, rateToPricedItem, supplyToPricedItem } from './catalog.service';
+import { inferCategoryKind, rateToPricedItem, supplyToPricedItem } from './catalog.service';
 
-describe('inferCostTypeKind', () => {
+describe('inferCategoryKind', () => {
   it('reconoce ingredientes y paquetería sin importar mayúsculas ni plural', () => {
-    expect(inferCostTypeKind('Ingrediente')).toBe('ingrediente');
-    expect(inferCostTypeKind('INGREDIENTES')).toBe('ingrediente');
-    expect(inferCostTypeKind('Paquetería')).toBe('paqueteria');
-    expect(inferCostTypeKind('Empaque')).toBe('paqueteria');
+    expect(inferCategoryKind('Ingrediente')).toBe('ingrediente');
+    expect(inferCategoryKind('INGREDIENTES')).toBe('ingrediente');
+    expect(inferCategoryKind('Paquetería')).toBe('paqueteria');
+    expect(inferCategoryKind('Empaque')).toBe('paqueteria');
   });
 
   it('no clasifica lo que no reconoce, en vez de asumir ingrediente', () => {
-    expect(inferCostTypeKind('Servicio')).toBeUndefined();
-    expect(inferCostTypeKind('')).toBeUndefined();
+    expect(inferCategoryKind('Servicio')).toBeUndefined();
+    expect(inferCategoryKind('')).toBeUndefined();
   });
 });
 

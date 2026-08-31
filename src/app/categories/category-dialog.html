@@ -1,9 +1,9 @@
-<h2 mat-dialog-title>{{ data.costType ? 'Editar' : 'Nuevo' }} Tipo de Costo</h2>
+<h2 mat-dialog-title>{{ data.category ? 'Editar' : 'Nueva' }} categoría</h2>
 <mat-dialog-content>
   <form [formGroup]="form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nombre</mat-label>
-      <input matInput formControlName="name" placeholder="Ej: Ingrediente">
+      <input matInput formControlName="name" placeholder="Ej: Lácteos">
       @if (form.get('name')?.hasError('required')) {
         <mat-error>El nombre es requerido</mat-error>
       }
@@ -15,7 +15,7 @@
         <mat-option value="ingrediente">Ingrediente</mat-option>
         <mat-option value="paqueteria">Paquetería</mat-option>
       </mat-select>
-      <mat-hint>Los ingredientes se ofrecen en masas; la paquetería, en empaque</mat-hint>
+      <mat-hint>Los ingredientes se ofrecen en masas y toppings; la paquetería, en empaque</mat-hint>
     </mat-form-field>
   </form>
 </mat-dialog-content>
@@ -24,6 +24,6 @@
   <button mat-flat-button color="primary"
           (click)="onSave()"
           [disabled]="!form.valid">
-    {{ data.costType ? 'Guardar' : 'Crear' }}
+    {{ data.category ? 'Guardar' : 'Crear' }}
   </button>
 </mat-dialog-actions>

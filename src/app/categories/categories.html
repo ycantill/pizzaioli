@@ -1,8 +1,8 @@
 <div class="page-header">
-  <h1 class="page-title">Tipos de Costo</h1>
-  <button mat-fab extended (click)="addCostType()" class="add-button">
+  <h1 class="page-title">Categorías de insumo</h1>
+  <button mat-fab extended (click)="addCategory()" class="add-button">
     <mat-icon>add</mat-icon>
-    <span class="button-text">Nuevo</span>
+    <span class="button-text">Nueva</span>
   </button>
 </div>
 
@@ -14,18 +14,18 @@
   } @else {
     <!-- Mobile View: Cards -->
     <div class="mobile-view">
-      @for (type of costTypes(); track type.id) {
-        <mat-card class="type-card">
+      @for (category of categories(); track category.id) {
+        <mat-card class="category-card">
           <mat-card-content>
             <div class="card-header">
-              <h3 class="type-name">{{ type.name }}</h3>
+              <h3 class="category-name">{{ category.name }}</h3>
               <div class="card-actions">
                 <button mat-icon-button color="primary" 
-                        (click)="editCostType(type)">
+                        (click)="editCategory(category)">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button color="warn" 
-                        (click)="deleteCostType(type)">
+                        (click)="deleteCategory(category)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -38,30 +38,30 @@
     <!-- Desktop View: Table -->
     <mat-card class="desktop-view">
       <mat-card-content>
-        <table mat-table [dataSource]="costTypes()" class="mat-elevation-z2">
+        <table mat-table [dataSource]="categories()" class="mat-elevation-z2">
           
           <!-- Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let type">{{ type.name }}</td>
+            <td mat-cell *matCellDef="let category">{{ category.name }}</td>
           </ng-container>
 
           <!-- Kind Column -->
           <ng-container matColumnDef="kind">
             <th mat-header-cell *matHeaderCellDef>Función</th>
-            <td mat-cell *matCellDef="let type">{{ kindLabel(type) }}</td>
+            <td mat-cell *matCellDef="let category">{{ kindLabel(category) }}</td>
           </ng-container>
 
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let type">
+            <td mat-cell *matCellDef="let category">
               <button mat-icon-button color="primary" 
-                      (click)="editCostType(type)">
+                      (click)="editCategory(category)">
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button color="warn" 
-                      (click)="deleteCostType(type)">
+                      (click)="deleteCategory(category)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>

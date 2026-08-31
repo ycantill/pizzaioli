@@ -5,11 +5,11 @@
  * decidía qué insumos ofrecer en masas y en paquetería, y que se rompía en
  * silencio al renombrar la categoría.
  */
-export type CostTypeKind = 'ingrediente' | 'paqueteria';
+export type SupplyCategoryKind = 'ingrediente' | 'paqueteria';
 
-export interface CostType {
+export interface SupplyCategory {
   id?: string;
   name: string;
   /** Sin definir, se deduce del nombre por compatibilidad con los datos viejos. */
-  kind?: CostTypeKind;
+  kind?: SupplyCategoryKind;
 }
