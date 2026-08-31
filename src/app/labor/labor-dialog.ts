@@ -7,16 +7,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Labor, LaborItem } from '../models/labor.model';
-import { getCostName } from '../shared/lookup.utils';
+import { getItemName } from '../shared/lookup.utils';
 import { RecipeType } from '../models/recipe-type.model';
 import { Consumption } from '../models/consumption.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 
 export interface LaborDialogData {
   labor?: Labor;
   recipeType: RecipeType;
   consumptions: Consumption[];
-  costs: Cost[];
+  costs: PricedItem[];
 }
 
 @Component({
@@ -61,8 +61,8 @@ export class LaborDialog {
     });
   }
 
-  getCostName(costId: string): string {
-    return getCostName(this.data.costs, costId);
+  getCostName(supplyId: string): string {
+    return getItemName(this.data.costs, supplyId);
   }
 
   availableConsumptions(currentIndex: number): Consumption[] {

@@ -7,12 +7,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { Topping } from '../models/topping.model';
-import { CostsDataService } from '../services/costs-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
 import { ToppingDialog } from './topping-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
-import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-toppings',
@@ -30,15 +29,15 @@ import { getCostName } from '../shared/lookup.utils';
 })
 export class Toppings {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
+  private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
   private toppingsService = inject(ToppingsDataService);
 
-  costs = this.costsService.costs;
+  costs = this.catalog.items;
   units = this.unitsService.units;
   toppings = this.toppingsService.toppings;
   loading = computed(() =>
-    this.costsService.isLoading() || this.unitsService.isLoading() || this.toppingsService.isLoading()
+    this.catalog.isLoading() || this.unitsService.isLoading() || this.toppingsService.isLoading()
   );
   displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'salsaBase', 'actions'];
   sortActive = signal<'ingredient' | 'quantity' | 'size' | 'salsaBase'>('ingredient');
@@ -52,8 +51,8 @@ export class Toppings {
 
     return [...this.toppingsService.toppings()].sort((a, b) => {
       if (active === 'ingredient') {
-        const aName = this.getCostName(a.costId);
-        const bName = this.getCostName(b.costId);
+        const aName = this.getCostName(a.supplyId);
+        const bName = this.getCostName(b.supplyId);
         return aName.localeCompare(bName, 'es') * directionFactor;
       }
       if (active === 'quantity') return (a.quantity - b.quantity) * directionFactor;
@@ -72,22 +71,21 @@ export class Toppings {
     this.sortDirection.set(sort.direction);
   }
 
-  getCostName(costId: string): string {
-    return getCostName(this.costs(), costId);
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   openPrintWindow() {
-    const allCosts = this.costs();
     const groups = new Map<string, { product: string; rows: string }>();
     for (const topping of this.toppingsService.toppings()) {
-      const cost = allCosts.find(c => c.id === topping.costId);
-      if (!cost) continue;
-      const key = topping.costId;
+      const item = this.catalog.find(topping.supplyId);
+      if (!item) continue;
+      const key = topping.supplyId;
       const row = `<tr><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
       if (groups.has(key)) {
         groups.get(key)!.rows += row;
       } else {
-        groups.set(key, { product: cost.product, rows: row });
+        groups.set(key, { product: item.name, rows: row });
       }
     }
 
@@ -131,8 +129,8 @@ export class Toppings {
     }
   }
 
-  getUnitAbbreviation(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
+  getUnitAbbreviation(supplyId: string): string {
+    const cost = this.catalog.find(supplyId);
     if (!cost) return '';
     const unit = this.units().find(u => u.id === cost.unitId);
     return unit ? unit.abbreviation : '';

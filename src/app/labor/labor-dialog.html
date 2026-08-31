@@ -16,7 +16,7 @@
               <mat-label>Consumo</mat-label>
               <mat-select formControlName="consumptionId">
                 @for (consumption of availableConsumptions($index); track consumption.id) {
-                  <mat-option [value]="consumption.id">{{ consumption.name }} ({{ getCostName(consumption.costId) }})</mat-option>
+                  <mat-option [value]="consumption.id">{{ consumption.name }} ({{ getCostName(consumption.rateId) }})</mat-option>
                 }
               </mat-select>
             </mat-form-field>

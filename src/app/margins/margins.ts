@@ -1,16 +1,15 @@
-import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
-import { Margin } from '../models/margin.model';
-import { CostsDataService } from '../services/costs-data.service';
-import { MarginsDataService } from '../services/margins-data.service';
+import { MarginConfig } from '../models/margin-config.model';
+import { PricedItem } from '../models/priced-item.model';
+import { CatalogService } from '../services/catalog.service';
+import { marginPercent } from '../services/pricing';
 import { MarginDialog } from './margin-dialog';
-import { ConfirmDialog } from '../shared/confirm-dialog';
-import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-margins',
@@ -27,75 +26,45 @@ import { getCostName } from '../shared/lookup.utils';
 })
 export class Margins {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
-  private marginsService = inject(MarginsDataService);
+  private catalog = inject(CatalogService);
 
-  margins = this.marginsService.margins;
-  costs = this.costsService.costs;
-  loading = computed(() => this.costsService.isLoading() || this.marginsService.isLoading());
-  displayedColumns: string[] = ['cost', 'recovery', 'reinvestment', 'profit', 'total', 'actions'];
+  loading = this.catalog.isLoading;
+  saving = signal(false);
 
-  getCostName(costId: string): string {
-    return getCostName(this.costs(), costId);
+  /**
+   * El margen vive embebido en cada insumo y tarifa, así que la lista es el
+   * catálogo completo: no se crean ni se borran márgenes por separado.
+   */
+  items = computed(() =>
+    [...this.catalog.items()].sort((a, b) => a.name.localeCompare(b.name, 'es'))
+  );
+
+  displayedColumns: string[] = ['name', 'kind', 'recovery', 'reinvestment', 'profit', 'total', 'actions'];
+
+  getTotalMargin(margin: MarginConfig): number {
+    return marginPercent(margin);
   }
 
-  getTotalMargin(margin: Margin): number {
-    return margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage;
+  kindLabel(id: string): string {
+    return this.catalog.kindOf(id) === 'rate' ? 'Tarifa' : 'Insumo';
   }
 
-  addMargin() {
+  editMargin(item: PricedItem) {
     const dialogRef = this.dialog.open(MarginDialog, {
       width: '500px',
-      data: { costs: this.costs() }
+      data: { item }
     });
 
-    dialogRef.afterClosed().subscribe(async (result: Margin | undefined) => {
-      if (result) {
-        try {
-          await this.marginsService.add(result);
-        } catch (error) {
-          console.error('Error adding margin:', error);
-        }
-      }
-    });
-  }
+    dialogRef.afterClosed().subscribe(async (result: MarginConfig | undefined) => {
+      if (!result) return;
 
-  editMargin(margin: Margin) {
-    const dialogRef = this.dialog.open(MarginDialog, {
-      width: '500px',
-      data: { margin, costs: this.costs() }
-    });
-
-    dialogRef.afterClosed().subscribe(async (result: Margin | undefined) => {
-      if (result && margin.id) {
-        try {
-          await this.marginsService.update(margin.id, result);
-        } catch (error) {
-          console.error('Error updating margin:', error);
-        }
-      }
-    });
-  }
-
-  async deleteMargin(margin: Margin) {
-    if (!margin.id) return;
-
-    const costName = this.getCostName(margin.costId);
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '400px',
-      data: {
-        title: 'Confirmar eliminación',
-        message: `¿Estás seguro de que deseas eliminar el margen de "${costName}"?`
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
-      if (confirmed) {
-        try {
-          await this.marginsService.remove(margin.id!);
-        } catch (error) {
-          console.error('Error deleting margin:', error);
-        }
+      this.saving.set(true);
+      try {
+        await this.catalog.updateMargin(item.id, result);
+      } catch (error) {
+        console.error('Error updating margin:', error);
+      } finally {
+        this.saving.set(false);
       }
     });
   }

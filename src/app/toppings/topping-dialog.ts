@@ -7,11 +7,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Topping, ToppingSize, TOPPING_SIZES } from '../models/topping.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 
 export interface ToppingDialogData {
   topping?: Topping;
-  costs: Cost[];
+  costs: PricedItem[];
 }
 
 @Component({
@@ -36,7 +36,7 @@ export class ToppingDialog {
   readonly sizes = TOPPING_SIZES;
 
   form = this.fb.group({
-    costId: [this.data.topping?.costId ?? '', Validators.required],
+    supplyId: [this.data.topping?.supplyId ?? '', Validators.required],
     quantity: [this.data.topping?.quantity ?? null, [Validators.required, Validators.min(0.01)]],
     size: [this.data.topping?.size ?? 'M' as ToppingSize, Validators.required],
     salsaBase: [this.data.topping?.salsaBase ?? false]
@@ -50,7 +50,7 @@ export class ToppingDialog {
     if (this.form.valid) {
       const topping: Topping = {
         ...this.data.topping,
-        ...this.form.value as { costId: string; quantity: number; size: ToppingSize; salsaBase: boolean }
+        ...this.form.value as { supplyId: string; quantity: number; size: ToppingSize; salsaBase: boolean }
       };
       this.dialogRef.close(topping);
     }

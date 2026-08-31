@@ -16,8 +16,7 @@ import { DoughCalculationService } from '../services/dough-calculation.service';
 import { DoughsDataService } from '../services/doughs-data.service';
 import { RecipesDataService } from '../services/recipes-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
-import { CostsDataService } from '../services/costs-data.service';
-import { MarginsDataService } from '../services/margins-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { PackagingsDataService } from '../services/packagings-data.service';
 import { ConsumptionsDataService } from '../services/consumptions-data.service';
@@ -25,29 +24,17 @@ import { LaborsDataService } from '../services/labors-data.service';
 import { PricesDataService } from '../services/prices-data.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
-
-interface CostLineItem {
-  toppingId?: string;
-  name: string;
-  quantity: number;
-  unitCost: number;
-  baseCost: number;
-  marginPercent: number;
-  costWithMargin: number;
-  roundedCost: number;
-  isRecoveryOnly: boolean;
-}
-
-interface LaborLineItem {
-  name: string;
-  hours: number;
-  costPerHour: number;
-  baseCost: number;
-  marginPercent: number;
-  costWithMargin: number;
-  roundedCost: number;
-  isRecoveryOnly: boolean;
-}
+import {
+  buildLaborLineItem,
+  buildLineItem,
+  CostLineItem,
+  excludingRecovery,
+  LaborLineItem,
+  subtotal,
+  totalBaseCost,
+  totalCostWithMargin,
+  totalRoundedCost
+} from '../services/pricing';
 
 @Component({
   selector: 'app-prices',
@@ -74,8 +61,7 @@ export class Prices {
   private doughsService = inject(DoughsDataService);
   private recipesService = inject(RecipesDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
-  private costsService = inject(CostsDataService);
-  private marginsService = inject(MarginsDataService);
+  private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
   private packagingsService = inject(PackagingsDataService);
   private consumptionsService = inject(ConsumptionsDataService);
@@ -86,8 +72,6 @@ export class Prices {
   doughs = this.doughsService.doughs;
   recipes = this.recipesService.recipes;
   recipeTypes = this.recipeTypesService.recipeTypes;
-  costs = this.costsService.costs;
-  margins = this.marginsService.margins;
   packagings = this.packagingsService.packagings;
   consumptions = this.consumptionsService.consumptions;
   labors = this.laborsService.labors;
@@ -105,8 +89,8 @@ export class Prices {
 
   loading = computed(() =>
     this.doughsService.isLoading() || this.recipesService.isLoading() ||
-    this.recipeTypesService.isLoading() || this.costsService.isLoading() ||
-    this.marginsService.isLoading() || this.unitsService.isLoading() ||
+    this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
+    this.unitsService.isLoading() ||
     this.packagingsService.isLoading() || this.consumptionsService.isLoading() ||
     this.laborsService.isLoading() || this.pricesService.isLoading() ||
     this.toppingsService.isLoading()
@@ -149,11 +133,8 @@ export class Prices {
     const dough = this.selectedDough();
     if (!dough) return [];
 
-    const allCosts = this.costs();
-    const allMargins = this.margins();
     const weight = this.ballWeight();
-
-    const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(dough, allCosts);
+    const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(dough, this.catalog.items());
     if (bakerPercentages.length === 0) return [];
 
     const totalBakerPercentage = bakerPercentages.reduce((sum, bp) => sum + bp.bakerPercentage, 0);
@@ -162,30 +143,10 @@ export class Prices {
     const ingredientMultiplier = weight / totalBakerPercentage;
 
     return bakerPercentages.map(bp => {
-      const cost = allCosts.find(c => c.id === bp.costId);
-      if (!cost) return null;
+      const item = this.catalog.find(bp.supplyId);
+      if (!item) return null;
 
-      const actualQuantity = ingredientMultiplier * bp.bakerPercentage;
-      const baseCost = actualQuantity * cost.value;
-
-      const margin = allMargins.find(m => m.costId === bp.costId);
-      const totalMargin = margin
-        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-        : 0;
-      const costWithMargin = baseCost * (totalMargin / 100);
-      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
-
-      const cwm = Math.round(costWithMargin * 100) / 100;
-      return {
-        name: cost.product,
-        quantity: Math.round(actualQuantity * 100) / 100,
-        unitCost: cost.value,
-        baseCost: Math.round(baseCost * 100) / 100,
-        marginPercent: totalMargin,
-        costWithMargin: cwm,
-        roundedCost: Math.ceil(cwm / 100) * 100,
-        isRecoveryOnly
-      };
+      return buildLineItem(item, ingredientMultiplier * bp.bakerPercentage);
     }).filter((item): item is CostLineItem => item !== null);
   });
 
@@ -194,97 +155,53 @@ export class Prices {
     if (!recipe) return [];
 
     const allToppings = this.toppings();
-    const allCosts = this.costs();
-    const allMargins = this.margins();
     const removed = new Set(this.removedIngredientIds());
 
     return recipe.toppings.filter(id => !removed.has(id)).map(toppingId => {
       const topping = allToppings.find(t => t.id === toppingId);
       if (!topping) return null;
 
-      const cost = allCosts.find(c => c.id === topping.costId);
-      if (!cost) return null;
+      const item = this.catalog.find(topping.supplyId);
+      if (!item) return null;
 
-      const baseCost = topping.quantity * cost.value;
-      const margin = allMargins.find(m => m.costId === topping.costId);
-      const totalMargin = margin
-        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-        : 0;
-      const costWithMargin = baseCost * (totalMargin / 100);
-      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
-
-      const cwm = Math.round(costWithMargin * 100) / 100;
-      return {
-        toppingId,
-        name: `${cost.product} (${topping.size})`,
-        quantity: topping.quantity,
-        unitCost: cost.value,
-        baseCost: Math.round(baseCost * 100) / 100,
-        marginPercent: totalMargin,
-        costWithMargin: cwm,
-        roundedCost: Math.ceil(cwm / 100) * 100,
-        isRecoveryOnly
-      };
-    }).filter(item => item !== null) as CostLineItem[];
+      return buildLineItem(item, topping.quantity, {
+        name: `${item.name} (${topping.size})`,
+        toppingId
+      });
+    }).filter((item): item is CostLineItem => item !== null);
   });
 
   availableSizeSAdditions = computed(() => {
     const recipeToppingIds = new Set(this.selectedRecipe()?.toppings ?? []);
     const alreadyAdded = new Set(this.selectedAdditionIds());
-    const allCosts = this.costs();
     const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3, XXL: 4 };
     return this.toppings()
       .filter(t => !recipeToppingIds.has(t.id!) && !alreadyAdded.has(t.id!))
       .sort((a, b) => {
-        const nameA = allCosts.find(c => c.id === a.costId)?.product ?? '';
-        const nameB = allCosts.find(c => c.id === b.costId)?.product ?? '';
+        const nameA = this.catalog.name(a.supplyId, '');
+        const nameB = this.catalog.name(b.supplyId, '');
         const nameCmp = nameA.localeCompare(nameB);
         return nameCmp !== 0 ? nameCmp : (sizeOrder[a.size] ?? 99) - (sizeOrder[b.size] ?? 99);
       });
   });
 
   additionLineItems = computed<CostLineItem[]>(() => {
-    const allCosts = this.costs();
-    const allMargins = this.margins();
     const allToppings = this.toppings();
 
     return this.selectedAdditionIds().map(toppingId => {
       const topping = allToppings.find(t => t.id === toppingId);
       if (!topping) return null;
 
-      const cost = allCosts.find(c => c.id === topping.costId);
-      if (!cost) return null;
+      const item = this.catalog.find(topping.supplyId);
+      if (!item) return null;
 
-      const baseCost = topping.quantity * cost.value;
-      const margin = allMargins.find(m => m.costId === topping.costId);
-      const totalMargin = margin
-        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-        : 0;
-      const costWithMargin = baseCost * (totalMargin / 100);
-      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
-
-      const cwm = Math.round(costWithMargin * 100) / 100;
-      return {
-        name: `${cost.product} (${topping.size})`,
-        quantity: topping.quantity,
-        unitCost: cost.value,
-        baseCost: Math.round(baseCost * 100) / 100,
-        marginPercent: totalMargin,
-        costWithMargin: cwm,
-        roundedCost: Math.ceil(cwm / 100) * 100,
-        isRecoveryOnly
-      };
+      return buildLineItem(item, topping.quantity, {
+        name: `${item.name} (${topping.size})`
+      });
     }).filter((item): item is CostLineItem => item !== null);
   });
 
-  additionSubtotal = computed(() => {
-    const items = this.additionLineItems();
-    return {
-      baseCost: Math.round(items.reduce((sum, i) => sum + i.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, i) => sum + i.costWithMargin, 0) * 100) / 100,
-      roundedCost: items.reduce((sum, i) => sum + i.roundedCost, 0)
-    };
-  });
+  additionSubtotal = computed(() => subtotal(this.additionLineItems()));
 
   matchedPackaging = computed(() => {
     const recipe = this.selectedRecipe();
@@ -296,32 +213,11 @@ export class Prices {
     const packaging = this.matchedPackaging();
     if (!packaging) return [];
 
-    const allCosts = this.costs();
-    const allMargins = this.margins();
+    return packaging.items.map(packagingItem => {
+      const item = this.catalog.find(packagingItem.supplyId);
+      if (!item) return null;
 
-    return packaging.items.map(item => {
-      const cost = allCosts.find(c => c.id === item.costId);
-      if (!cost) return null;
-
-      const baseCost = item.quantity * cost.value;
-      const margin = allMargins.find(m => m.costId === item.costId);
-      const totalMargin = margin
-        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-        : 0;
-      const costWithMargin = baseCost * (totalMargin / 100);
-      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
-
-      const cwm = Math.round(costWithMargin * 100) / 100;
-      return {
-        name: cost.product,
-        quantity: item.quantity,
-        unitCost: cost.value,
-        baseCost: Math.round(baseCost * 100) / 100,
-        marginPercent: totalMargin,
-        costWithMargin: cwm,
-        roundedCost: Math.ceil(cwm / 100) * 100,
-        isRecoveryOnly
-      };
+      return buildLineItem(item, packagingItem.quantity);
     }).filter((item): item is CostLineItem => item !== null);
   });
 
@@ -336,108 +232,48 @@ export class Prices {
     if (!labor) return [];
 
     const allConsumptions = this.consumptions();
-    const allCosts = this.costs();
-    const allMargins = this.margins();
 
-    return labor.items.map(item => {
-      const consumption = allConsumptions.find(c => c.id === item.consumptionId);
+    return labor.items.map(laborItem => {
+      const consumption = allConsumptions.find(c => c.id === laborItem.consumptionId);
       if (!consumption) return null;
 
-      const cost = allCosts.find(c => c.id === consumption.costId);
-      if (!cost) return null;
+      const item = this.catalog.find(consumption.rateId);
+      if (!item) return null;
 
-      const hours = item.minutes / 60;
-      const costPerHour = consumption.quantity * cost.value;
-      const baseCost = hours * costPerHour;
-
-      const margin = allMargins.find(m => m.costId === consumption.costId);
-      const totalMargin = margin
-        ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-        : 0;
-      const costWithMargin = baseCost * (totalMargin / 100);
-      const isRecoveryOnly = !!margin && margin.profitPercentage === 0 && margin.reinvestmentPercentage === 0 && margin.recoveryPercentage > 0;
-
-      const cwm = Math.round(costWithMargin * 100) / 100;
-      return {
-        name: consumption.name,
-        hours,
-        costPerHour: Math.round(costPerHour * 100) / 100,
-        baseCost: Math.round(baseCost * 100) / 100,
-        marginPercent: totalMargin,
-        costWithMargin: cwm,
-        roundedCost: Math.ceil(cwm / 100) * 100,
-        isRecoveryOnly
-      };
+      return buildLaborLineItem(consumption.name, item, consumption.quantity, laborItem.minutes);
     }).filter((item): item is LaborLineItem => item !== null);
   });
 
-  doughSubtotal = computed(() => {
-    const items = this.doughLineItems();
-    return {
-      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100,
-      roundedCost: items.reduce((sum, item) => sum + item.roundedCost, 0)
-    };
-  });
+  doughSubtotal = computed(() => subtotal(this.doughLineItems()));
 
-  recipeSubtotal = computed(() => {
-    const items = this.recipeLineItems();
-    return {
-      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100,
-      roundedCost: items.reduce((sum, item) => sum + item.roundedCost, 0)
-    };
-  });
+  recipeSubtotal = computed(() => subtotal(this.recipeLineItems()));
 
-  packagingSubtotal = computed(() => {
-    const items = this.packagingLineItems();
-    return {
-      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100,
-      roundedCost: items.reduce((sum, item) => sum + item.roundedCost, 0)
-    };
-  });
+  packagingSubtotal = computed(() => subtotal(this.packagingLineItems()));
 
-  laborSubtotal = computed(() => {
-    const items = this.laborLineItems();
-    return {
-      baseCost: Math.round(items.reduce((sum, item) => sum + item.baseCost, 0) * 100) / 100,
-      costWithMargin: Math.round(items.reduce((sum, item) => sum + item.costWithMargin, 0) * 100) / 100,
-      roundedCost: items.reduce((sum, item) => sum + item.roundedCost, 0)
-    };
-  });
+  laborSubtotal = computed(() => subtotal(this.laborLineItems()));
 
-  totalBaseCost = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
-    const ingredientTotal = ingredients.reduce((sum, item) => sum + item.baseCost, 0);
-    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.baseCost, 0);
-    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
-  });
+  /** Todas las líneas que componen un precio: ingredientes, adiciones, empaque y mano de obra. */
+  allLineItems = computed<(CostLineItem | LaborLineItem)[]>(() => [
+    ...this.doughLineItems(),
+    ...this.recipeLineItems(),
+    ...this.additionLineItems(),
+    ...this.packagingLineItems(),
+    ...this.laborLineItems()
+  ]);
 
-  totalWithMargin = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
-    const ingredientTotal = ingredients.reduce((sum, item) => sum + item.roundedCost, 0);
-    const laborTotal = this.laborLineItems().reduce((sum, item) => sum + item.roundedCost, 0);
-    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
-  });
+  totalBaseCost = computed(() => totalBaseCost(this.allLineItems()));
+
+  totalWithMargin = computed(() => totalRoundedCost(this.allLineItems()));
 
   totalMarginAmount = computed(() =>
     Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100
   );
 
-  totalBaseCostExcludingRecovery = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
-    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
-    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.baseCost, 0);
-    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
-  });
+  profitLineItems = computed(() => excludingRecovery(this.allLineItems()));
 
-  totalWithMarginProfitOnly = computed(() => {
-    const ingredients = [...this.doughLineItems(), ...this.recipeLineItems(), ...this.additionLineItems(), ...this.packagingLineItems()];
-    const ingredientTotal = ingredients.filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
-    const laborTotal = this.laborLineItems().filter(i => !i.isRecoveryOnly).reduce((sum, i) => sum + i.costWithMargin, 0);
-    return Math.round((ingredientTotal + laborTotal) * 100) / 100;
-  });
+  totalBaseCostExcludingRecovery = computed(() => totalBaseCost(this.profitLineItems()));
+
+  totalWithMarginProfitOnly = computed(() => totalCostWithMargin(this.profitLineItems()));
 
   totalWithMarginPercent = computed(() => {
     const base = this.totalBaseCostExcludingRecovery();
@@ -495,8 +331,7 @@ export class Prices {
   getToppingDisplayLabel(toppingId: string): string {
     const topping = this.toppings().find(t => t.id === toppingId);
     if (!topping) return 'Desconocido';
-    const cost = this.costs().find(c => c.id === topping.costId);
-    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity}g)`;
+    return `${this.catalog.name(topping.supplyId)} — ${topping.size} (${topping.quantity}g)`;
   }
 
   addAddition() {
@@ -531,13 +366,12 @@ export class Prices {
       ...(price.additionToppingIds ?? [])
     ];
     const allToppings = this.toppings();
-    const allCosts = this.costs();
     const seen = new Set<string>();
     return toppingIds
       .map(id => {
         const topping = allToppings.find(t => t.id === id);
         if (!topping) return null;
-        const name = allCosts.find(c => c.id === topping.costId)?.product ?? null;
+        const name = this.catalog.find(topping.supplyId)?.name ?? null;
         if (!name || seen.has(name)) return null;
         seen.add(name);
         return name;

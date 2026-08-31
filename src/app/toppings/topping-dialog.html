@@ -3,12 +3,12 @@
   <form [formGroup]="form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Ingrediente</mat-label>
-      <mat-select formControlName="costId">
+      <mat-select formControlName="supplyId">
         @for (cost of data.costs; track cost.id) {
-          <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
+          <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
         }
       </mat-select>
-      @if (form.get('costId')?.hasError('required')) {
+      @if (form.get('supplyId')?.hasError('required')) {
         <mat-error>El ingrediente es requerido</mat-error>
       }
     </mat-form-field>

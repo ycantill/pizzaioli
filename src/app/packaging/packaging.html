@@ -23,7 +23,7 @@
             @if (getPackagingForType(recipeType.id!); as packaging) {
               <div class="items-summary">
                 @for (item of packaging.items; track $index) {
-                  <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
+                  <span class="item-chip">{{ getCostName(item.supplyId) }} ({{ item.quantity }})</span>
                 }
               </div>
             } @else {
@@ -60,7 +60,7 @@
             @if (getPackagingForType(recipeType.id!); as packaging) {
               <div class="items-list">
                 @for (item of packaging.items; track $index) {
-                  <span class="item-chip">{{ getCostName(item.costId) }} ({{ item.quantity }})</span>
+                  <span class="item-chip">{{ getCostName(item.supplyId) }} ({{ item.quantity }})</span>
                 }
               </div>
             } @else {

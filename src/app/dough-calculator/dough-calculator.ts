@@ -9,10 +9,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { DoughIngredient } from '../models/dough.model';
-import { CostsDataService } from '../services/costs-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { DoughsDataService } from '../services/doughs-data.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
-import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-dough-calculator',
@@ -32,12 +31,12 @@ import { getCostName } from '../shared/lookup.utils';
   styleUrl: './dough-calculator.css'
 })
 export class DoughCalculator {
-  private costsService = inject(CostsDataService);
+  private catalog = inject(CatalogService);
   private doughsService = inject(DoughsDataService);
   private doughCalcService = inject(DoughCalculationService);
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
 
-  costs = this.costsService.costs;
+  costs = this.catalog.items;
   doughs = this.doughsService.doughs;
   selectedDoughId = signal<string | null>(null);
   weightPerUnit = signal(250);
@@ -58,11 +57,11 @@ export class DoughCalculator {
     });
 
     effect(() => {
-      const costs = this.costsService.costs();
+      const costs = this.catalog.items();
       if (costs.length > 0 && this.ingredients().length === 0 && !this.selectedDoughId()) {
-        const flourCost = costs.find(c => c.product.toLowerCase().includes('harina'));
+        const flourCost = costs.find(c => c.name.toLowerCase().includes('harina'));
         if (flourCost?.id) {
-          this.ingredients.set([{ costId: flourCost.id, bakerPercentage: 100 }]);
+          this.ingredients.set([{ supplyId: flourCost.id, bakerPercentage: 100 }]);
         }
       }
     });
@@ -72,9 +71,9 @@ export class DoughCalculator {
     this.selectedDoughId.set(doughId);
 
     if (!doughId) {
-      const flourCost = this.costs().find(c => c.product.toLowerCase().includes('harina'));
+      const flourCost = this.costs().find(c => c.name.toLowerCase().includes('harina'));
       if (flourCost?.id) {
-        this.ingredients.set([{ costId: flourCost.id, bakerPercentage: 100 }]);
+        this.ingredients.set([{ supplyId: flourCost.id, bakerPercentage: 100 }]);
       }
       return;
     }
@@ -84,27 +83,27 @@ export class DoughCalculator {
       const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(selectedDough, this.costs());
       if (bakerPercentages.length > 0) {
         this.ingredients.set(bakerPercentages.map(bp => ({
-          costId: bp.costId,
+          supplyId: bp.supplyId,
           bakerPercentage: bp.bakerPercentage
         })));
       }
     }
   }
 
-  getCostName(costId: string): string {
-    return getCostName(this.costs(), costId, 'Seleccionar...');
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId, 'Seleccionar...');
   }
 
-  isFlour(costId: string): boolean {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product.toLowerCase().includes('harina') : false;
+  isFlour(supplyId: string): boolean {
+    const item = this.catalog.find(supplyId);
+    return item ? item.name.toLowerCase().includes('harina') : false;
   }
 
-  getAvailableCostsForIngredient(currentCostId: string) {
-    const usedCostIds = this.ingredients()
-      .map(ing => ing.costId)
-      .filter(id => id !== currentCostId);
-    return this.costs().filter(c => c.id === currentCostId || !usedCostIds.includes(c.id!));
+  getAvailableCostsForIngredient(currentSupplyId: string) {
+    const usedSupplyIds = this.ingredients()
+      .map(ing => ing.supplyId)
+      .filter(id => id !== currentSupplyId);
+    return this.costs().filter(c => c.id === currentSupplyId || !usedSupplyIds.includes(c.id!));
   }
 
   ingredientMultiplier = computed(() => {
@@ -130,10 +129,10 @@ export class DoughCalculator {
   );
 
   addIngredient() {
-    const usedCostIds = this.ingredients().map(ing => ing.costId);
-    const firstCost = this.costs().find(c => !usedCostIds.includes(c.id!));
+    const usedSupplyIds = this.ingredients().map(ing => ing.supplyId);
+    const firstCost = this.costs().find(c => !usedSupplyIds.includes(c.id!));
     if (firstCost?.id) {
-      this.ingredients.update(list => [...list, { costId: firstCost.id!, bakerPercentage: 0 }]);
+      this.ingredients.update(list => [...list, { supplyId: firstCost.id!, bakerPercentage: 0 }]);
       setTimeout(() => {
         if (this.ingredientsContent) {
           this.ingredientsContent.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -146,9 +145,9 @@ export class DoughCalculator {
     this.ingredients.update(list => list.filter((_, i) => i !== index));
   }
 
-  updateIngredientCost(index: number, costId: string) {
+  updateIngredientCost(index: number, supplyId: string) {
     this.ingredients.update(list =>
-      list.map((ing, i) => i === index ? { ...ing, costId } : ing)
+      list.map((ing, i) => i === index ? { ...ing, supplyId } : ing)
     );
   }
 

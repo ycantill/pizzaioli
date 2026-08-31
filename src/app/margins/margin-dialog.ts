@@ -3,14 +3,12 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Margin } from '../models/margin.model';
-import { Cost } from '../models/cost.model';
+import { MarginConfig } from '../models/margin-config.model';
+import { PricedItem } from '../models/priced-item.model';
 
 export interface MarginDialogData {
-  margin?: Margin;
-  costs: Cost[];
+  item: PricedItem;
 }
 
 @Component({
@@ -20,7 +18,6 @@ export interface MarginDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSelectModule,
     ReactiveFormsModule
   ],
   templateUrl: './margin-dialog.html',
@@ -31,18 +28,15 @@ export class MarginDialog {
   private dialogRef = inject(MatDialogRef<MarginDialog>);
   private fb = inject(FormBuilder);
 
-  form = this.fb.group({
-    costId: [this.data.margin?.costId ?? '', Validators.required],
-    recoveryPercentage: [this.data.margin?.recoveryPercentage ?? 100, [Validators.required, Validators.min(0)]],
-    reinvestmentPercentage: [this.data.margin?.reinvestmentPercentage ?? 100, [Validators.required, Validators.min(0)]],
-    profitPercentage: [this.data.margin?.profitPercentage ?? 100, [Validators.required, Validators.min(0)]]
+  form = this.fb.nonNullable.group({
+    recoveryPercentage: [this.data.item.margin.recoveryPercentage, [Validators.required, Validators.min(0)]],
+    reinvestmentPercentage: [this.data.item.margin.reinvestmentPercentage, [Validators.required, Validators.min(0)]],
+    profitPercentage: [this.data.item.margin.profitPercentage, [Validators.required, Validators.min(0)]]
   });
 
   getTotalMargin(): number {
-    const recovery = this.form.get('recoveryPercentage')?.value || 0;
-    const reinvestment = this.form.get('reinvestmentPercentage')?.value || 0;
-    const profit = this.form.get('profitPercentage')?.value || 0;
-    return recovery + reinvestment + profit;
+    const { recoveryPercentage, reinvestmentPercentage, profitPercentage } = this.form.getRawValue();
+    return (recoveryPercentage || 0) + (reinvestmentPercentage || 0) + (profitPercentage || 0);
   }
 
   onCancel(): void {
@@ -50,12 +44,9 @@ export class MarginDialog {
   }
 
   onSave(): void {
-    if (this.form.valid) {
-      const margin: Margin = {
-        ...this.data.margin,
-        ...this.form.value as { costId: string; recoveryPercentage: number; reinvestmentPercentage: number; profitPercentage: number }
-      };
-      this.dialogRef.close(margin);
-    }
+    if (!this.form.valid) return;
+
+    const margin: MarginConfig = this.form.getRawValue();
+    this.dialogRef.close(margin);
   }
 }

@@ -8,13 +8,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Packaging } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { CostsDataService } from '../services/costs-data.service';
-import { CostTypesDataService } from '../services/cost-types-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { PackagingsDataService } from '../services/packagings-data.service';
 import { PackagingDialog } from './packaging-dialog';
-import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-packaging',
@@ -32,8 +30,7 @@ import { getCostName } from '../shared/lookup.utils';
 })
 export class PackagingConfig {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
-  private costTypesService = inject(CostTypesDataService);
+  private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private packagingsService = inject(PackagingsDataService);
@@ -41,8 +38,8 @@ export class PackagingConfig {
   packagings = this.packagingsService.packagings;
   recipeTypes = this.recipeTypesService.recipeTypes;
   loading = computed(() =>
-    this.recipeTypesService.isLoading() || this.costTypesService.isLoading() ||
-    this.costsService.isLoading() || this.unitsService.isLoading() || this.packagingsService.isLoading()
+    this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
+    this.unitsService.isLoading() || this.packagingsService.isLoading()
   );
   displayedColumns: string[] = ['name', 'items', 'actions'];
 
@@ -51,8 +48,8 @@ export class PackagingConfig {
     return type ? type.name : 'Desconocido';
   }
 
-  getCostName(costId: string): string {
-    return getCostName(this.costsService.costs(), costId);
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   getPackagingForType(recipeTypeId: string): Packaging | undefined {
@@ -62,10 +59,7 @@ export class PackagingConfig {
   openDialog(recipeType: RecipeType) {
     const existingPackaging = this.getPackagingForType(recipeType.id!);
 
-    const ingredienteType = this.costTypesService.costTypes().find(t => t.name.toLowerCase() === 'ingrediente');
-    const filteredCosts = ingredienteType
-      ? this.costsService.costs().filter(cost => cost.typeId !== ingredienteType.id)
-      : this.costsService.costs();
+    const filteredCosts = this.catalog.packagingSupplies();
 
     const dialogRef = this.dialog.open(PackagingDialog, {
       width: '600px',

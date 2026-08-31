@@ -8,7 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Labor } from '../models/labor.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { CostsDataService } from '../services/costs-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
@@ -30,7 +30,7 @@ import { LaborDialog } from './labor-dialog';
 })
 export class LaborConfig {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
+  private catalog = inject(CatalogService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private consumptionsService = inject(ConsumptionsDataService);
   private laborsService = inject(LaborsDataService);
@@ -40,7 +40,7 @@ export class LaborConfig {
   consumptions = this.consumptionsService.consumptions;
   loading = computed(() =>
     this.recipeTypesService.isLoading() || this.consumptionsService.isLoading() ||
-    this.costsService.isLoading() || this.laborsService.isLoading()
+    this.catalog.isLoading() || this.laborsService.isLoading()
   );
   displayedColumns: string[] = ['name', 'items', 'actions'];
 
@@ -71,7 +71,7 @@ export class LaborConfig {
         labor: existingLabor,
         recipeType,
         consumptions: this.consumptions(),
-        costs: this.costsService.costs()
+        costs: this.catalog.rateItems()
       }
     });
 

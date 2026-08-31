@@ -6,13 +6,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Consumption } from '../models/consumption.model';
-import { CostsDataService } from '../services/costs-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
-import { CostTypesDataService } from '../services/cost-types-data.service';
 import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { ConsumptionDialog } from './consumption-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
-import { getCostName, getUnitName } from '../shared/lookup.utils';
+import { getUnitName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-consumptions',
@@ -29,35 +28,32 @@ import { getCostName, getUnitName } from '../shared/lookup.utils';
 })
 export class Consumptions {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
+  private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
-  private costTypesService = inject(CostTypesDataService);
   private consumptionsService = inject(ConsumptionsDataService);
 
   consumptions = this.consumptionsService.consumptions;
-  costs = this.costsService.costs;
+  costs = this.catalog.rateItems;
   units = this.unitsService.units;
   loading = computed(() =>
-    this.costTypesService.isLoading() || this.costsService.isLoading() ||
+    this.catalog.isLoading() ||
     this.unitsService.isLoading() || this.consumptionsService.isLoading()
   );
   displayedColumns: string[] = ['name', 'service', 'quantity', 'actions'];
 
+  /** Los consumos siempre son de tarifas; ya no hace falta filtrar por tipo. */
   getServiceCosts() {
-    const servicioType = this.costTypesService.costTypes().find(t => t.name.toLowerCase() === 'servicio');
-    return servicioType
-      ? this.costs().filter(cost => cost.typeId === servicioType.id)
-      : [];
+    return this.catalog.rateItems();
   }
 
-  getCostName(costId: string): string {
-    return getCostName(this.costs(), costId);
+  getCostName(rateId: string): string {
+    return this.catalog.name(rateId);
   }
 
-  getUnitName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    if (!cost) return '';
-    return getUnitName(this.units(), cost.unitId);
+  getUnitName(rateId: string): string {
+    const item = this.catalog.find(rateId);
+    if (!item) return '';
+    return getUnitName(this.units(), item.unitId);
   }
 
   addConsumption() {

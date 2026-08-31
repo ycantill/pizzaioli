@@ -8,13 +8,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Packaging, PackagingItem } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 import { Unit } from '../models/unit.model';
 
 export interface PackagingDialogData {
   packaging?: Packaging;
   recipeType: RecipeType;
-  costs: Cost[];
+  costs: PricedItem[];
   units: Unit[];
 }
 
@@ -51,29 +51,29 @@ export class PackagingDialog {
 
   createItemGroup(item?: PackagingItem) {
     return this.fb.group({
-      costId: [item?.costId || this.data.costs[0]?.id || '', Validators.required],
+      supplyId: [item?.supplyId || this.data.costs[0]?.id || '', Validators.required],
       quantity: [item?.quantity || 1, [Validators.required, Validators.min(1)]]
     });
   }
 
-  availableCosts(currentIndex: number): Cost[] {
-    const currentCostId = this.itemsArray.at(currentIndex).get('costId')?.value;
-    const usedCostIds = this.itemsArray.controls
-      .map((ctrl, idx) => idx !== currentIndex ? ctrl.get('costId')?.value : null)
+  availableCosts(currentIndex: number): PricedItem[] {
+    const currentSupplyId = this.itemsArray.at(currentIndex).get('supplyId')?.value;
+    const usedSupplyIds = this.itemsArray.controls
+      .map((ctrl, idx) => idx !== currentIndex ? ctrl.get('supplyId')?.value : null)
       .filter(id => id !== null);
     
     return this.data.costs.filter(c => 
-      c.id === currentCostId || !usedCostIds.includes(c.id)
+      c.id === currentSupplyId || !usedSupplyIds.includes(c.id)
     );
   }
 
   addItem() {
-    const usedCostIds = this.itemsArray.controls.map(ctrl => ctrl.get('costId')?.value);
-    const availableCost = this.data.costs.find(c => !usedCostIds.includes(c.id));
+    const usedSupplyIds = this.itemsArray.controls.map(ctrl => ctrl.get('supplyId')?.value);
+    const availableCost = this.data.costs.find(c => !usedSupplyIds.includes(c.id));
     
     if (availableCost) {
       this.itemsArray.push(this.createItemGroup({
-        costId: availableCost.id!,
+        supplyId: availableCost.id!,
         quantity: 1
       }));
     }

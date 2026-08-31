@@ -6,12 +6,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
-import { CostsDataService } from '../services/costs-data.service';
-import { CostTypesDataService } from '../services/cost-types-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { DoughsDataService } from '../services/doughs-data.service';
 import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
-import { getCostName } from '../shared/lookup.utils';
 
 @Component({
   selector: 'app-doughs',
@@ -28,25 +26,19 @@ import { getCostName } from '../shared/lookup.utils';
 })
 export class Doughs {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
-  private costTypesService = inject(CostTypesDataService);
+  private catalog = inject(CatalogService);
   private doughsService = inject(DoughsDataService);
 
   doughs = this.doughsService.doughs;
   loading = computed(() =>
-    this.costTypesService.isLoading() || this.costsService.isLoading() || this.doughsService.isLoading()
+    this.catalog.isLoading() || this.doughsService.isLoading()
   );
   displayedColumns: string[] = ['name', 'ballWeight', 'ingredients', 'actions'];
 
-  ingredientCosts = computed(() => {
-    const ingredienteType = this.costTypesService.costTypes().find(t => t.name.toLowerCase() === 'ingrediente');
-    return ingredienteType
-      ? this.costsService.costs().filter(c => c.typeId === ingredienteType.id)
-      : this.costsService.costs();
-  });
+  ingredientCosts = this.catalog.ingredients;
 
-  getCostName(costId: string): string {
-    return getCostName(this.costsService.costs(), costId);
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   addDough() {

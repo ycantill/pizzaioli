@@ -6,12 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Consumption } from '../models/consumption.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 import { Unit } from '../models/unit.model';
 
 export interface ConsumptionDialogData {
   consumption?: Consumption;
-  costs: Cost[];
+  costs: PricedItem[];
   units: Unit[];
 }
 
@@ -35,19 +35,19 @@ export class ConsumptionDialog {
 
   form = this.fb.group({
     name: [this.data.consumption?.name || '', Validators.required],
-    costId: [this.data.consumption?.costId || '', Validators.required],
+    rateId: [this.data.consumption?.rateId || '', Validators.required],
     quantity: [this.data.consumption?.quantity || 1, [Validators.required, Validators.min(0.1)]]
   });
 
-  getCost(costId: string): Cost | undefined {
-    return this.data.costs.find(c => c.id === costId);
+  getCost(rateId: string): PricedItem | undefined {
+    return this.data.costs.find(c => c.id === rateId);
   }
 
   getUnitLabel(): string {
-    const costId = this.form.get('costId')?.value;
-    if (!costId) return '';
+    const rateId = this.form.get('rateId')?.value;
+    if (!rateId) return '';
     
-    const cost = this.getCost(costId);
+    const cost = this.getCost(rateId);
     if (!cost) return '';
     
     const unit = this.data.units.find(u => u.id === cost.unitId);

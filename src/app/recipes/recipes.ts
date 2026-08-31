@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Recipe } from '../models/recipe.model';
-import { CostsDataService } from '../services/costs-data.service';
+import { CatalogService } from '../services/catalog.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { RecipesDataService } from '../services/recipes-data.service';
@@ -28,14 +28,14 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
 })
 export class Recipes {
   private dialog = inject(MatDialog);
-  private costsService = inject(CostsDataService);
+  private catalog = inject(CatalogService);
   private toppingsService = inject(ToppingsDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private recipesService = inject(RecipesDataService);
 
   recipes = this.recipesService.recipes;
   loading = computed(() =>
-    this.recipeTypesService.isLoading() || this.costsService.isLoading() ||
+    this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
     this.toppingsService.isLoading() || this.recipesService.isLoading()
   );
   displayedColumns: string[] = ['name', 'type', 'toppings', 'actions'];
@@ -43,8 +43,7 @@ export class Recipes {
   getToppingLabel(toppingId: string): string {
     const topping = this.toppingsService.toppings().find(t => t.id === toppingId);
     if (!topping) return 'Desconocido';
-    const cost = this.costsService.costs().find(c => c.id === topping.costId);
-    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
+    return `${this.catalog.name(topping.supplyId)} — ${topping.size} (${topping.quantity})`;
   }
 
   getRecipeItems(recipe: Recipe): string[] {
@@ -58,15 +57,15 @@ export class Recipes {
 
   openPrintWindow() {
     const allToppings = this.toppingsService.toppings();
-    const allCosts = this.costsService.costs();
+    const allCosts = this.catalog.items();
 
     const recipesHtml = this.recipes().map(recipe => {
       const toppingRows = recipe.toppings.map(toppingId => {
         const topping = allToppings.find(t => t.id === toppingId);
         if (!topping) return '';
-        const cost = allCosts.find(c => c.id === topping.costId);
+        const cost = allCosts.find(c => c.id === topping.supplyId);
         if (!cost) return '';
-        return `<tr><td>${cost.product}</td><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
+        return `<tr><td>${cost.name}</td><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
       }).join('');
 
       return `
@@ -116,7 +115,7 @@ export class Recipes {
       maxHeight: '90vh',
       data: {
         toppings: this.toppingsService.toppings(),
-        costs: this.costsService.costs(),
+        costs: this.catalog.items(),
         recipeTypes: this.recipeTypesService.recipeTypes()
       }
     });
@@ -152,7 +151,7 @@ export class Recipes {
       data: {
         recipe,
         toppings: this.toppingsService.toppings(),
-        costs: this.costsService.costs(),
+        costs: this.catalog.items(),
         recipeTypes: this.recipeTypesService.recipeTypes()
       }
     });

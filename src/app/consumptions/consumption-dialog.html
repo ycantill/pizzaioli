@@ -11,12 +11,12 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Servicio</mat-label>
-      <mat-select formControlName="costId" (selectionChange)="onCostChange()">
+      <mat-select formControlName="rateId" (selectionChange)="onCostChange()">
         @for (cost of data.costs; track cost.id) {
-          <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
+          <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
         }
       </mat-select>
-      @if (form.get('costId')?.hasError('required') && form.get('costId')?.touched) {
+      @if (form.get('rateId')?.hasError('required') && form.get('rateId')?.touched) {
         <mat-error>El servicio es requerido</mat-error>
       }
     </mat-form-field>

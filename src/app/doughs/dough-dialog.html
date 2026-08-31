@@ -25,9 +25,9 @@
           <div [formGroupName]="$index" class="ingredient-row">
             <mat-form-field class="cost-field">
               <mat-label>Insumo</mat-label>
-              <mat-select formControlName="costId">
+              <mat-select formControlName="supplyId">
                 @for (cost of data.costs; track cost.id) {
-                  <mat-option [value]="cost.id">{{ cost.product }}</mat-option>
+                  <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>

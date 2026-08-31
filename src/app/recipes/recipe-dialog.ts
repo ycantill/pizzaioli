@@ -8,13 +8,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Recipe } from '../models/recipe.model';
 import { Topping } from '../models/topping.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 import { RecipeType } from '../models/recipe-type.model';
 
 export interface RecipeDialogData {
   recipe?: Recipe;
   toppings: Topping[];
-  costs: Cost[];
+  costs: PricedItem[];
   recipeTypes: RecipeType[];
 }
 
@@ -52,8 +52,8 @@ export class RecipeDialog {
   }
 
   getToppingLabel(topping: Topping): string {
-    const cost = this.data.costs.find(c => c.id === topping.costId);
-    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
+    const cost = this.data.costs.find(c => c.id === topping.supplyId);
+    return `${cost?.name ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
   }
 
   availableToppings(currentIndex: number | null): Topping[] {

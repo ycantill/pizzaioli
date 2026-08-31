@@ -8,11 +8,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { Dough } from '../models/dough.model';
-import { Cost } from '../models/cost.model';
+import { PricedItem } from '../models/priced-item.model';
 
 interface DialogData {
   dough?: Dough;
-  costs: Cost[];
+  costs: PricedItem[];
 }
 
 @Component({
@@ -46,7 +46,7 @@ export class DoughDialog implements OnInit {
 
     if (this.data.dough?.ingredients) {
       this.data.dough.ingredients.forEach(ingredient => {
-        this.ingredients.push(this.createIngredient(ingredient.costId, ingredient.quantity));
+        this.ingredients.push(this.createIngredient(ingredient.supplyId, ingredient.quantity));
       });
     } else {
       this.addIngredient();
@@ -57,9 +57,9 @@ export class DoughDialog implements OnInit {
     return this.form.get('ingredients') as FormArray;
   }
 
-  createIngredient(costId = '', quantity = 0): FormGroup {
+  createIngredient(supplyId = '', quantity = 0): FormGroup {
     return this.fb.group({
-      costId: [costId, Validators.required],
+      supplyId: [supplyId, Validators.required],
       quantity: [quantity, [Validators.required, Validators.min(0.01)]]
     });
   }

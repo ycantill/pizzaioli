@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { PricesDataService } from '../services/prices-data.service';
 import { RecipesDataService } from '../services/recipes-data.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
-import { CostsDataService } from '../services/costs-data.service';
-import { MarginsDataService } from '../services/margins-data.service';
+import { CatalogService } from '../services/catalog.service';
+import { marginPercent } from '../services/pricing';
 import { Topping } from '../models/topping.model';
 import { Recipe } from '../models/recipe.model';
 
@@ -60,13 +60,11 @@ export class Order {
   private readonly pricesService = inject(PricesDataService);
   private readonly recipesService = inject(RecipesDataService);
   private readonly toppingsService = inject(ToppingsDataService);
-  private readonly costsService = inject(CostsDataService);
-  private readonly marginsService = inject(MarginsDataService);
+  private readonly catalog = inject(CatalogService);
 
   readonly loading = computed(() =>
     this.pricesService.isLoading() || this.recipesService.isLoading() ||
-    this.toppingsService.isLoading() || this.costsService.isLoading() ||
-    this.marginsService.isLoading()
+    this.toppingsService.isLoading() || this.catalog.isLoading()
   );
   readonly selectedPriceId = signal<string | null>(null);
   readonly excludedIngredientIds = signal<string[]>([]);
@@ -88,8 +86,6 @@ export class Order {
 
   private readonly prices = this.pricesService.prices;
   private readonly recipes = this.recipesService.recipes;
-  private readonly costs = this.costsService.costs;
-  private readonly margins = this.marginsService.margins;
 
   // toppings includes virtual sizes generated from raw data
   private readonly toppings = computed<Topping[]>(() => {
@@ -99,7 +95,7 @@ export class Order {
 
     const groups = new Map<string, Topping[]>();
     for (const t of raw) {
-      const key = `${t.costId.trim()}_${!!t.salsaBase}`;
+      const key = `${t.supplyId.trim()}_${!!t.salsaBase}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(t);
     }
@@ -113,7 +109,7 @@ export class Order {
           const baseScale = sizeScale[base.size.trim().toUpperCase()] ?? 1.0;
           virtual.push({
             id: `${base.id}_virtual_${targetSize}`,
-            costId: base.costId.trim(),
+            supplyId: base.supplyId.trim(),
             quantity: base.quantity * ((sizeScale[targetSize] ?? 1.0) / baseScale),
             size: targetSize,
             salsaBase: !!base.salsaBase
@@ -131,30 +127,24 @@ export class Order {
   });
 
   readonly toppingOptions = computed<ToppingOption[]>(() => {
-    const costs = this.costs();
-    const margins = this.margins();
     const allToppings = this.toppings();
 
     return allToppings
       .filter((topping): topping is Topping & { id: string } => !!topping.id)
       .map((topping) => {
-        const cost = costs.find((item) => item.id === topping.costId);
-        const margin = margins.find((item) => item.costId === topping.costId);
-        const marginPercent = margin
-          ? margin.recoveryPercentage + margin.reinvestmentPercentage + margin.profitPercentage
-          : 0;
+        const item = this.catalog.find(topping.supplyId);
 
-        const baseCost = topping.quantity * (cost?.value ?? 0);
-        const computedPrice = baseCost * (marginPercent / 100);
+        const baseCost = topping.quantity * (item?.unitCost ?? 0);
+        const computedPrice = baseCost * (marginPercent(item?.margin) / 100);
         const extraPrice = this.ceilTo1000(computedPrice);
-        const productName = cost?.product ?? 'Ingrediente';
+        const productName = item?.name ?? 'Ingrediente';
 
         return {
           id: topping.id,
           label: productName,
           extraPrice,
           size: topping.size,
-          costId: topping.costId,
+          supplyId: topping.supplyId,
           salsaBase: topping.salsaBase,
         };
       })
@@ -164,7 +154,7 @@ export class Order {
   readonly menuIngredients = computed<Map<string, string[]>>(() => {
     const result = new Map<string, string[]>();
     const allToppings = this.toppings();
-    const allCosts = this.costs();
+    const allCosts = this.catalog.items();
     const halfAndHalfMode = this.isHalfAndHalf();
 
     for (const price of this.menuOptions()) {
@@ -182,7 +172,7 @@ export class Order {
         .map((tId) => {
           const topping = allToppings.find((t) => t.id === tId);
           if (!topping) return null;
-          const product = allCosts.find((c) => c.id === topping.costId)?.product ?? null;
+          const product = allCosts.find((c) => c.id === topping.supplyId)?.name ?? null;
           return product ? `${product} (${topping.size})` : null;
         })
         .filter((n): n is string => n !== null);
@@ -334,7 +324,7 @@ export class Order {
 
       const smallerSize = this.getSecondSmallerSize(topping.size);
       const smallerTopping = allToppings.find(
-        (t) => t.costId.trim() === topping.costId.trim() &&
+        (t) => t.supplyId.trim() === topping.supplyId.trim() &&
                t.size.trim().toUpperCase() === smallerSize &&
                !!t.salsaBase === !!topping.salsaBase
       );
