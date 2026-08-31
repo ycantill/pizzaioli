@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { Costs } from './costs/costs';
 import { Units } from './units/units';
 import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
@@ -18,8 +17,7 @@ import { authGuard, noAuthGuard } from './auth/auth.guard';
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [noAuthGuard] },
   { path: 'order', loadComponent: () => import('./order/order').then((m) => m.Order) },
-  { path: '', redirectTo: '/costs', pathMatch: 'full' },
-  { path: 'costs', component: Costs, canActivate: [authGuard] },
+  { path: '', redirectTo: '/inventario', pathMatch: 'full' },
   { path: 'cost-types', component: CostTypes, canActivate: [authGuard] },
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
   { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
@@ -32,4 +30,19 @@ export const routes: Routes = [
   { path: 'prices', component: Prices, canActivate: [authGuard] },
   { path: 'labor', component: LaborConfig, canActivate: [authGuard] },
   { path: 'toppings', component: Toppings, canActivate: [authGuard] },
+  {
+    path: 'inventario',
+    loadComponent: () => import('./inventory/inventory').then((m) => m.Inventory),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mantenimiento',
+    loadComponent: () => import('./maintenance/maintenance').then((m) => m.Maintenance),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'tarifas',
+    loadComponent: () => import('./rates/rates').then((m) => m.Rates),
+    canActivate: [authGuard]
+  },
 ];

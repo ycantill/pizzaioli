@@ -1,13 +1,14 @@
 import { Injectable, inject, resource, computed } from '@angular/core';
 import { FirestoreService } from '../firestore.service';
 import { Consumption } from '../models/consumption.model';
+import { normalizeConsumption } from '../shared/legacy-fields';
 
 @Injectable({ providedIn: 'root' })
 export class ConsumptionsDataService {
   private firestoreService = inject(FirestoreService);
 
   private _resource = resource({
-    loader: () => this.firestoreService.getDocuments('consumptions').then(data => data as Consumption[])
+    loader: () => this.firestoreService.getDocuments('consumptions').then(data => (data as Consumption[]).map(normalizeConsumption))
   });
 
   readonly consumptions = computed(() => this._resource.value() ?? []);

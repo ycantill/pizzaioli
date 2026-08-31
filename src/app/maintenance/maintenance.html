@@ -1,0 +1,67 @@
+<div class="maintenance-page">
+  <h1 class="page-title">Mantenimiento</h1>
+
+  <p class="intro">
+    Reemplaza el campo <code>costId</code> por <code>supplyId</code> o <code>rateId</code> en los
+    documentos que todavía lo usan. La app entiende ambos nombres, así que el cambio se puede
+    hacer sin prisa y repetir sin efecto.
+  </p>
+
+  <mat-card class="section">
+    <mat-card-content>
+      <button mat-stroked-button [disabled]="scanning() || applying()" (click)="scan()">
+        @if (scanning()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          <mat-icon aria-hidden="true">search</mat-icon>
+        }
+        Revisar colecciones
+      </button>
+
+      @if (plans(); as plans) {
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th scope="col">Colección</th>
+              <th scope="col">Por migrar</th>
+              <th scope="col">Ya migrados</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (plan of plans; track plan.spec.collection) {
+              <tr>
+                <td>{{ plan.spec.label }}</td>
+                <td class="numeric" [class.pending]="plan.pending > 0">{{ plan.pending }}</td>
+                <td class="numeric">{{ plan.done }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (totalPending() === 0) {
+          <p class="feedback feedback-ok" role="status">
+            No queda ningún documento con el campo viejo.
+          </p>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <div class="actions">
+    <button mat-flat-button color="primary" [disabled]="!canApply()" (click)="applyRename()">
+      @if (applying()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        <mat-icon aria-hidden="true">drive_file_rename_outline</mat-icon>
+      }
+      Renombrar {{ totalPending() }} documento(s)
+    </button>
+  </div>
+
+  @if (result()) {
+    <p class="feedback feedback-ok" role="status">{{ result() }}</p>
+  }
+  @if (error()) {
+    <p class="feedback feedback-error" role="alert">{{ error() }}</p>
+  }
+</div>

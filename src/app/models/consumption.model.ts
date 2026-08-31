@@ -1,6 +1,6 @@
 export interface Consumption {
   id?: string;
   name: string;
-  costId: string;
+  rateId: string;
   quantity: number;
 }

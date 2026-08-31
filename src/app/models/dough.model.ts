@@ -1,5 +1,5 @@
 export interface DoughRecipeIngredient {
-  costId: string;
+  supplyId: string;
   quantity: number;
 }
 
@@ -12,7 +12,7 @@ export interface Dough {
 
 export interface DoughIngredient {
   id?: string;
-  costId: string;
+  supplyId: string;
   bakerPercentage: number;
   calculatedWeight?: number;
 }
