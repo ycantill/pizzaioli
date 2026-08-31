@@ -1,23 +1,13 @@
 /* Estilos específicos para el diálogo de movimientos */
 
-.kind-toggle {
-  width: 100%;
+.lead {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.75);
 }
 
-.kind-hint {
-  margin: 12px 0 16px;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 13px;
-  line-height: 1.4;
-  min-height: 36px;
-}
-
-.fields {
-  display: flex;
-  flex-direction: column;
-}
-
-.fields mat-form-field {
+.full-width {
   width: 100%;
 }
 
@@ -34,36 +24,42 @@
   flex: 3;
 }
 
-.preview {
+.details-toggle {
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.details {
+  padding-top: 4px;
+}
+
+.outcome {
   background: rgba(0, 0, 0, 0.04);
   border-radius: 4px;
-  padding: 12px 16px;
+  padding: 10px 14px;
 }
 
-.preview-title {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.preview-row {
+.outcome-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   font-size: 14px;
-  padding: 3px 0;
+  padding: 2px 0;
 }
 
-.preview-value {
-  font-weight: 500;
+.outcome-value {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.outcome-value strong {
+  color: rgba(0, 0, 0, 0.87);
 }
 
 .alert {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 13px;

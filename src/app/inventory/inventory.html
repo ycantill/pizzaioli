@@ -62,22 +62,38 @@
               <div class="card-actions">
                 <button mat-icon-button color="primary"
                         [disabled]="saving()"
-                        [attr.aria-label]="'Registrar movimiento de ' + supply.name"
-                        (click)="registerMovement(supply)">
-                  <mat-icon>add_circle</mat-icon>
+                        [attr.aria-label]="'Comprar ' + supply.name"
+                        (click)="registerMovement(supply, 'entrada')">
+                  <mat-icon>add_shopping_cart</mat-icon>
                 </button>
                 <button mat-icon-button
+                        [matMenuTriggerFor]="cardMenu"
                         [disabled]="saving()"
-                        [attr.aria-label]="'Editar ' + supply.name"
-                        (click)="editSupply(supply)">
-                  <mat-icon>edit</mat-icon>
+                        [attr.aria-label]="'Más acciones para ' + supply.name">
+                  <mat-icon>more_vert</mat-icon>
                 </button>
-                <button mat-icon-button color="warn"
-                        [disabled]="saving()"
-                        [attr.aria-label]="'Eliminar ' + supply.name"
-                        (click)="deleteSupply(supply)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <mat-menu #cardMenu>
+                  <button mat-menu-item (click)="registerMovement(supply, 'salida')">
+                    <mat-icon>arrow_downward</mat-icon>
+                    <span>Registrar salida</span>
+                  </button>
+                  <button mat-menu-item (click)="registerMovement(supply, 'ajuste')">
+                    <mat-icon>fact_check</mat-icon>
+                    <span>Hacer conteo</span>
+                  </button>
+                  <button mat-menu-item (click)="toggleMovements(supply.id)">
+                    <mat-icon>history</mat-icon>
+                    <span>Ver movimientos</span>
+                  </button>
+                  <button mat-menu-item (click)="editSupply(supply)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar insumo</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteSupply(supply)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Eliminar insumo</span>
+                  </button>
+                </mat-menu>
               </div>
             </div>
             <div class="card-details">
@@ -139,26 +155,36 @@
             <th mat-header-cell *matHeaderCellDef scope="col">Acciones</th>
             <td mat-cell *matCellDef="let supply">
               <button mat-icon-button color="primary"
-                      matTooltip="Registrar compra o conteo"
+                      matTooltip="Registrar compra"
                       [disabled]="saving()"
-                      [attr.aria-label]="'Registrar movimiento de ' + supply.name"
-                      (click)="registerMovement(supply)">
-                <mat-icon>add_circle</mat-icon>
+                      [attr.aria-label]="'Comprar ' + supply.name"
+                      (click)="registerMovement(supply, 'entrada')">
+                <mat-icon>add_shopping_cart</mat-icon>
               </button>
               <button mat-icon-button
-                      matTooltip="Editar insumo"
+                      [matMenuTriggerFor]="rowMenu"
                       [disabled]="saving()"
-                      [attr.aria-label]="'Editar ' + supply.name"
-                      (click)="editSupply(supply)">
-                <mat-icon>edit</mat-icon>
+                      [attr.aria-label]="'Más acciones para ' + supply.name">
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button color="warn"
-                      matTooltip="Eliminar insumo"
-                      [disabled]="saving()"
-                      [attr.aria-label]="'Eliminar ' + supply.name"
-                      (click)="deleteSupply(supply)">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <mat-menu #rowMenu>
+                <button mat-menu-item (click)="registerMovement(supply, 'salida')">
+                  <mat-icon>arrow_downward</mat-icon>
+                  <span>Registrar salida</span>
+                </button>
+                <button mat-menu-item (click)="registerMovement(supply, 'ajuste')">
+                  <mat-icon>fact_check</mat-icon>
+                  <span>Hacer conteo</span>
+                </button>
+                <button mat-menu-item (click)="editSupply(supply)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar insumo</span>
+                </button>
+                <button mat-menu-item (click)="deleteSupply(supply)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Eliminar insumo</span>
+                </button>
+              </mat-menu>
               <button mat-icon-button
                       matTooltip="Ver movimientos"
                       [attr.aria-expanded]="isExpanded(supply.id)"

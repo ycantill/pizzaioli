@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -17,7 +18,7 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { getUnitName } from '../shared/lookup.utils';
 import { describeUnit } from '../services/unit-conversion';
-import { MovementDialog, MovementDialogResult } from './movement-dialog';
+import { MovementDialog, MovementDialogResult, MovementKind } from './movement-dialog';
 
 function exitReasonLabel(reason: ExitReason | undefined): string {
   return EXIT_REASONS.find(r => r.value === reason)?.label ?? 'Salida';
@@ -31,6 +32,7 @@ import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
     MatButtonModule,
     MatCardModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule
@@ -114,7 +116,8 @@ export class Inventory {
     return this.expandedId() === supplyId;
   }
 
-  toggleMovements(supplyId: string) {
+  toggleMovements(supplyId: string | undefined) {
+    if (!supplyId) return;
     this.expandedId.update(current => (current === supplyId ? null : supplyId));
   }
 
@@ -203,11 +206,12 @@ export class Inventory {
     });
   }
 
-  registerMovement(supply: Supply) {
+  /** La operación se elige antes de abrir, así el formulario no cambia de forma. */
+  registerMovement(supply: Supply, kind: MovementKind) {
     const dialogRef = this.dialog.open(MovementDialog, {
-      width: '480px',
+      width: '440px',
       maxHeight: '90vh',
-      data: { supply, unitName: this.unitName(supply.unitId), units: this.units() }
+      data: { kind, supply, unitName: this.unitName(supply.unitId), units: this.units() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: MovementDialogResult | undefined) => {

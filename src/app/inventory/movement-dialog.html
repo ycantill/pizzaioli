@@ -1,126 +1,116 @@
-<h2 mat-dialog-title>{{ data.supply.name }}</h2>
+<h2 mat-dialog-title>{{ title() }}</h2>
 <mat-dialog-content>
   <form [formGroup]="form">
-    <mat-button-toggle-group formControlName="kind" aria-label="Tipo de movimiento"
-                             class="kind-toggle">
-      <mat-button-toggle value="entrada">Compra</mat-button-toggle>
-      <mat-button-toggle value="salida">Salida</mat-button-toggle>
-      <mat-button-toggle value="ajuste">Conteo</mat-button-toggle>
-    </mat-button-toggle-group>
+    @if (isCount) {
+      <p class="lead">
+        Escribí lo que contaste. Este número <strong>reemplaza</strong> al stock actual de
+        {{ data.supply.stock }} {{ data.unitName }}, no se resta.
+      </p>
+    }
 
-    <p class="kind-hint">{{ kindHint() }}</p>
+    @if (isExit) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Motivo</mat-label>
+        <mat-select formControlName="reason">
+          @for (reason of exitReasons; track reason.value) {
+            <mat-option [value]="reason.value">{{ reason.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
 
-    <div class="fields">
-      @if (isExit()) {
-        <mat-form-field appearance="outline">
-          <mat-label>Motivo</mat-label>
-          <mat-select formControlName="reason">
-            @for (reason of exitReasons; track reason.value) {
-              <mat-option [value]="reason.value">{{ reason.label }}</mat-option>
+    <div class="quantity-row">
+      <mat-form-field appearance="outline" class="quantity-field">
+        <mat-label>{{ isCount ? 'Cantidad contada' : 'Cantidad' }}</mat-label>
+        <input matInput type="number" min="0" step="any" formControlName="quantity">
+        @if (!isPurchase) {
+          <span matTextSuffix>{{ data.unitName }}</span>
+        }
+      </mat-form-field>
+
+      @if (isPurchase) {
+        <mat-form-field appearance="outline" class="unit-field">
+          <mat-label>Unidad</mat-label>
+          <mat-select formControlName="unitId">
+            @for (unit of purchaseUnits(); track unit.id) {
+              <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
       }
+    </div>
 
-      <div class="quantity-row">
-        <mat-form-field appearance="outline" class="quantity-field">
-          <mat-label>{{ quantityLabel() }}</mat-label>
-          <input matInput type="number" min="0" step="any" formControlName="quantity">
-          @if (!isPurchase()) {
-            <span matTextSuffix>{{ data.unitName }}</span>
-          }
+    @if (isPurchase) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Total pagado</mat-label>
+        <input matInput type="number" min="0" step="any" formControlName="totalPaid">
+        <span matTextPrefix>$&nbsp;</span>
+      </mat-form-field>
+    }
+
+    <button type="button" mat-button class="details-toggle" (click)="toggleDetails()"
+            [attr.aria-expanded]="showDetails()">
+      <mat-icon aria-hidden="true">{{ showDetails() ? 'expand_less' : 'expand_more' }}</mat-icon>
+      Fecha y nota
+    </button>
+
+    @if (showDetails()) {
+      <div class="details">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha</mat-label>
+          <input matInput type="date" formControlName="date">
         </mat-form-field>
 
-        @if (isPurchase()) {
-          <mat-form-field appearance="outline" class="unit-field">
-            <mat-label>Unidad de compra</mat-label>
-            <mat-select formControlName="unitId">
-              @for (unit of purchaseUnits(); track unit.id) {
-                <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        }
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nota</mat-label>
+          <input matInput type="text" formControlName="note" placeholder="Ej: proveedor, factura">
+        </mat-form-field>
       </div>
+    }
 
-      @if (isPurchase()) {
-        <mat-form-field appearance="outline">
-          <mat-label>Total pagado</mat-label>
-          <input matInput type="number" min="0" step="any" formControlName="totalPaid">
-          <span matTextPrefix>$&nbsp;</span>
-        </mat-form-field>
+    <div class="outcome" role="status">
+      @if (isPurchase) {
+        <div class="outcome-row">
+          <span>Costo promedio</span>
+          <span class="outcome-value">
+            ${{ data.supply.unitCost.toFixed(2) }} →
+            <strong>${{ preview().balance.unitCost.toFixed(2) }}</strong>
+          </span>
+        </div>
       }
-
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha</mat-label>
-        <input matInput type="date" formControlName="date">
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Nota (opcional)</mat-label>
-        <input matInput type="text" formControlName="note" placeholder="Ej: proveedor, factura">
-      </mat-form-field>
+      <div class="outcome-row">
+        <span>Stock</span>
+        <span class="outcome-value">
+          {{ data.supply.stock }} →
+          <strong>{{ preview().balance.stock }}</strong> {{ data.unitName }}
+        </span>
+      </div>
     </div>
 
     @if (!convertible()) {
       <p class="alert alert-error" role="alert">
         <mat-icon aria-hidden="true">error_outline</mat-icon>
-        No se puede convertir esa unidad a {{ data.unitName }}. Elegí una unidad compatible.
+        Esa unidad no se puede convertir a {{ data.unitName }}.
+      </p>
+    } @else if (preview().suspiciousUnitCost) {
+      <p class="alert alert-error">
+        <mat-icon aria-hidden="true">warning_amber</mat-icon>
+        El costo promedio cambiaría de forma desproporcionada. Revisá la unidad y el total pagado.
+      </p>
+    } @else if (preview().unitCostDelta !== 0) {
+      <p class="alert alert-warning">
+        <mat-icon aria-hidden="true">trending_flat</mat-icon>
+        Cambia el costo promedio, así que los precios de venta se van a mover.
       </p>
     }
 
-    <div class="preview" role="status">
-      <h3 class="preview-title">Efecto sobre el saldo</h3>
-
-      @if (isPurchase()) {
-        <div class="preview-row">
-          <span>Equivale a</span>
-          <span class="preview-value">{{ preview().baseQuantity }} {{ data.unitName }}</span>
-        </div>
-        <div class="preview-row">
-          <span>Costo de esta compra</span>
-          <span class="preview-value">
-            ${{ preview().entryUnitCost.toFixed(2) }} / {{ data.unitName }}
-          </span>
-        </div>
-      }
-
-      <div class="preview-row">
-        <span>Stock</span>
-        <span class="preview-value">
-          {{ data.supply.stock }} → {{ preview().balance.stock }} {{ data.unitName }}
-        </span>
-      </div>
-
-      <div class="preview-row">
-        <span>Costo promedio</span>
-        <span class="preview-value">
-          ${{ data.supply.unitCost.toFixed(2) }} → ${{ preview().balance.unitCost.toFixed(2) }}
-        </span>
-      </div>
-
-      @if (preview().suspiciousUnitCost) {
-        <p class="alert alert-error">
-          <mat-icon aria-hidden="true">warning_amber</mat-icon>
-          El costo promedio cambiaría de forma desproporcionada. Revisá la unidad de compra y el
-          total pagado antes de guardar.
-        </p>
-      } @else if (preview().unitCostDelta !== 0) {
-        <p class="alert alert-warning">
-          <mat-icon aria-hidden="true">trending_flat</mat-icon>
-          El costo promedio cambia ${{ preview().unitCostDelta.toFixed(2) }}, así que los precios
-          de venta que dependen de este insumo se van a mover.
-        </p>
-      }
-
-      @if (shortfall() > 0) {
-        <p class="alert alert-warning">
-          <mat-icon aria-hidden="true">info_outline</mat-icon>
-          Faltan {{ shortfall() }} {{ data.unitName }} para cubrir esa salida. El stock queda en
-          cero y el faltante se registra igual.
-        </p>
-      }
-    </div>
+    @if (shortfall() > 0) {
+      <p class="alert alert-warning">
+        <mat-icon aria-hidden="true">info_outline</mat-icon>
+        Faltan {{ shortfall() }} {{ data.unitName }}. El stock queda en cero y el faltante se
+        registra igual.
+      </p>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
