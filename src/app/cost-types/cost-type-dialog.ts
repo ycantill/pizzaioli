@@ -3,8 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CostType } from '../models/cost-type.model';
+import { CostType, CostTypeKind } from '../models/cost-type.model';
+import { inferCostTypeKind } from '../services/catalog.service';
 
 export interface CostTypeDialogData {
   costType?: CostType;
@@ -17,6 +19,7 @@ export interface CostTypeDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatSelectModule,
     ReactiveFormsModule
   ],
   templateUrl: './cost-type-dialog.html',
@@ -27,8 +30,12 @@ export class CostTypeDialog {
   private dialogRef = inject(MatDialogRef<CostTypeDialog>);
   private fb = inject(FormBuilder);
 
-  form = this.fb.group({
-    name: [this.data.costType?.name || '', Validators.required]
+  form = this.fb.nonNullable.group({
+    name: [this.data.costType?.name || '', Validators.required],
+    // Si el tipo viene sin clasificar, se propone lo que hoy se deduce del nombre.
+    kind: [
+      this.data.costType?.kind ?? inferCostTypeKind(this.data.costType?.name ?? '') ?? 'ingrediente'
+    ] as [CostTypeKind]
   });
 
   onCancel(): void {
@@ -39,7 +46,7 @@ export class CostTypeDialog {
     if (this.form.valid) {
       const costType: CostType = {
         ...this.data.costType,
-        ...this.form.value as { name: string }
+        ...this.form.getRawValue()
       };
       this.dialogRef.close(costType);
     }

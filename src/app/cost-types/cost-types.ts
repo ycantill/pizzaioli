@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { CostType } from '../models/cost-type.model';
+import { inferCostTypeKind } from '../services/catalog.service';
 import { CostTypesDataService } from '../services/cost-types-data.service';
 import { CostTypeDialog } from './cost-type-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -29,7 +30,14 @@ export class CostTypes {
 
   costTypes = this.costTypesService.costTypes;
   loading = this.costTypesService.isLoading;
-  displayedColumns: string[] = ['name', 'actions'];
+  displayedColumns: string[] = ['name', 'kind', 'actions'];
+
+  kindLabel(costType: CostType): string {
+    const kind = costType.kind ?? inferCostTypeKind(costType.name);
+    if (kind === 'paqueteria') return 'Paquetería';
+    if (kind === 'ingrediente') return 'Ingrediente';
+    return 'Sin clasificar';
+  }
 
   addCostType() {
     const dialogRef = this.dialog.open(CostTypeDialog, {

@@ -8,6 +8,15 @@
         <mat-error>El nombre es requerido</mat-error>
       }
     </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Función</mat-label>
+      <mat-select formControlName="kind">
+        <mat-option value="ingrediente">Ingrediente</mat-option>
+        <mat-option value="paqueteria">Paquetería</mat-option>
+      </mat-select>
+      <mat-hint>Los ingredientes se ofrecen en masas; la paquetería, en empaque</mat-hint>
+    </mat-form-field>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
