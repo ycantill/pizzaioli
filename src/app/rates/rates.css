@@ -1,0 +1,95 @@
+/* Estilos específicos para tarifas */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.container {
+  padding: 0 16px 16px;
+}
+
+.intro {
+  margin: 0 0 16px;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.rate-card {
+  margin-bottom: 16px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rate-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.value {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.empty {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+}
+
+.desktop-view {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-view {
+    display: none;
+  }
+
+  .desktop-view {
+    display: block;
+  }
+}

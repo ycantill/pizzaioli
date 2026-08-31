@@ -1,0 +1,205 @@
+<div class="page-header">
+  <h1 class="page-title">Inventario</h1>
+  <button mat-fab extended class="add-button" [disabled]="saving()" (click)="addSupply()">
+    <mat-icon>add</mat-icon>
+    <span class="button-text">Nuevo insumo</span>
+  </button>
+  @if (!loading()) {
+    <div class="total-value">
+      <span class="total-label">Valor del inventario</span>
+      <span class="total-amount">${{ totalStockValue().toFixed(2) }}</span>
+    </div>
+  }
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    @if (lowStock().length > 0) {
+      <div class="alert alert-warning" role="status">
+        <mat-icon aria-hidden="true">inventory</mat-icon>
+        <span>
+          {{ lowStock().length }} insumo(s) en o por debajo del stock mínimo:
+          @for (supply of lowStock(); track supply.id) {
+            <strong>{{ supply.name }}</strong>@if (!$last) {, }
+          }
+        </span>
+      </div>
+    }
+
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (supply of supplies(); track supply.id) {
+        <mat-card class="supply-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="supply-name">{{ supply.name }}</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary"
+                        [disabled]="saving()"
+                        [attr.aria-label]="'Registrar movimiento de ' + supply.name"
+                        (click)="registerMovement(supply)">
+                  <mat-icon>add_circle</mat-icon>
+                </button>
+                <button mat-icon-button
+                        [disabled]="saving()"
+                        [attr.aria-label]="'Editar ' + supply.name"
+                        (click)="editSupply(supply)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn"
+                        [disabled]="saving()"
+                        [attr.aria-label]="'Eliminar ' + supply.name"
+                        (click)="deleteSupply(supply)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="label">Stock:</span>
+                <span class="value">{{ supply.stock }} {{ unitName(supply.unitId) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Costo promedio:</span>
+                <span class="value">${{ supply.unitCost.toFixed(2) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Valor:</span>
+                <span class="value">${{ supply.stockValue.toFixed(2) }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      } @empty {
+        <p class="empty">No hay insumos en el inventario.</p>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="supplies()" class="mat-elevation-z2">
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef scope="col">Insumo</th>
+            <td mat-cell *matCellDef="let supply">
+              <span class="supply-name">{{ supply.name }}</span>
+              <span class="supply-category">{{ categoryName(supply.categoryId) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef scope="col">Stock</th>
+            <td mat-cell *matCellDef="let supply">
+              {{ supply.stock }} {{ unitName(supply.unitId) }}
+              @if (isLowStock(supply)) {
+                <mat-icon class="low-stock-icon"
+                          aria-label="Stock por debajo del mínimo">warning_amber</mat-icon>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unitCost">
+            <th mat-header-cell *matHeaderCellDef scope="col">Costo promedio</th>
+            <td mat-cell *matCellDef="let supply">${{ supply.unitCost.toFixed(2) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="stockValue">
+            <th mat-header-cell *matHeaderCellDef scope="col">Valor</th>
+            <td mat-cell *matCellDef="let supply">${{ supply.stockValue.toFixed(2) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef scope="col">Acciones</th>
+            <td mat-cell *matCellDef="let supply">
+              <button mat-icon-button color="primary"
+                      matTooltip="Registrar compra o conteo"
+                      [disabled]="saving()"
+                      [attr.aria-label]="'Registrar movimiento de ' + supply.name"
+                      (click)="registerMovement(supply)">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+              <button mat-icon-button
+                      matTooltip="Editar insumo"
+                      [disabled]="saving()"
+                      [attr.aria-label]="'Editar ' + supply.name"
+                      (click)="editSupply(supply)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn"
+                      matTooltip="Eliminar insumo"
+                      [disabled]="saving()"
+                      [attr.aria-label]="'Eliminar ' + supply.name"
+                      (click)="deleteSupply(supply)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button mat-icon-button
+                      matTooltip="Ver movimientos"
+                      [attr.aria-expanded]="isExpanded(supply.id)"
+                      [attr.aria-label]="'Ver movimientos de ' + supply.name"
+                      (click)="toggleMovements(supply.id)">
+                <mat-icon>{{ isExpanded(supply.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="audit">
+      <button mat-stroked-button [disabled]="saving()" (click)="runAudit()">
+        <mat-icon aria-hidden="true">fact_check</mat-icon>
+        Auditar saldos
+      </button>
+
+      @if (auditIssues(); as issues) {
+        @if (issues.length === 0) {
+          <p class="alert alert-ok" role="status">
+            <mat-icon aria-hidden="true">check_circle_outline</mat-icon>
+            Todos los saldos cuadran con sus movimientos.
+          </p>
+        } @else {
+          <div class="alert alert-error" role="alert">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            <span>
+              {{ issues.length }} saldo(s) no cuadran:
+              <ul>
+                @for (issue of issues; track $index) {
+                  <li>{{ issue }}</li>
+                }
+              </ul>
+            </span>
+          </div>
+        }
+      }
+    </div>
+
+    @if (expandedId(); as supplyId) {
+      <mat-card class="movements-card">
+        <mat-card-content>
+          <h2 class="movements-title">Movimientos</h2>
+          <ul class="movements">
+            @for (entry of movementsFor(supplyId); track entry.id) {
+              <li class="movement">
+                <span class="movement-date">{{ entry.date }}</span>
+                <span class="movement-kind">{{ movementLabel(entry) }}</span>
+                <span class="movement-quantity">{{ entry.quantity }}</span>
+                <span class="movement-cost">${{ entry.unitCost.toFixed(2) }}</span>
+                <span class="movement-note">{{ entry.note }}</span>
+              </li>
+            } @empty {
+              <li class="movement empty">Sin movimientos registrados.</li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

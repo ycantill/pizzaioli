@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>{{ data.rate ? 'Editar' : 'Nueva' }} tarifa</h2>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Energía eléctrica">
+      @if (form.get('name')?.hasError('required')) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Unidad</mat-label>
+      <mat-select formControlName="unitId">
+        @for (unit of data.units; track unit.id) {
+          <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('unitId')?.hasError('required')) {
+        <mat-error>La unidad es requerida</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Valor por unidad</mat-label>
+      <input matInput type="number" min="0" step="any" formControlName="value">
+      <span matTextPrefix>$&nbsp;</span>
+      @if (form.get('value')?.hasError('required')) {
+        <mat-error>El valor es requerido</mat-error>
+      }
+      @if (form.get('value')?.hasError('min')) {
+        <mat-error>El valor no puede ser negativo</mat-error>
+      }
+    </mat-form-field>
+
+    <p class="hint">
+      Las tarifas no llevan inventario: su valor se mantiene a mano. Cambiarlo mueve de inmediato
+      los precios que dependan de ella.
+    </p>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!form.valid" (click)="onSave()">
+    {{ data.rate ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>
