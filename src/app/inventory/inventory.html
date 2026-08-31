@@ -18,6 +18,28 @@
       <mat-spinner></mat-spinner>
     </div>
   } @else {
+    @if (mislabeled().length > 0) {
+      <div class="alert alert-warning" role="status">
+        <mat-icon aria-hidden="true">straighten</mat-icon>
+        <span>
+          <strong>{{ mislabeled().length }} insumo(s) tienen una unidad que no es la base.</strong>
+          Las recetas miden en gramos, mililitros y piezas, así que el costo guardado ya está en
+          esas unidades. Para cada uno, mirá si el número de la derecha es lo que realmente pagás
+          por esa unidad: si no lo es, la etiqueta está mal y hay que cambiarla —el precio de venta
+          no se mueve—. Si sí lo es, ese insumo tiene el costo mal desde antes.
+          <ul>
+            @for (supply of mislabeled(); track supply.id) {
+              <li>
+                <strong>{{ supply.name }}</strong>: dice {{ unitName(supply.unitId) }}, o sea
+                ${{ impliedCostPerLabeledUnit(supply).toFixed(2) }} por
+                {{ unitName(supply.unitId) }}
+              </li>
+            }
+          </ul>
+        </span>
+      </div>
+    }
+
     @if (lowStock().length > 0) {
       <div class="alert alert-warning" role="status">
         <mat-icon aria-hidden="true">inventory</mat-icon>

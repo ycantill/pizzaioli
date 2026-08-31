@@ -39,6 +39,54 @@
       <mat-hint>Si se define, el insumo se marca cuando el stock baja de aquí</mat-hint>
     </mat-form-field>
 
+    @if (unitChanged()) {
+      <div class="unit-change">
+        <h3 class="unit-change-title">Cambiaste la unidad</h3>
+
+        @if (!convertible()) {
+          <p class="alert alert-error" role="alert">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            {{ unitName(data.supply!.unitId) }} y {{ unitName(form.getRawValue().unitId) }} no miden
+            lo mismo, así que el saldo no se puede convertir. Solo se cambiará la etiqueta.
+          </p>
+        } @else {
+          <p class="unit-change-hint">
+            Si el costo guardado ya estaba en {{ unitName(form.getRawValue().unitId) }} y la
+            etiqueta estaba mal, dejá esto sin marcar: no se toca ningún número y los precios de
+            venta no se mueven.
+          </p>
+
+          <mat-checkbox formControlName="convertBalance">
+            Convertir también el saldo y el costo
+          </mat-checkbox>
+
+          @if (converting() && rescaled(); as balance) {
+            <div class="unit-change-preview">
+              <div class="preview-row">
+                <span>Stock</span>
+                <span class="preview-value">
+                  {{ data.supply!.stock }} {{ unitName(data.supply!.unitId) }} →
+                  {{ balance.stock }} {{ unitName(form.getRawValue().unitId) }}
+                </span>
+              </div>
+              <div class="preview-row">
+                <span>Costo unitario</span>
+                <span class="preview-value">
+                  ${{ data.supply!.unitCost.toFixed(2) }} → ${{ balance.unitCost.toFixed(4) }}
+                </span>
+              </div>
+              <p class="alert alert-warning">
+                <mat-icon aria-hidden="true">warning_amber</mat-icon>
+                Convertir cambia el costo unitario, así que <strong>los precios de venta se van a
+                mover</strong>. Marcalo solo si el costo estaba realmente en
+                {{ unitName(data.supply!.unitId) }}.
+              </p>
+            </div>
+          }
+        }
+      </div>
+    }
+
     @if (!data.supply) {
       <p class="hint">
         El insumo se crea con stock y costo en cero. El costo aparece al registrar la primera

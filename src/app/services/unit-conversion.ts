@@ -35,6 +35,17 @@ export function describeUnit(unit: Unit | undefined): UnitConversion | undefined
   return CONVERSIONS[unit.abbreviation.trim().toLowerCase()];
 }
 
+/**
+ * Si la unidad es la base de su dimensión: gramo, mililitro o pieza.
+ *
+ * Importa porque las cantidades de las recetas están escritas en la unidad
+ * base, y el costo se multiplica por ellas sin convertir. Un insumo cuya
+ * unidad no sea la base tiene la etiqueta equivocada.
+ */
+export function isBaseUnit(unit: Unit | undefined): boolean {
+  return describeUnit(unit)?.factor === 1;
+}
+
 /** Dos unidades son compatibles si miden lo mismo: peso con peso, volumen con volumen. */
 export function areCompatible(a: Unit | undefined, b: Unit | undefined): boolean {
   const from = describeUnit(a);

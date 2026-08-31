@@ -15,6 +15,7 @@ import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { getUnitName } from '../shared/lookup.utils';
+import { describeUnit } from '../services/unit-conversion';
 import { MovementDialog, MovementDialogResult } from './movement-dialog';
 import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
 
@@ -50,6 +51,7 @@ export class Inventory {
 
   readonly totalStockValue = this.inventoryService.totalStockValue;
   readonly lowStock = this.inventoryService.lowStockSupplies;
+  readonly mislabeled = this.inventoryService.mislabeledUnits;
   readonly expandedId = signal<string | null>(null);
   readonly saving = signal(false);
   readonly auditIssues = signal<string[] | null>(null);
@@ -65,6 +67,16 @@ export class Inventory {
 
   categoryName(categoryId: string): string {
     return this.costTypesService.costTypes().find(t => t.id === categoryId)?.name ?? 'Sin categoría';
+  }
+
+  /**
+   * Lo que costaría una unidad de las que dice la etiqueta, si la etiqueta
+   * fuera cierta. Sirve para decidir de un vistazo si lo es: si HARINA dice
+   * Kilogramo y esto da $6, la etiqueta miente.
+   */
+  impliedCostPerLabeledUnit(supply: Supply): number {
+    const unit = this.units().find(u => u.id === supply.unitId);
+    return supply.unitCost * (describeUnit(unit)?.factor ?? 1);
   }
 
   isLowStock(supply: Supply): boolean {
@@ -148,7 +160,9 @@ export class Inventory {
 
       this.saving.set(true);
       try {
-        await this.suppliesService.update(supply.id, { ...supply, ...result });
+        // `balance` solo viene si se pidió convertir a la unidad nueva.
+        const { balance, ...fields } = result;
+        await this.suppliesService.update(supply.id, { ...supply, ...fields, ...balance });
       } catch (error) {
         console.error('Error updating supply:', error);
       } finally {

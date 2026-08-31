@@ -93,6 +93,21 @@ function compareEntries(a: StockEntry, b: StockEntry): number {
   return byDate !== 0 ? byDate : (a.id ?? '').localeCompare(b.id ?? '');
 }
 
+/**
+ * Reexpresa un saldo en otra unidad: la cantidad se multiplica y el costo
+ * unitario se divide por el mismo factor, de modo que el valor del inventario
+ * no cambia. Es una conversión, no una corrección de etiqueta.
+ */
+export function rescaleBalance(balance: StockBalance, factor: number): StockBalance {
+  if (factor <= 0) return balance;
+
+  return {
+    stock: balance.stock * factor,
+    stockValue: balance.stockValue,
+    unitCost: balance.unitCost / factor
+  };
+}
+
 /** Costo unitario de una compra concreta, congelado en la entrada. */
 export function entryUnitCost(quantity: number, totalPaid: number): number {
   return quantity > 0 ? totalPaid / quantity : 0;

@@ -6,7 +6,7 @@ import { Unit } from '../models/unit.model';
 import { SuppliesDataService } from './supplies-data.service';
 import { StockEntriesDataService } from './stock-entries-data.service';
 import { UnitsDataService } from './units-data.service';
-import { convert } from './unit-conversion';
+import { convert, isBaseUnit } from './unit-conversion';
 import {
   applyCount,
   applyEntry,
@@ -72,6 +72,20 @@ export class InventoryService {
 
   readonly totalStockValue = computed(() =>
     this.supplies().reduce((sum, supply) => sum + supply.stockValue, 0)
+  );
+
+  /**
+   * Insumos cuya unidad no es la base de su dimensión.
+   *
+   * El costo unitario ya está en unidad base —si no, los precios no darían—,
+   * así que estos tienen la etiqueta mal puesta. Corregirla no cambia ningún
+   * precio, pero sin corregirla una compra en kilos se registra mil veces mal.
+   */
+  readonly mislabeledUnits = computed(() =>
+    this.supplies().filter(supply => {
+      const unit = this.unit(supply.unitId);
+      return unit !== undefined && !isBaseUnit(unit);
+    })
   );
 
   readonly lowStockSupplies = computed(() =>

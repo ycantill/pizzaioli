@@ -7,6 +7,7 @@ import {
   EMPTY_BALANCE,
   entryUnitCost,
   replayEntries,
+  rescaleBalance,
   shortfall
 } from './weighted-average';
 
@@ -172,5 +173,33 @@ describe('replayEntries con salidas', () => {
     expect(balance.stock).toBe(38);
     expect(balance.unitCost).toBe(6600);
     expect(balance.stockValue).toBe(250800);
+  });
+});
+
+describe('rescaleBalance', () => {
+  it('pasar de kilos a gramos multiplica la cantidad y divide el costo', () => {
+    const balance = { stock: 25, stockValue: 150000, unitCost: 6000 };
+
+    expect(rescaleBalance(balance, 1000)).toEqual({
+      stock: 25000, stockValue: 150000, unitCost: 6
+    });
+  });
+
+  it('el valor del inventario nunca cambia al reexpresar', () => {
+    const balance = { stock: 25, stockValue: 150000, unitCost: 6000 };
+
+    expect(rescaleBalance(balance, 0.001).stockValue).toBe(150000);
+  });
+
+  it('ida y vuelta devuelve el saldo original', () => {
+    const balance = { stock: 25, stockValue: 150000, unitCost: 6000 };
+
+    expect(rescaleBalance(rescaleBalance(balance, 1000), 0.001)).toEqual(balance);
+  });
+
+  it('un factor inválido deja el saldo intacto', () => {
+    const balance = { stock: 25, stockValue: 150000, unitCost: 6000 };
+
+    expect(rescaleBalance(balance, 0)).toEqual(balance);
   });
 });

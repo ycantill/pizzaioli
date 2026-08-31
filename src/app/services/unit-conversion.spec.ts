@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Unit } from '../models/unit.model';
-import { areCompatible, compatibleUnits, convert, describeUnit } from './unit-conversion';
+import {
+  areCompatible,
+  compatibleUnits,
+  convert,
+  describeUnit,
+  isBaseUnit
+} from './unit-conversion';
 
 const g: Unit = { id: 'g', name: 'Gramo', abbreviation: 'g' };
 const kg: Unit = { id: 'kg', name: 'Kilogramo', abbreviation: 'Kg' };
@@ -64,5 +70,23 @@ describe('compatibleUnits', () => {
 
   it('si la base es desconocida, solo se admite ella misma', () => {
     expect(compatibleUnits([g, kg, raro], raro)).toEqual([raro]);
+  });
+});
+
+describe('isBaseUnit', () => {
+  it('reconoce las unidades base de cada dimensión', () => {
+    expect(isBaseUnit(g)).toBe(true);
+    expect(isBaseUnit(ml)).toBe(true);
+    expect(isBaseUnit(unidad)).toBe(true);
+  });
+
+  it('marca como no base las unidades múltiplo', () => {
+    expect(isBaseUnit(kg)).toBe(false);
+    expect(isBaseUnit(l)).toBe(false);
+  });
+
+  it('una unidad desconocida no se considera base', () => {
+    expect(isBaseUnit(raro)).toBe(false);
+    expect(isBaseUnit(undefined)).toBe(false);
   });
 });
