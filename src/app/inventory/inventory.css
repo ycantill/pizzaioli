@@ -1,12 +1,25 @@
-/* Estilos específicos para inventario */
+/* Inventario: lista densa mobile-first. Una fila por insumo, el stock como
+   protagonista, y costo/valor solo al expandir —son datos de costeo, no de
+   cocina—. */
 
+/* El título y el total caben en una línea; el botón de alta sale del flujo
+   (ver .add-button), así que aquí no hace falta flex-wrap. */
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
   padding: 16px;
+}
+
+/* Acción principal flotante, al alcance del pulgar. En la cabecera obligaba
+   a la cabecera a ocupar tres filas (129px) y dejaba la acción más usada en
+   la esquina más difícil de alcanzar con una mano. */
+.add-button {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 20;
 }
 
 .page-title {
@@ -22,7 +35,7 @@
 }
 
 .total-label {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mat-sys-on-surface-variant);
   font-size: 12px;
 }
 
@@ -32,7 +45,7 @@
 }
 
 .container {
-  padding: 0 16px 16px;
+  padding: 0 16px 96px;
 }
 
 .loading-container {
@@ -41,124 +54,98 @@
   padding: 48px 0;
 }
 
-.supply-card {
-  margin-bottom: 16px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.supply-name {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  display: block;
-}
-
-.supply-category {
-  display: block;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
-}
-
-.card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.label {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-}
-
-.value {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.empty {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-}
-
-table {
+.search {
   width: 100%;
+  margin-bottom: 8px;
 }
 
-.movements-card {
-  margin-top: 16px;
+/* Cabecera de categoría: pegada arriba para no perder el contexto al hacer
+   scroll por una despensa larga. */
+.group-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 4px;
+  padding: 6px 0;
+  background: var(--mat-sys-surface);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mat-sys-on-surface-variant);
 }
 
-.movements-title {
-  margin: 0 0 12px;
-  font-size: 16px;
+.group-count {
   font-weight: 500;
+  letter-spacing: 0;
+  color: var(--mat-sys-outline);
 }
 
-.movements {
+.supply-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.movement {
-  display: grid;
-  grid-template-columns: 110px 90px 1fr 100px 2fr;
-  gap: 12px;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  font-size: 14px;
-}
-
-.movement:last-child {
+/* La última fila del grupo no lleva separador. Vive aquí y no en la fila
+   porque dentro de su <li> toda fila es hija única: :last-of-type allí
+   matchearía siempre. */
+.supply-list li:last-child app-supply-row {
   border-bottom: none;
 }
 
-.movement-date,
-.movement-note {
-  color: rgba(0, 0, 0, 0.6);
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 14px;
 }
 
-.movement-kind {
+/* Filtro de stock bajo. Sustituye al banner que listaba los nombres: cada
+   fila ya se marca sola, así que lo útil no es repetir la lista sino poder
+   quedarse solo con ella. */
+.filtro-bajos {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-bottom: 16px;
+  padding: 0 14px;
+  border: 1px solid var(--app-on-warning-container);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--app-on-warning-container);
+  font: inherit;
+  font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
 }
 
-.movement-quantity,
-.movement-cost {
-  text-align: right;
+.filtro-bajos.activo {
+  background: var(--app-warning-container);
 }
 
-/* En móvil la tabla no cabe: se muestran tarjetas */
-.desktop-view {
-  display: none;
+.filtro-bajos:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
-@media (min-width: 768px) {
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
+.filtro-bajos mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
-@media (max-width: 767px) {
-  .movement {
-    grid-template-columns: 1fr 1fr;
-  }
+.filtro-cuenta {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--app-on-warning-container);
+  color: var(--app-warning-container);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .alert {
@@ -177,34 +164,45 @@ table {
   padding-left: 20px;
 }
 
-/* Contraste verificado contra WCAG AA (>= 4.5:1) */
-.alert-warning {
-  background: #fff4e5;
-  color: #7a4100;
+details.alert {
+  display: block;
+  padding: 0;
 }
 
-.alert-error {
-  background: #fdecea;
-  color: #8c1c13;
+details.alert summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
 }
 
-.alert-ok {
-  background: #e6f4ea;
-  color: #14532d;
+details.alert summary::-webkit-details-marker {
+  display: none;
 }
+
+details.alert summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.alert-body {
+  padding: 0 14px 12px 38px;
+}
+
+.alert-body p {
+  margin: 0 0 6px;
+}
+
+
+
 
 .audit {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .audit .alert {
   margin: 12px 0 0;
-}
-
-.low-stock-icon {
-  vertical-align: middle;
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: #7a4100;
 }

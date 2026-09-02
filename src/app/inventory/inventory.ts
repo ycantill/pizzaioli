@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { EXIT_REASONS, ExitReason, StockEntry } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { CatalogService } from '../services/catalog.service';
 import { SupplyCategoriesDataService } from '../services/supply-categories-data.service';
@@ -16,26 +14,24 @@ import { SuppliesDataService } from '../services/supplies-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DEFAULT_MARGIN } from '../models/margin-config.model';
-import { getUnitName } from '../shared/lookup.utils';
+import { getUnitAbbreviation, getUnitName } from '../shared/lookup.utils';
 import { describeUnit } from '../services/unit-conversion';
 import { MovementDialog, MovementDialogResult, MovementKind } from './movement-dialog';
+import { SupplyAction, SupplyRow } from './supply-row';
 
-function exitReasonLabel(reason: ExitReason | undefined): string {
-  return EXIT_REASONS.find(r => r.value === reason)?.label ?? 'Salida';
-}
 import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
 
 @Component({
   selector: 'app-inventory',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    DecimalPipe,
     MatButtonModule,
-    MatCardModule,
+    MatFormFieldModule,
     MatIconModule,
-    MatMenuModule,
+    MatInputModule,
     MatProgressSpinnerModule,
-    MatTableModule,
-    MatTooltipModule
+    SupplyRow
   ],
   templateUrl: './inventory.html',
   styleUrl: './inventory.css'
@@ -57,20 +53,67 @@ export class Inventory {
     [...this.inventoryService.supplies()].sort((a, b) => a.name.localeCompare(b.name))
   );
 
-  readonly totalStockValue = this.inventoryService.totalStockValue;
   readonly lowStock = this.inventoryService.lowStockSupplies;
   readonly mislabeled = this.inventoryService.mislabeledUnits;
   readonly expandedId = signal<string | null>(null);
   readonly saving = signal(false);
   readonly auditIssues = signal<string[] | null>(null);
 
-  readonly displayedColumns = ['name', 'stock', 'unitCost', 'stockValue', 'actions'];
-
   readonly units = this.unitsService.units;
   readonly categories = this.catalog.supplyCategories;
 
+  readonly search = signal('');
+  readonly soloBajoMinimo = signal(false);
+
+  /**
+   * La despensa se piensa por categoría (harinas, quesos, salsas), así que la
+   * lista se agrupa igual. El filtro va antes del agrupado para que no queden
+   * cabeceras de categorías vacías.
+   */
+  readonly groups = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    const soloBajos = this.soloBajoMinimo();
+
+    const matches = this.supplies().filter(supply =>
+      (!term || supply.name.toLowerCase().includes(term)) &&
+      (!soloBajos || this.isLowStock(supply))
+    );
+
+    const byCategory = new Map<string, Supply[]>();
+    for (const supply of matches) {
+      const name = this.categoryName(supply.categoryId);
+      const items = byCategory.get(name);
+      if (items) {
+        items.push(supply);
+      } else {
+        byCategory.set(name, [supply]);
+      }
+    }
+
+    return [...byCategory]
+      .map(([name, items]) => ({ name, items }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  updateSearch(event: Event) {
+    this.search.set((event.target as HTMLInputElement).value);
+  }
+
+  clearSearch() {
+    this.search.set('');
+  }
+
+  toggleBajoMinimo() {
+    this.soloBajoMinimo.update(activo => !activo);
+  }
+
   unitName(unitId: string): string {
     return getUnitName(this.unitsService.units(), unitId) || unitId;
+  }
+
+  /** Junto a una cantidad se lee mejor "25.000 g" que "25.000 Gramo". */
+  unitAbbr(unitId: string): string {
+    return getUnitAbbreviation(this.unitsService.units(), unitId) || this.unitName(unitId);
   }
 
   categoryName(categoryId: string): string {
@@ -108,27 +151,22 @@ export class Inventory {
     this.auditIssues.set(issues);
   }
 
-  movementsFor(supplyId: string): StockEntry[] {
-    return this.inventoryService.entriesFor(supplyId);
+  isExpanded(supplyId: string | undefined): boolean {
+    return !!supplyId && this.expandedId() === supplyId;
   }
 
-  isExpanded(supplyId: string): boolean {
-    return this.expandedId() === supplyId;
+  /** Traduce lo que pide la fila a la operación correspondiente. */
+  onAction(supply: Supply, accion: SupplyAction) {
+    switch (accion) {
+      case 'editar': return this.editSupply(supply);
+      case 'eliminar': return this.deleteSupply(supply);
+      default: return this.registerMovement(supply, accion);
+    }
   }
 
   toggleMovements(supplyId: string | undefined) {
     if (!supplyId) return;
     this.expandedId.update(current => (current === supplyId ? null : supplyId));
-  }
-
-  /** En las salidas manda el motivo, que es lo que distingue una de otra. */
-  movementLabel(entry: StockEntry): string {
-    switch (entry.kind) {
-      case 'apertura': return 'Apertura';
-      case 'ajuste': return 'Conteo';
-      case 'salida': return exitReasonLabel(entry.reason);
-      default: return 'Compra';
-    }
   }
 
   addSupply() {

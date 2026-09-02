@@ -1,0 +1,170 @@
+/* Fila de insumo del inventario. El costo por unidad es el protagonista;
+   stock y movimientos viven en el detalle desplegable. */
+
+:host {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+/* La fila entera abre el detalle: blanco de toque grande para dedos con
+   harina, en lugar de un chevron de 24px. */
+.row-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 4px 8px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row-summary:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row-name {
+  font-size: 15px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.row-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--app-on-warning-container);
+}
+
+.row-flag mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* El número que trae al usuario a esta pantalla: el costo por unidad.
+   El stock vive en el detalle porque hoy vale 1 en todos los insumos —el
+   inventario se usa para costear, no para llevar saldos—. */
+.row-cost {
+  flex: none;
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row-unit {
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+:host(.is-low) .row-cost {
+  color: var(--app-on-warning-container);
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+}
+
+.buy-button {
+  color: var(--mat-sys-primary);
+}
+
+.row-detail {
+  grid-column: 1 / -1;
+  padding: 4px 0 16px;
+}
+
+.detail-figures {
+  display: flex;
+  gap: 24px;
+  margin: 0 0 16px;
+}
+
+.detail-figures div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-figures dt {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.detail-figures dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.movements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cuatro datos: fecha, tipo, cantidad y costo. Con tres columnas el costo
+   caía a una segunda línea bajo la fecha. */
+.movement {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 2px 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  font-size: 13px;
+}
+
+.movement-date {
+  color: var(--mat-sys-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+
+.movement-kind {
+  font-weight: 500;
+}
+
+.movement-quantity,
+.movement-cost {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.movement-note {
+  grid-column: 1 / -1;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.movement.empty {
+  grid-template-columns: 1fr;
+  color: var(--mat-sys-on-surface-variant);
+  border-top: none;
+}
