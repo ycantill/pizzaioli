@@ -1,6 +1,15 @@
 .sidenav-container {
-  height: 100vh;
+  /* dvh, no vh: en móvil la barra de URL cambia de alto y vh no la tiene en cuenta.
+     La toolbar de Material mide 56px hasta 600px y 64px a partir de ahí. */
+  --app-toolbar-h: 56px;
+  height: 100dvh;
   width: 100%;
+}
+
+@media (min-width: 600px) {
+  .sidenav-container {
+    --app-toolbar-h: 64px;
+  }
 }
 
 .sidenav {
@@ -48,6 +57,10 @@ mat-nav-list a.active mat-icon {
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* Instalada como PWA la app ocupa la pantalla completa: sin esto la toolbar
+     queda por debajo de la barra de estado o del notch. */
+  padding-top: env(safe-area-inset-top);
+  height: calc(var(--app-toolbar-h) + env(safe-area-inset-top));
 }
 
 .app-title {
@@ -61,12 +74,13 @@ mat-nav-list a.active mat-icon {
 }
 
 .content {
-  height: calc(100vh - 64px);
+  height: calc(100dvh - var(--app-toolbar-h) - env(safe-area-inset-top));
   overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .loading-container {
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

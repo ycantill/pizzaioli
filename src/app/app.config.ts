@@ -1,7 +1,8 @@
-import { ApplicationConfig, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, isDevMode, LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
 import './firebase.config';
@@ -13,6 +14,10 @@ registerLocaleData(localeEs);
 export const appConfig: ApplicationConfig = {
   providers: [
     { provide: LOCALE_ID, useValue: 'es' },
-    provideRouter(routes)
-  ]
+    provideRouter(routes),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+  ],
 };
