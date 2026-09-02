@@ -50,11 +50,6 @@
   font-style: italic;
 }
 
-/* Mobile view */
-.mobile-view {
-  display: none;
-}
-
 .labor-row {
   display: flex;
   justify-content: space-between;

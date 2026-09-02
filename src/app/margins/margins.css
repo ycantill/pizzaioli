@@ -42,11 +42,6 @@
   min-height: 300px;
 }
 
-/* Mobile View - Cards */
-.mobile-view {
-  display: none;
-}
-
 .margin-card {
   margin-bottom: 16px;
 }
@@ -102,11 +97,6 @@
 .total-value {
   color: var(--mat-sys-primary);
   font-size: 16px;
-}
-
-/* Desktop View - Tabla */
-.desktop-view {
-  display: block;
 }
 
 table {

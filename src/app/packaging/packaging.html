@@ -68,11 +68,16 @@
             }
           </div>
           <div class="packaging-actions">
-            <button mat-icon-button color="primary" (click)="openDialog(recipeType)">
+            <button mat-icon-button color="primary"
+                    [attr.aria-label]="(getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar')
+                      + ' paquetería de ' + recipeType.name"
+                    (click)="openDialog(recipeType)">
               <mat-icon>{{ getPackagingForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
             </button>
             @if (getPackagingForType(recipeType.id!); as packaging) {
-              <button mat-icon-button color="warn" (click)="deletePackaging(packaging.id!)">
+              <button mat-icon-button color="warn"
+                      [attr.aria-label]="'Eliminar paquetería de ' + recipeType.name"
+                      (click)="deletePackaging(packaging.id!)">
                 <mat-icon>delete</mat-icon>
               </button>
             }

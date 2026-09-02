@@ -80,16 +80,3 @@ table {
   width: 100%;
 }
 
-.desktop-view {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .mobile-view {
-    display: none;
-  }
-
-  .desktop-view {
-    display: block;
-  }
-}

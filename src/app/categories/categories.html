@@ -20,11 +20,13 @@
             <div class="card-header">
               <h3 class="category-name">{{ category.name }}</h3>
               <div class="card-actions">
-                <button mat-icon-button color="primary" 
+                <button mat-icon-button color="primary"
+                        [attr.aria-label]="'Editar categoría ' + category.name"
                         (click)="editCategory(category)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" 
+                <button mat-icon-button color="warn"
+                        [attr.aria-label]="'Eliminar categoría ' + category.name"
                         (click)="deleteCategory(category)">
                   <mat-icon>delete</mat-icon>
                 </button>

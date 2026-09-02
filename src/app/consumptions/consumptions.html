@@ -63,10 +63,14 @@
             </div>
           </div>
           <div class="consumption-actions">
-            <button mat-icon-button color="primary" (click)="editConsumption(consumption)">
+            <button mat-icon-button color="primary"
+                    [attr.aria-label]="'Editar consumo ' + consumption.name"
+                    (click)="editConsumption(consumption)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteConsumption(consumption)">
+            <button mat-icon-button color="warn"
+                    [attr.aria-label]="'Eliminar consumo ' + consumption.name"
+                    (click)="deleteConsumption(consumption)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>

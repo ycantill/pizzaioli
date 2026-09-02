@@ -34,11 +34,13 @@
                         (click)="duplicateRecipe(recipe)">
                   <mat-icon>content_copy</mat-icon>
                 </button>
-                <button mat-icon-button color="primary" 
+                <button mat-icon-button color="primary"
+                        [attr.aria-label]="'Editar receta ' + recipe.name"
                         (click)="editRecipe(recipe)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" 
+                <button mat-icon-button color="warn"
+                        [attr.aria-label]="'Eliminar receta ' + recipe.name"
                         (click)="deleteRecipe(recipe)">
                   <mat-icon>delete</mat-icon>
                 </button>

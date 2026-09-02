@@ -5,6 +5,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* En móvil el título y los botones de acción no caben en una línea:
+     sin esto se apiñan hasta tocarse (p. ej. "Recetas" contra "Imprimir"). */
+  flex-wrap: wrap;
+  gap: 16px;
   padding: 16px;
   background-color: var(--mat-sys-surface-container-lowest);
   border-bottom: 1px solid var(--mat-sys-outline-variant);
@@ -42,10 +46,37 @@
   min-height: 300px;
 }
 
-/* Mobile View - Cards */
-.mobile-view {
+/* Vistas responsive (mobile-first)
+   Por defecto se muestran las tarjetas; la tabla aparece desde tablet.
+
+   El toggle vive solo aquí: los componentes no deben redefinir estos
+   display, porque el encapsulado de Angular les da mayor especificidad
+   y anularían el breakpoint.
+
+   La clase va duplicada a propósito. En varias pantallas .desktop-view
+   es un <mat-card>, y Material inyecta `.mat-mdc-card { display: flex }`
+   en el <head> DESPUÉS de esta hoja: a igual especificidad (0,1,0)
+   ganaría Material y la tabla se colaría en móvil. Duplicar la clase
+   sube la especificidad a (0,2,0) sin recurrir a !important. */
+.mobile-view.mobile-view {
+  display: block;
+}
+
+.desktop-view.desktop-view {
   display: none;
 }
+
+@media (min-width: 768px) {
+  .mobile-view.mobile-view {
+    display: none;
+  }
+
+  .desktop-view.desktop-view {
+    display: block;
+  }
+}
+
+/* Tarjetas (vista móvil) */
 
 .card-header {
   display: flex;
@@ -85,11 +116,6 @@
 
 .row-value {
   color: var(--mat-sys-on-surface);
-}
-
-/* Desktop View - Table */
-.desktop-view {
-  display: block;
 }
 
 /* Variantes de alerta. Solo mapean tokens, así que viven una vez aquí en vez

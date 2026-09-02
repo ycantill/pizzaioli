@@ -68,11 +68,16 @@
             }
           </div>
           <div class="labor-actions">
-            <button mat-icon-button color="primary" (click)="openDialog(recipeType)">
+            <button mat-icon-button color="primary"
+                    [attr.aria-label]="(getLaborForType(recipeType.id!) ? 'Editar' : 'Configurar')
+                      + ' mano de obra de ' + recipeType.name"
+                    (click)="openDialog(recipeType)">
               <mat-icon>{{ getLaborForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
             </button>
             @if (getLaborForType(recipeType.id!); as labor) {
-              <button mat-icon-button color="warn" (click)="deleteLabor(labor.id!)">
+              <button mat-icon-button color="warn"
+                      [attr.aria-label]="'Eliminar mano de obra de ' + recipeType.name"
+                      (click)="deleteLabor(labor.id!)">
                 <mat-icon>delete</mat-icon>
               </button>
             }
