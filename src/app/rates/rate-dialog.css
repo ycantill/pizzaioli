@@ -1,0 +1,12 @@
+/* Estilos específicos para el diálogo de tarifas */
+
+.full-width {
+  width: 100%;
+}
+
+.hint {
+  margin: 4px 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  line-height: 1.4;
+}

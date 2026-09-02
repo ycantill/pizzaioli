@@ -43,7 +43,7 @@
               <div class="ingredients-list">
                 @for (ingredient of dough.ingredients; track $index) {
                   <div class="ingredient-item">
-                    <span class="ingredient-name">{{ getCostName(ingredient.costId) }}</span>
+                    <span class="ingredient-name">{{ getCostName(ingredient.supplyId) }}</span>
                     <span class="ingredient-quantity">{{ ingredient.quantity }}g</span>
                   </div>
                 }
@@ -83,7 +83,7 @@
               <div class="ingredients-preview">
                 @for (ingredient of dough.ingredients.slice(0, 4); track $index) {
                   <span class="ingredient-badge">
-                    {{ getCostName(ingredient.costId) }} ({{ ingredient.quantity }}g)
+                    {{ getCostName(ingredient.supplyId) }} ({{ ingredient.quantity }}g)
                   </span>
                 }
                 @if (dough.ingredients.length > 4) {

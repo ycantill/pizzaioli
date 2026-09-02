@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,15 +6,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Dough } from '../models/dough.model';
-import { Cost } from '../models/cost.model';
-import { CostType } from '../models/cost-type.model';
-import { FirestoreService } from '../firestore.service';
+import { CatalogService } from '../services/catalog.service';
+import { DoughsDataService } from '../services/doughs-data.service';
 import { DoughDialog } from './dough-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-doughs',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -25,79 +24,34 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   templateUrl: './doughs.html',
   styleUrl: './doughs.css'
 })
-export class Doughs implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Doughs {
   private dialog = inject(MatDialog);
-  
-  doughs = signal<Dough[]>([]);
-  costs = signal<Cost[]>([]);
-  costTypes = signal<CostType[]>([]);
-  loading = signal(true);
+  private catalog = inject(CatalogService);
+  private doughsService = inject(DoughsDataService);
+
+  doughs = this.doughsService.doughs;
+  loading = computed(() =>
+    this.catalog.isLoading() || this.doughsService.isLoading()
+  );
   displayedColumns: string[] = ['name', 'ballWeight', 'ingredients', 'actions'];
 
-  async ngOnInit() {
-    await this.loadCostTypes();
-    await this.loadCosts();
-    await this.loadDoughs();
-  }
+  ingredientCosts = this.catalog.ingredients;
 
-  async loadCostTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('cost-types');
-      this.costTypes.set(data as CostType[]);
-    } catch (error) {
-      console.error('Error loading cost types:', error);
-    }
-  }
-
-  async loadCosts() {
-    try {
-      const allCosts = await this.firestoreService.getDocuments('costs') as Cost[];
-      const types = this.costTypes();
-      const ingredienteType = types.find(t => t.name.toLowerCase() === 'ingrediente');
-      
-      // Filtrar solo ingredientes
-      const ingredientCosts = ingredienteType 
-        ? allCosts.filter(cost => cost.typeId === ingredienteType.id)
-        : allCosts;
-      
-      this.costs.set(ingredientCosts);
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadDoughs() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('doughs');
-      this.doughs.set(data as Dough[]);
-    } catch (error) {
-      console.error('Error loading doughs:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   addDough() {
     const dialogRef = this.dialog.open(DoughDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { 
-        costs: this.costs()
-      }
+      data: { costs: this.ingredientCosts() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Dough | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('doughs', result);
-          this.doughs.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.doughsService.add(result);
         } catch (error) {
           console.error('Error adding dough:', error);
         }
@@ -109,19 +63,13 @@ export class Doughs implements OnInit {
     const dialogRef = this.dialog.open(DoughDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { 
-        dough,
-        costs: this.costs()
-      }
+      data: { dough, costs: this.ingredientCosts() }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Dough | undefined) => {
       if (result && dough.id) {
         try {
-          await this.firestoreService.updateDocument('doughs', dough.id, result);
-          this.doughs.update(list => 
-            list.map(d => d.id === dough.id ? { ...result, id: dough.id } : d)
-          );
+          await this.doughsService.update(dough.id, result);
         } catch (error) {
           console.error('Error updating dough:', error);
         }
@@ -131,7 +79,7 @@ export class Doughs implements OnInit {
 
   async deleteDough(dough: Dough) {
     if (!dough.id) return;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
       data: {
@@ -143,8 +91,7 @@ export class Doughs implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('doughs', dough.id!);
-          this.doughs.update(list => list.filter(d => d.id !== dough.id));
+          await this.doughsService.remove(dough.id!);
         } catch (error) {
           console.error('Error deleting dough:', error);
         }

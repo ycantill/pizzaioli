@@ -1,0 +1,35 @@
+mat-dialog-content {
+  min-width: 400px;
+  padding-top: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.total-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.total-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.total-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+mat-dialog-actions {
+  padding: 16px 24px;
+}

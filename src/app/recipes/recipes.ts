@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,15 +6,16 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { Recipe } from '../models/recipe.model';
-import { Topping } from '../models/topping.model';
-import { Cost } from '../models/cost.model';
-import { RecipeType } from '../models/recipe-type.model';
-import { FirestoreService } from '../firestore.service';
+import { CatalogService } from '../services/catalog.service';
+import { ToppingsDataService } from '../services/toppings-data.service';
+import { RecipeTypesDataService } from '../services/recipe-types-data.service';
+import { RecipesDataService } from '../services/recipes-data.service';
 import { RecipeDialog } from './recipe-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
 @Component({
   selector: 'app-recipes',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
     MatButtonModule,
@@ -25,67 +26,24 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   templateUrl: './recipes.html',
   styleUrl: './recipes.css'
 })
-export class Recipes implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Recipes {
   private dialog = inject(MatDialog);
-  
-  recipes = signal<Recipe[]>([]);
-  toppings = signal<Topping[]>([]);
-  costs = signal<Cost[]>([]);
-  recipeTypes = signal<RecipeType[]>([]);
-  loading = signal(true);
+  private catalog = inject(CatalogService);
+  private toppingsService = inject(ToppingsDataService);
+  private recipeTypesService = inject(RecipeTypesDataService);
+  private recipesService = inject(RecipesDataService);
+
+  recipes = this.recipesService.recipes;
+  loading = computed(() =>
+    this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
+    this.toppingsService.isLoading() || this.recipesService.isLoading()
+  );
   displayedColumns: string[] = ['name', 'type', 'toppings', 'actions'];
 
-  async ngOnInit() {
-    await this.loadRecipeTypes();
-    await Promise.all([this.loadCosts(), this.loadToppings()]);
-    await this.loadRecipes();
-  }
-
-  async loadRecipeTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('recipe-types');
-      this.recipeTypes.set(data as RecipeType[]);
-    } catch (error) {
-      console.error('Error loading recipe types:', error);
-    }
-  }
-
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadToppings() {
-    try {
-      const data = await this.firestoreService.getDocuments('toppings');
-      this.toppings.set(data as Topping[]);
-    } catch (error) {
-      console.error('Error loading toppings:', error);
-    }
-  }
-
-  async loadRecipes() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('recipes');
-      this.recipes.set(data as Recipe[]);
-    } catch (error) {
-      console.error('Error loading recipes:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
   getToppingLabel(toppingId: string): string {
-    const topping = this.toppings().find(t => t.id === toppingId);
+    const topping = this.toppingsService.toppings().find(t => t.id === toppingId);
     if (!topping) return 'Desconocido';
-    const cost = this.costs().find(c => c.id === topping.costId);
-    return `${cost?.product ?? 'Desconocido'} — ${topping.size} (${topping.quantity})`;
+    return `${this.catalog.name(topping.supplyId)} — ${topping.size} (${topping.quantity})`;
   }
 
   getRecipeItems(recipe: Recipe): string[] {
@@ -93,21 +51,21 @@ export class Recipes implements OnInit {
   }
 
   getRecipeTypeName(recipeTypeId: string): string {
-    const type = this.recipeTypes().find(t => t.id === recipeTypeId);
+    const type = this.recipeTypesService.recipeTypes().find(t => t.id === recipeTypeId);
     return type ? type.name : 'Desconocido';
   }
 
   openPrintWindow() {
-    const allToppings = this.toppings();
-    const allCosts = this.costs();
+    const allToppings = this.toppingsService.toppings();
+    const allCosts = this.catalog.items();
 
     const recipesHtml = this.recipes().map(recipe => {
       const toppingRows = recipe.toppings.map(toppingId => {
         const topping = allToppings.find(t => t.id === toppingId);
         if (!topping) return '';
-        const cost = allCosts.find(c => c.id === topping.costId);
+        const cost = allCosts.find(c => c.id === topping.supplyId);
         if (!cost) return '';
-        return `<tr><td>${cost.product}</td><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
+        return `<tr><td>${cost.name}</td><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
       }).join('');
 
       return `
@@ -155,14 +113,17 @@ export class Recipes implements OnInit {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { toppings: this.toppings(), costs: this.costs(), recipeTypes: this.recipeTypes() }
+      data: {
+        toppings: this.toppingsService.toppings(),
+        costs: this.catalog.items(),
+        recipeTypes: this.recipeTypesService.recipeTypes()
+      }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('recipes', result);
-          this.recipes.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.recipesService.add(result);
         } catch (error) {
           console.error('Error adding recipe:', error);
         }
@@ -170,20 +131,35 @@ export class Recipes implements OnInit {
     });
   }
 
+  async duplicateRecipe(recipe: Recipe) {
+    const copy: Recipe = {
+      name: `${recipe.name} (copia)`,
+      recipeTypeId: recipe.recipeTypeId,
+      toppings: [...recipe.toppings],
+    };
+    try {
+      await this.recipesService.add(copy);
+    } catch (error) {
+      console.error('Error duplicating recipe:', error);
+    }
+  }
+
   editRecipe(recipe: Recipe) {
     const dialogRef = this.dialog.open(RecipeDialog, {
       width: '600px',
       maxHeight: '90vh',
-      data: { recipe, toppings: this.toppings(), costs: this.costs(), recipeTypes: this.recipeTypes() }
+      data: {
+        recipe,
+        toppings: this.toppingsService.toppings(),
+        costs: this.catalog.items(),
+        recipeTypes: this.recipeTypesService.recipeTypes()
+      }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Recipe | undefined) => {
       if (result && recipe.id) {
         try {
-          await this.firestoreService.updateDocument('recipes', recipe.id, result);
-          this.recipes.update(list => 
-            list.map(r => r.id === recipe.id ? { ...result, id: recipe.id } : r)
-          );
+          await this.recipesService.update(recipe.id, result);
         } catch (error) {
           console.error('Error updating recipe:', error);
         }
@@ -193,7 +169,7 @@ export class Recipes implements OnInit {
 
   async deleteRecipe(recipe: Recipe) {
     if (!recipe.id) return;
-    
+
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
       data: {
@@ -205,8 +181,7 @@ export class Recipes implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('recipes', recipe.id!);
-          this.recipes.update(list => list.filter(r => r.id !== recipe.id));
+          await this.recipesService.remove(recipe.id!);
         } catch (error) {
           console.error('Error deleting recipe:', error);
         }

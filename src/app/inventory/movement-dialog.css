@@ -1,0 +1,78 @@
+/* Estilos específicos para el diálogo de movimientos */
+
+.lead {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.quantity-row {
+  display: flex;
+  gap: 12px;
+}
+
+.quantity-field {
+  flex: 2;
+}
+
+.unit-field {
+  flex: 3;
+}
+
+.details-toggle {
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.details {
+  padding-top: 4px;
+}
+
+.outcome {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
+.outcome-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.outcome-value {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.outcome-value strong {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Contraste verificado contra WCAG AA (>= 4.5:1) */
+.alert-warning {
+  background: #fff4e5;
+  color: #7a4100;
+}
+
+.alert-error {
+  background: #fdecea;
+  color: #8c1c13;
+}

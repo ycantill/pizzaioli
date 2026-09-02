@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,15 +8,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { Packaging } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { Cost } from '../models/cost.model';
-import { CostType } from '../models/cost-type.model';
-import { Unit } from '../models/unit.model';
-import { FirestoreService } from '../firestore.service';
+import { CatalogService } from '../services/catalog.service';
+import { UnitsDataService } from '../services/units-data.service';
+import { RecipeTypesDataService } from '../services/recipe-types-data.service';
+import { PackagingsDataService } from '../services/packagings-data.service';
 import { PackagingDialog } from './packaging-dialog';
 
 @Component({
   selector: 'app-packaging',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCardModule,
     MatButtonModule,
@@ -28,84 +28,28 @@ import { PackagingDialog } from './packaging-dialog';
   templateUrl: './packaging.html',
   styleUrl: './packaging.css'
 })
-export class PackagingConfig implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class PackagingConfig {
   private dialog = inject(MatDialog);
+  private catalog = inject(CatalogService);
+  private unitsService = inject(UnitsDataService);
+  private recipeTypesService = inject(RecipeTypesDataService);
+  private packagingsService = inject(PackagingsDataService);
 
-  packagings = signal<Packaging[]>([]);
-  recipeTypes = signal<RecipeType[]>([]);
-  costs = signal<Cost[]>([]);
-  costTypes = signal<CostType[]>([]);
-  units = signal<Unit[]>([]);
-  loading = signal(true);
+  packagings = this.packagingsService.packagings;
+  recipeTypes = this.recipeTypesService.recipeTypes;
+  loading = computed(() =>
+    this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
+    this.unitsService.isLoading() || this.packagingsService.isLoading()
+  );
   displayedColumns: string[] = ['name', 'items', 'actions'];
-
-  async ngOnInit() {
-    await Promise.all([
-      this.loadRecipeTypes(),
-      this.loadCostTypes(),
-      this.loadCosts(),
-      this.loadUnits(),
-      this.loadPackagings()
-    ]);
-  }
-
-  async loadRecipeTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('recipe-types');
-      this.recipeTypes.set(data as RecipeType[]);
-    } catch (error) {
-      console.error('Error loading recipe types:', error);
-    }
-  }
-
-  async loadCostTypes() {
-    try {
-      const data = await this.firestoreService.getDocuments('cost-types');
-      this.costTypes.set(data as CostType[]);
-    } catch (error) {
-      console.error('Error loading cost types:', error);
-    }
-  }
-
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadUnits() {
-    try {
-      const data = await this.firestoreService.getDocuments('units');
-      this.units.set(data as Unit[]);
-    } catch (error) {
-      console.error('Error loading units:', error);
-    }
-  }
-
-  async loadPackagings() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('packagings');
-      this.packagings.set(data as Packaging[]);
-    } catch (error) {
-      console.error('Error loading packagings:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
 
   getRecipeTypeName(recipeTypeId: string): string {
     const type = this.recipeTypes().find(t => t.id === recipeTypeId);
     return type ? type.name : 'Desconocido';
   }
 
-  getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   getPackagingForType(recipeTypeId: string): Packaging | undefined {
@@ -114,60 +58,39 @@ export class PackagingConfig implements OnInit {
 
   openDialog(recipeType: RecipeType) {
     const existingPackaging = this.getPackagingForType(recipeType.id!);
-    
-    // Filtrar costos que NO sean ingredientes
-    const ingredienteType = this.costTypes().find(t => t.name.toLowerCase() === 'ingrediente');
-    const filteredCosts = ingredienteType
-      ? this.costs().filter(cost => cost.typeId !== ingredienteType.id)
-      : this.costs();
-    
+
+    const filteredCosts = this.catalog.packagingSupplies();
+
     const dialogRef = this.dialog.open(PackagingDialog, {
       width: '600px',
       maxHeight: '90vh',
       data: {
         packaging: existingPackaging,
-        recipeType: recipeType,
+        recipeType,
         costs: filteredCosts,
-        units: this.units()
+        units: this.unitsService.units()
       }
     });
 
     dialogRef.afterClosed().subscribe(async (result: Packaging | undefined) => {
       if (result) {
-        if (existingPackaging?.id) {
-          await this.updatePackaging(existingPackaging.id, result);
-        } else {
-          await this.addPackaging(result);
+        try {
+          if (existingPackaging?.id) {
+            await this.packagingsService.update(existingPackaging.id, result);
+          } else {
+            await this.packagingsService.add(result);
+          }
+        } catch (error) {
+          console.error('Error saving packaging:', error);
         }
       }
     });
   }
 
-  async addPackaging(packaging: Packaging) {
-    try {
-      const docRef = await this.firestoreService.addDocument('packagings', packaging);
-      this.packagings.update(list => [...list, { ...packaging, id: docRef.id }]);
-    } catch (error) {
-      console.error('Error adding packaging:', error);
-    }
-  }
-
-  async updatePackaging(id: string, packaging: Packaging) {
-    try {
-      await this.firestoreService.updateDocument('packagings', id, packaging);
-      this.packagings.update(list => 
-        list.map(d => d.id === id ? { ...packaging, id } : d)
-      );
-    } catch (error) {
-      console.error('Error updating packaging:', error);
-    }
-  }
-
   async deletePackaging(id: string) {
     if (confirm('¿Estás seguro de que deseas eliminar esta configuración de paquetería?')) {
       try {
-        await this.firestoreService.deleteDocument('packagings', id);
-        this.packagings.update(list => list.filter(d => d.id !== id));
+        await this.packagingsService.remove(id);
       } catch (error) {
         console.error('Error deleting packaging:', error);
       }

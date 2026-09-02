@@ -1,0 +1,76 @@
+<div class="page-header">
+  <h1 class="page-title">Categorías de insumo</h1>
+  <button mat-fab extended (click)="addCategory()" class="add-button">
+    <mat-icon>add</mat-icon>
+    <span class="button-text">Nueva</span>
+  </button>
+</div>
+
+<div class="container">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <!-- Mobile View: Cards -->
+    <div class="mobile-view">
+      @for (category of categories(); track category.id) {
+        <mat-card class="category-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3 class="category-name">{{ category.name }}</h3>
+              <div class="card-actions">
+                <button mat-icon-button color="primary" 
+                        (click)="editCategory(category)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" 
+                        (click)="deleteCategory(category)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Desktop View: Table -->
+    <mat-card class="desktop-view">
+      <mat-card-content>
+        <table mat-table [dataSource]="categories()" class="mat-elevation-z2">
+          
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let category">{{ category.name }}</td>
+          </ng-container>
+
+          <!-- Kind Column -->
+          <ng-container matColumnDef="kind">
+            <th mat-header-cell *matHeaderCellDef>Función</th>
+            <td mat-cell *matCellDef="let category">{{ kindLabel(category) }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let category">
+              <button mat-icon-button color="primary" 
+                      (click)="editCategory(category)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" 
+                      (click)="deleteCategory(category)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

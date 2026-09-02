@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Dough, DoughRecipeIngredient } from '../models/dough.model';
-import { Cost } from '../models/cost.model';
-import { Unit } from '../models/unit.model';
+import { PricedItem } from '../models/priced-item.model';
 
 export interface CalculatedIngredient {
-  costId: string;
+  supplyId: string;
   name: string;
   quantity: number;
   bakerPercentage: number;
@@ -18,10 +17,10 @@ export class DoughCalculationService {
   /**
    * Find the flour ingredient in a dough recipe
    */
-  findFlourIngredient(dough: Dough, costs: Cost[]): DoughRecipeIngredient | null {
+  findFlourIngredient(dough: Dough, items: PricedItem[]): DoughRecipeIngredient | null {
     const flourIngredient = dough.ingredients.find(ing => {
-      const cost = costs.find(c => c.id === ing.costId);
-      return cost?.product.toLowerCase().includes('harina');
+      const item = items.find(i => i.id === ing.supplyId);
+      return item?.name.toLowerCase().includes('harina');
     });
     return flourIngredient || null;
   }
@@ -32,13 +31,12 @@ export class DoughCalculationService {
   calculateBakerPercentages(
     dough: Dough,
     flourBaseWeight: number,
-    costs: Cost[]
   ): Map<string, number> {
     const percentages = new Map<string, number>();
     
     dough.ingredients.forEach(ing => {
       const percentage = (ing.quantity / flourBaseWeight) * 100;
-      percentages.set(ing.costId, percentage);
+      percentages.set(ing.supplyId, percentage);
     });
     
     return percentages;
@@ -49,16 +47,16 @@ export class DoughCalculationService {
    */
   getDoughBakerPercentages(
     dough: Dough,
-    costs: Cost[]
-  ): Array<{ costId: string; bakerPercentage: number }> {
-    const flourIngredient = this.findFlourIngredient(dough, costs);
+    items: PricedItem[]
+  ): { supplyId: string; bakerPercentage: number }[] {
+    const flourIngredient = this.findFlourIngredient(dough, items);
     if (!flourIngredient) return [];
 
-    const percentages = this.calculateBakerPercentages(dough, flourIngredient.quantity, costs);
+    const percentages = this.calculateBakerPercentages(dough, flourIngredient.quantity);
     
     return dough.ingredients.map(ing => ({
-      costId: ing.costId,
-      bakerPercentage: Math.round((percentages.get(ing.costId) || 0) * 100) / 100
+      supplyId: ing.supplyId,
+      bakerPercentage: Math.round((percentages.get(ing.supplyId) || 0) * 100) / 100
     }));
   }
 
@@ -72,13 +70,13 @@ export class DoughCalculationService {
     dough: Dough,
     doughBallWeight: number,
     quantity: number,
-    costs: Cost[]
+    items: PricedItem[]
   ): CalculatedIngredient[] {
-    const flourIngredient = this.findFlourIngredient(dough, costs);
+    const flourIngredient = this.findFlourIngredient(dough, items);
     if (!flourIngredient) return [];
 
     const flourBaseWeight = flourIngredient.quantity;
-    const percentages = this.calculateBakerPercentages(dough, flourBaseWeight, costs);
+    const percentages = this.calculateBakerPercentages(dough, flourBaseWeight);
 
     // Calculate total baker's percentage
     const totalBakerPercentage = Array.from(percentages.values()).reduce((sum, p) => sum + p, 0);
@@ -87,52 +85,16 @@ export class DoughCalculationService {
     const ingredientMultiplier = (quantity * doughBallWeight) / totalBakerPercentage;
 
     return dough.ingredients.map(ing => {
-      const cost = costs.find(c => c.id === ing.costId);
-      const bakerPercentage = percentages.get(ing.costId) || 0;
+      const item = items.find(i => i.id === ing.supplyId);
+      const bakerPercentage = percentages.get(ing.supplyId) || 0;
       const actualQuantity = ingredientMultiplier * bakerPercentage;
 
       return {
-        costId: ing.costId,
-        name: cost?.product || 'Desconocido',
+        supplyId: ing.supplyId,
+        name: item?.name || 'Desconocido',
         quantity: Math.round(actualQuantity * 10) / 10,
         bakerPercentage: Math.round(bakerPercentage * 100) / 100
       };
     });
-  }
-
-  /**
-   * Convert quantity to the base unit (grams/ml) based on cost unit
-   */
-  getConversionFactor(unitId: string, units: Unit[]): number {
-    const unit = units.find(u => u.id === unitId);
-    if (!unit) return 1000; // default to kg
-
-    const abbr = unit.abbreviation.toLowerCase();
-    
-    // Weight conversions to grams
-    if (abbr === 'kg') return 1000;
-    if (abbr === 'g') return 1;
-    if (abbr === 'mg') return 0.001;
-    
-    // Volume conversions to ml
-    if (abbr === 'l') return 1000;
-    if (abbr === 'ml') return 1;
-    
-    // Units (pieces)
-    if (abbr === 'unidad' || abbr === 'ud' || abbr === 'pz') return 1;
-    
-    return 1000; // default
-  }
-
-  /**
-   * Calculate the cost of ingredients
-   */
-  calculateIngredientCost(
-    quantity: number,
-    cost: Cost,
-    units: Unit[]
-  ): number {
-    const conversionFactor = this.getConversionFactor(cost.unitId, units);
-    return (quantity / conversionFactor) * cost.value;
   }
 }

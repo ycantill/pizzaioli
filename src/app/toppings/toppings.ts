@@ -1,14 +1,15 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { Topping } from '../models/topping.model';
-import { Cost } from '../models/cost.model';
-import { Unit } from '../models/unit.model';
-import { FirestoreService } from '../firestore.service';
+import { CatalogService } from '../services/catalog.service';
+import { UnitsDataService } from '../services/units-data.service';
+import { ToppingsDataService } from '../services/toppings-data.service';
 import { ToppingDialog } from './topping-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 
@@ -17,6 +18,7 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
+    MatSortModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -25,69 +27,65 @@ import { ConfirmDialog } from '../shared/confirm-dialog';
   templateUrl: './toppings.html',
   styleUrl: './toppings.css'
 })
-export class Toppings implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class Toppings {
   private dialog = inject(MatDialog);
+  private catalog = inject(CatalogService);
+  private unitsService = inject(UnitsDataService);
+  private toppingsService = inject(ToppingsDataService);
 
-  toppings = signal<Topping[]>([]);
-  costs = signal<Cost[]>([]);
-  units = signal<Unit[]>([]);
-  loading = signal(true);
-  displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'actions'];
+  costs = this.catalog.items;
+  units = this.unitsService.units;
+  toppings = this.toppingsService.toppings;
+  loading = computed(() =>
+    this.catalog.isLoading() || this.unitsService.isLoading() || this.toppingsService.isLoading()
+  );
+  displayedColumns: string[] = ['ingredient', 'quantity', 'size', 'salsaBase', 'actions'];
+  sortActive = signal<'ingredient' | 'quantity' | 'size' | 'salsaBase'>('ingredient');
+  sortDirection = signal<'asc' | 'desc'>('asc');
 
-  async ngOnInit() {
-    await Promise.all([this.loadCosts(), this.loadUnits()]);
-    await this.loadToppings();
-  }
+  sortedToppings = computed(() => {
+    const active = this.sortActive();
+    const direction = this.sortDirection();
+    const directionFactor = direction === 'asc' ? 1 : -1;
+    const sizeOrder: Record<string, number> = { S: 0, M: 1, L: 2, XL: 3, XXL: 4 };
 
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-    } catch (error) {
-      console.error('Error loading costs:', error);
+    return [...this.toppingsService.toppings()].sort((a, b) => {
+      if (active === 'ingredient') {
+        const aName = this.getCostName(a.supplyId);
+        const bName = this.getCostName(b.supplyId);
+        return aName.localeCompare(bName, 'es') * directionFactor;
+      }
+      if (active === 'quantity') return (a.quantity - b.quantity) * directionFactor;
+      if (active === 'salsaBase') return ((a.salsaBase ? 1 : 0) - (b.salsaBase ? 1 : 0)) * directionFactor;
+      return ((sizeOrder[a.size] ?? 99) - (sizeOrder[b.size] ?? 99)) * directionFactor;
+    });
+  });
+
+  onSortChange(sort: Sort) {
+    if (!sort.active || !sort.direction) {
+      this.sortActive.set('ingredient');
+      this.sortDirection.set('asc');
+      return;
     }
+    this.sortActive.set(sort.active as 'ingredient' | 'quantity' | 'size' | 'salsaBase');
+    this.sortDirection.set(sort.direction);
   }
 
-  async loadUnits() {
-    try {
-      const data = await this.firestoreService.getDocuments('units');
-      this.units.set(data as Unit[]);
-    } catch (error) {
-      console.error('Error loading units:', error);
-    }
-  }
-
-  async loadToppings() {
-    try {
-      this.loading.set(true);
-      const data = await this.firestoreService.getDocuments('toppings');
-      this.toppings.set(data as Topping[]);
-    } catch (error) {
-      console.error('Error loading toppings:', error);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Desconocido';
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId);
   }
 
   openPrintWindow() {
-    const allCosts = this.costs();
-    // Group toppings by product
     const groups = new Map<string, { product: string; rows: string }>();
-    for (const topping of this.toppings()) {
-      const cost = allCosts.find(c => c.id === topping.costId);
-      if (!cost) continue;
-      const key = topping.costId;
+    for (const topping of this.toppingsService.toppings()) {
+      const item = this.catalog.find(topping.supplyId);
+      if (!item) continue;
+      const key = topping.supplyId;
       const row = `<tr><td>${topping.size}</td><td>${topping.quantity}g</td></tr>`;
       if (groups.has(key)) {
         groups.get(key)!.rows += row;
       } else {
-        groups.set(key, { product: cost.product, rows: row });
+        groups.set(key, { product: item.name, rows: row });
       }
     }
 
@@ -131,8 +129,8 @@ export class Toppings implements OnInit {
     }
   }
 
-  getUnitAbbreviation(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
+  getUnitAbbreviation(supplyId: string): string {
+    const cost = this.catalog.find(supplyId);
     if (!cost) return '';
     const unit = this.units().find(u => u.id === cost.unitId);
     return unit ? unit.abbreviation : '';
@@ -147,8 +145,7 @@ export class Toppings implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Topping | undefined) => {
       if (result) {
         try {
-          const docRef = await this.firestoreService.addDocument('toppings', result);
-          this.toppings.update(list => [...list, { ...result, id: docRef.id }]);
+          await this.toppingsService.add(result);
         } catch (error) {
           console.error('Error adding topping:', error);
         }
@@ -165,10 +162,7 @@ export class Toppings implements OnInit {
     dialogRef.afterClosed().subscribe(async (result: Topping | undefined) => {
       if (result && topping.id) {
         try {
-          await this.firestoreService.updateDocument('toppings', topping.id, result);
-          this.toppings.update(list =>
-            list.map(t => t.id === topping.id ? { ...result, id: topping.id } : t)
-          );
+          await this.toppingsService.update(topping.id, result);
         } catch (error) {
           console.error('Error updating topping:', error);
         }
@@ -190,8 +184,7 @@ export class Toppings implements OnInit {
     dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
       if (confirmed) {
         try {
-          await this.firestoreService.deleteDocument('toppings', topping.id!);
-          this.toppings.update(list => list.filter(t => t.id !== topping.id));
+          await this.toppingsService.remove(topping.id!);
         } catch (error) {
           console.error('Error deleting topping:', error);
         }

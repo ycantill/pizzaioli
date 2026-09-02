@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef, effect } from '@angular/core';
+import { Component, signal, computed, inject, ViewChild, ElementRef, effect, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,13 +8,14 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
-import { DoughIngredient, Dough } from '../models/dough.model';
-import { Cost } from '../models/cost.model';
-import { FirestoreService } from '../firestore.service';
+import { DoughIngredient } from '../models/dough.model';
+import { CatalogService } from '../services/catalog.service';
+import { DoughsDataService } from '../services/doughs-data.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 
 @Component({
   selector: 'app-dough-calculator',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatCardModule,
     MatFormFieldModule,
@@ -29,13 +30,14 @@ import { DoughCalculationService } from '../services/dough-calculation.service';
   templateUrl: './dough-calculator.html',
   styleUrl: './dough-calculator.css'
 })
-export class DoughCalculator implements OnInit {
-  private firestoreService = inject(FirestoreService);
+export class DoughCalculator {
+  private catalog = inject(CatalogService);
+  private doughsService = inject(DoughsDataService);
   private doughCalcService = inject(DoughCalculationService);
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
-  
-  costs = signal<Cost[]>([]);
-  doughs = signal<Dough[]>([]);
+
+  costs = this.catalog.items;
+  doughs = this.doughsService.doughs;
   selectedDoughId = signal<string | null>(null);
   weightPerUnit = signal(250);
   quantity = signal(10);
@@ -44,7 +46,6 @@ export class DoughCalculator implements OnInit {
   displayedColumns: string[] = ['name', 'percentage', 'weight', 'actions'];
 
   constructor() {
-    // Actualizar peso por unidad cuando cambia la masa seleccionada
     effect(() => {
       const doughId = this.selectedDoughId();
       if (doughId) {
@@ -54,98 +55,57 @@ export class DoughCalculator implements OnInit {
         }
       }
     });
-  }
 
-  async ngOnInit() {
-    await this.loadCosts();
-    await this.loadDoughs();
-  }
-
-  async loadCosts() {
-    try {
-      const data = await this.firestoreService.getDocuments('costs');
-      this.costs.set(data as Cost[]);
-      
-      // Add flour by default at 100% only if no dough is selected
-      if (this.ingredients().length === 0 && !this.selectedDoughId()) {
-        const flourCost = (data as Cost[]).find(c => 
-          c.product.toLowerCase().includes('harina')
-        );
+    effect(() => {
+      const costs = this.catalog.items();
+      if (costs.length > 0 && this.ingredients().length === 0 && !this.selectedDoughId()) {
+        const flourCost = costs.find(c => c.name.toLowerCase().includes('harina'));
         if (flourCost?.id) {
-          this.ingredients.set([{
-            costId: flourCost.id,
-            bakerPercentage: 100
-          }]);
+          this.ingredients.set([{ supplyId: flourCost.id, bakerPercentage: 100 }]);
         }
       }
-    } catch (error) {
-      console.error('Error loading costs:', error);
-    }
-  }
-
-  async loadDoughs() {
-    try {
-      const data = await this.firestoreService.getDocuments('doughs');
-      this.doughs.set(data as Dough[]);
-    } catch (error) {
-      console.error('Error loading doughs:', error);
-    }
+    });
   }
 
   onDoughSelected(doughId: string | null) {
     this.selectedDoughId.set(doughId);
-    
+
     if (!doughId) {
-      // Reset to default flour
-      const flourCost = this.costs().find(c => 
-        c.product.toLowerCase().includes('harina')
-      );
+      const flourCost = this.costs().find(c => c.name.toLowerCase().includes('harina'));
       if (flourCost?.id) {
-        this.ingredients.set([{
-          costId: flourCost.id,
-          bakerPercentage: 100
-        }]);
+        this.ingredients.set([{ supplyId: flourCost.id, bakerPercentage: 100 }]);
       }
       return;
     }
 
     const selectedDough = this.doughs().find(d => d.id === doughId);
     if (selectedDough) {
-      const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(
-        selectedDough,
-        this.costs()
-      );
-      
+      const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(selectedDough, this.costs());
       if (bakerPercentages.length > 0) {
         this.ingredients.set(bakerPercentages.map(bp => ({
-          costId: bp.costId,
+          supplyId: bp.supplyId,
           bakerPercentage: bp.bakerPercentage
         })));
       }
     }
   }
 
-  getCostName(costId: string): string {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product : 'Seleccionar...';
+  getCostName(supplyId: string): string {
+    return this.catalog.name(supplyId, 'Seleccionar...');
   }
 
-  isFlour(costId: string): boolean {
-    const cost = this.costs().find(c => c.id === costId);
-    return cost ? cost.product.toLowerCase().includes('harina') : false;
+  isFlour(supplyId: string): boolean {
+    const item = this.catalog.find(supplyId);
+    return item ? item.name.toLowerCase().includes('harina') : false;
   }
 
-  getAvailableCostsForIngredient(currentCostId: string): Cost[] {
-    const usedCostIds = this.ingredients()
-      .map(ing => ing.costId)
-      .filter(id => id !== currentCostId);
-    
-    return this.costs().filter(c => 
-      c.id === currentCostId || !usedCostIds.includes(c.id!)
-    );
+  getAvailableCostsForIngredient(currentSupplyId: string) {
+    const usedSupplyIds = this.ingredients()
+      .map(ing => ing.supplyId)
+      .filter(id => id !== currentSupplyId);
+    return this.costs().filter(c => c.id === currentSupplyId || !usedSupplyIds.includes(c.id!));
   }
 
-  // Calculate ingredient multiplier using correct formula
   ingredientMultiplier = computed(() => {
     const totalPercentage = this.totalPercentage();
     if (totalPercentage === 0) return 0;
@@ -160,33 +120,22 @@ export class DoughCalculator implements OnInit {
     }));
   });
 
-  totalWeight = computed(() => {
-    return this.calculatedIngredients().reduce((sum, ing) => 
-      sum + (ing.calculatedWeight || 0), 0
-    );
-  });
+  totalWeight = computed(() =>
+    this.calculatedIngredients().reduce((sum, ing) => sum + (ing.calculatedWeight || 0), 0)
+  );
 
-  totalPercentage = computed(() => {
-    return this.ingredients().reduce((sum, ing) => sum + ing.bakerPercentage, 0);
-  });
+  totalPercentage = computed(() =>
+    this.ingredients().reduce((sum, ing) => sum + ing.bakerPercentage, 0)
+  );
 
   addIngredient() {
-    const usedCostIds = this.ingredients().map(ing => ing.costId);
-    const available = this.costs().filter(c => 
-      !usedCostIds.includes(c.id!)
-    );
-    const firstCost = available[0];
+    const usedSupplyIds = this.ingredients().map(ing => ing.supplyId);
+    const firstCost = this.costs().find(c => !usedSupplyIds.includes(c.id!));
     if (firstCost?.id) {
-      this.ingredients.update(list => [...list, {
-        costId: firstCost.id!,
-        bakerPercentage: 0
-      }]);
-      
-      // Scroll to bottom after adding
+      this.ingredients.update(list => [...list, { supplyId: firstCost.id!, bakerPercentage: 0 }]);
       setTimeout(() => {
         if (this.ingredientsContent) {
-          const element = this.ingredientsContent.nativeElement;
-          element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          this.ingredientsContent.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
       }, 100);
     }
@@ -196,14 +145,14 @@ export class DoughCalculator implements OnInit {
     this.ingredients.update(list => list.filter((_, i) => i !== index));
   }
 
-  updateIngredientCost(index: number, costId: string) {
-    this.ingredients.update(list => 
-      list.map((ing, i) => i === index ? { ...ing, costId } : ing)
+  updateIngredientCost(index: number, supplyId: string) {
+    this.ingredients.update(list =>
+      list.map((ing, i) => i === index ? { ...ing, supplyId } : ing)
     );
   }
 
   updateIngredientPercentage(index: number, percentage: number) {
-    this.ingredients.update(list => 
+    this.ingredients.update(list =>
       list.map((ing, i) => i === index ? { ...ing, bakerPercentage: percentage } : ing)
     );
   }

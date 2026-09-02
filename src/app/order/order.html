@@ -1,0 +1,338 @@
+<main class="order-page" aria-labelledby="order-title">
+  <header class="hero">
+    <p class="eyebrow">Pedido en linea</p>
+    <h1 id="order-title">Arma tu pizza paso a paso</h1>
+    <p class="description">Selecciona tu opcion de menu, ajusta ingredientes y revisa tu total antes de ordenar.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando opciones...</p>
+  } @else {
+    <section class="step" aria-labelledby="step-1-title">
+      <div class="step-header">
+        <p class="step-number">Paso 1</p>
+        <h2 id="step-1-title">Elige tu opcion de menu</h2>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="!isHalfAndHalf()"
+          (click)="setHalfAndHalf(false)"
+        >
+          Pizza Completa
+        </button>
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="isHalfAndHalf()"
+          (click)="setHalfAndHalf(true)"
+        >
+          Mitad y Mitad
+        </button>
+      </div>
+
+      <!-- Half Selection Tabs (only visible in Mitad y Mitad mode) -->
+      @if (isHalfAndHalf()) {
+        <div class="half-selection-tabs">
+          <button
+            type="button"
+            class="half-select-tab"
+            [class.active]="activeHalf() === 'A'"
+            (click)="setActiveHalf('A')"
+          >
+            <span>Mitad A</span>
+            <span class="selected-name">{{ selectedMenuOptionA()?.name ?? 'Seleccionar...' }}</span>
+          </button>
+          <button
+            type="button"
+            class="half-select-tab"
+            [class.active]="activeHalf() === 'B'"
+            (click)="setActiveHalf('B')"
+          >
+            <span>Mitad B</span>
+            <span class="selected-name">{{ selectedMenuOptionB()?.name ?? 'Seleccionar...' }}</span>
+          </button>
+        </div>
+      }
+
+      @if (menuOptions().length === 0) {
+        <p class="status">No hay precios guardados todavia.</p>
+      } @else {
+        <div class="cards-grid" role="radiogroup" aria-label="Opciones de menu">
+          @for (option of menuOptions(); track option.id) {
+            <button
+              type="button"
+              role="radio"
+              class="menu-card"
+              [class.selected]="isOptionSelected(option.id!)"
+              [attr.aria-checked]="isOptionSelected(option.id!)"
+              (click)="selectOption(option.id!)"
+            >
+              <div class="menu-card-top">
+                <span class="menu-name">{{ option.name }}</span>
+                <span class="menu-price">{{ formatPrice(isHalfAndHalf() ? option.price / 2 : option.price) }}</span>
+              </div>
+              @if ((menuIngredients().get(option.id!) ?? []).length > 0) {
+                <ul class="menu-ingredients" aria-label="Ingredientes incluidos">
+                  @for (ing of menuIngredients().get(option.id!)!; track ing) {
+                    <li>{{ ing }}</li>
+                  }
+                </ul>
+              }
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="step" aria-labelledby="step-2-title">
+      <div class="step-header">
+        <p class="step-number">Paso 2</p>
+        <h2 id="step-2-title">Elige tu salsa base</h2>
+      </div>
+
+      <!-- Half Customizer Tabs (only visible in Mitad y Mitad mode when menu option selected) -->
+      @if (isHalfAndHalf() && (selectedMenuOptionA() || selectedMenuOptionB())) {
+        <div class="half-customizer-tabs">
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'A'"
+            (click)="setCustomizingHalf('A')"
+          >
+            Mitad A: {{ selectedMenuOptionA()?.name ?? 'Sin selección' }}
+          </button>
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'B'"
+            (click)="setCustomizingHalf('B')"
+          >
+            Mitad B: {{ selectedMenuOptionB()?.name ?? 'Sin selección' }}
+          </button>
+        </div>
+      }
+
+      @if (!selectedMenuRecipe()) {
+        <p class="status">Primero selecciona una opcion de menu.</p>
+      } @else if (allSalsaOptions().length === 0) {
+        <p class="status">No hay salsas disponibles.</p>
+      } @else {
+        <div class="ingredient-list" role="group" aria-label="Salsas">
+          @for (option of allSalsaOptions(); track option.id) {
+            <button
+              type="button"
+              class="ingredient-item"
+              [class.selected]="isIngredientActive(option)"
+              [class.item-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
+              [attr.aria-pressed]="isIngredientActive(option)"
+              [attr.aria-disabled]="!isIngredientActive(option) && activeSalsaCount() >= 1"
+              (click)="toggleIngredient(option)"
+            >
+              <span class="ingredient-name">
+                {{ option.label }}
+                <span class="menu-size-badge">({{ option.size }})</span>
+              </span>
+              @if (option.excludable && isIngredientActive(option)) {
+                <span class="pill">
+                  <span class="pill-included-label">Incluido</span>
+                  {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              } @else if (option.excludable && !isIngredientActive(option)) {
+                <span class="pill pill-excluded">
+                  - {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              } @else if (option.addable) {
+                <span class="pill add" [class.pill-active]="isIngredientActive(option)">
+                  + {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="step" aria-labelledby="step-3-title">
+      <div class="step-header">
+        <p class="step-number">Paso 3</p>
+        <h2 id="step-3-title">Personaliza tus ingredientes</h2>
+      </div>
+
+      <!-- Half Customizer Tabs (only visible in Mitad y Mitad mode when menu option selected) -->
+      @if (isHalfAndHalf() && (selectedMenuOptionA() || selectedMenuOptionB())) {
+        <div class="half-customizer-tabs">
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'A'"
+            (click)="setCustomizingHalf('A')"
+          >
+            Mitad A: {{ selectedMenuOptionA()?.name ?? 'Sin selección' }}
+          </button>
+          <button
+            type="button"
+            class="tab-button"
+            [class.active]="customizingHalf() === 'B'"
+            (click)="setCustomizingHalf('B')"
+          >
+            Mitad B: {{ selectedMenuOptionB()?.name ?? 'Sin selección' }}
+          </button>
+        </div>
+      }
+
+      @if (!selectedMenuRecipe()) {
+        <p class="status">Primero selecciona una opcion de menu.</p>
+      } @else if (allIngredientOptions().length === 0) {
+        <p class="status">No hay ingredientes disponibles.</p>
+      } @else {
+        <div class="ingredient-list" role="group" aria-label="Ingredientes">
+          @for (option of allIngredientOptions(); track option.id) {
+            <button
+              type="button"
+              class="ingredient-item"
+              [class.selected]="isIngredientActive(option)"
+              [attr.aria-pressed]="isIngredientActive(option)"
+              (click)="toggleIngredient(option)"
+            >
+              <span class="ingredient-name">
+                {{ option.label }}
+                <span class="menu-size-badge">({{ option.size }})</span>
+              </span>
+              @if (option.excludable && isIngredientActive(option)) {
+                <span class="pill">
+                  <span class="pill-included-label">Incluido</span>
+                  {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              } @else if (option.excludable && !isIngredientActive(option)) {
+                <span class="pill pill-excluded">
+                  - {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              } @else if (option.addable) {
+                <span class="pill add" [class.pill-active]="isIngredientActive(option)">
+                  + {{ formatPrice(getIngredientDisplayPrice(option)) }}
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+  }
+
+  @if (cart().length > 0) {
+    <section class="step cart-section" aria-label="Tu pedido">
+      <div class="step-header">
+        <h2 class="cart-title">Tu pedido</h2>
+      </div>
+      <ul class="cart-list">
+        @for (item of cart(); track item.id) {
+          <li class="cart-item">
+            <div class="cart-item-header">
+              @if (!item.isHalfAndHalf) {
+                <span class="cart-item-name">{{ item.single!.name }}</span>
+              } @else {
+                <span class="cart-item-name">{{ item.halfA!.name }} + {{ item.halfB!.name }}</span>
+              }
+              <div class="cart-item-actions">
+                <button
+                  type="button"
+                  class="cart-edit-btn"
+                  aria-label="Editar pizza"
+                  (click)="editCartItem(item.id)"
+                >Editar</button>
+                <button
+                  type="button"
+                  class="cart-remove-btn"
+                  aria-label="Eliminar pizza del pedido"
+                  (click)="removeFromCart(item.id)"
+                >✕</button>
+              </div>
+            </div>
+            @if (!item.isHalfAndHalf) {
+              <ul class="cart-ingredient-list">
+                @for (ing of item.single!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="cart-half-label">Mitad A: {{ item.halfA!.name }}</p>
+              <ul class="cart-ingredient-list">
+                @for (ing of item.halfA!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+              <p class="cart-half-label">Mitad B: {{ item.halfB!.name }}</p>
+              <ul class="cart-ingredient-list">
+                @for (ing of item.halfB!.items; track ing.id) {
+                  <li [class.excluded]="ing.excluded" [class.additional]="ing.additional">
+                    <span>{{ ing.label }} <span class="menu-size-badge">({{ ing.size }})</span></span>
+                    @if (ing.excluded) {
+                      <span>- {{ formatPrice(ing.price) }}</span>
+                    } @else if (ing.additional) {
+                      <span>+ {{ formatPrice(ing.price) }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+            <div class="cart-item-total">{{ formatPrice(item.total) }}</div>
+          </li>
+        }
+      </ul>
+      <div class="cart-footer">
+        <div class="cart-grand-total">
+          <span>Total del pedido</span>
+          <span>{{ formatPrice(cartTotal()) }}</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <div class="order-button-spacer" aria-hidden="true"></div>
+</main>
+
+<div class="sticky-order" aria-label="Acciones del pedido">
+  @if (!selectedMenuOption() && cart().length === 0) {
+    <button type="button" class="sticky-btn sticky-primary" disabled>
+      Selecciona una pizza para comenzar
+    </button>
+  } @else if (selectedMenuOption() && cart().length === 0) {
+    <button type="button" class="sticky-btn sticky-primary" (click)="addToCart()">
+      Agregar al pedido &mdash; {{ formatPrice(summaryTotal()) }}
+    </button>
+  } @else if (!selectedMenuOption()) {
+    <button type="button" class="sticky-btn sticky-confirm" (click)="confirmOrder()">
+      Confirmar pedido &mdash; {{ formatPrice(cartTotal()) }}
+      <span class="sticky-sub">{{ cart().length }} {{ cart().length === 1 ? 'pizza' : 'pizzas' }}</span>
+    </button>
+  } @else {
+    <div class="sticky-split">
+      <button type="button" class="sticky-btn sticky-primary" (click)="addToCart()">
+        Agregar &mdash; {{ formatPrice(summaryTotal()) }}
+      </button>
+      <button type="button" class="sticky-btn sticky-confirm" (click)="confirmOrder()">
+        Confirmar &mdash; {{ formatPrice(cartTotal()) }}
+        <span class="sticky-sub">{{ cart().length }} {{ cart().length === 1 ? 'pizza' : 'pizzas' }}</span>
+      </button>
+    </div>
+  }
+</div>

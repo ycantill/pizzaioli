@@ -24,14 +24,14 @@
         <ng-container matColumnDef="service">
           <th mat-header-cell *matHeaderCellDef>Servicio</th>
           <td mat-cell *matCellDef="let consumption">
-            {{ getCostName(consumption.costId) }}
+            {{ getCostName(consumption.rateId) }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="quantity">
           <th mat-header-cell *matHeaderCellDef>Consumo en 1h</th>
           <td mat-cell *matCellDef="let consumption">
-            {{ consumption.quantity }} {{ getUnitName(consumption.costId) }}/h
+            {{ consumption.quantity }} {{ getUnitName(consumption.rateId) }}/h
           </td>
         </ng-container>
 
@@ -57,9 +57,9 @@
         <div class="consumption-row">
           <div class="consumption-info">
             <span class="consumption-name">{{ consumption.name }}</span>
-            <span class="service-name">{{ getCostName(consumption.costId) }}</span>
+            <span class="service-name">{{ getCostName(consumption.rateId) }}</span>
             <div class="consumption-details">
-              <span class="detail">{{ consumption.quantity }} {{ getUnitName(consumption.costId) }}/h</span>
+              <span class="detail">{{ consumption.quantity }} {{ getUnitName(consumption.rateId) }}/h</span>
             </div>
           </div>
           <div class="consumption-actions">

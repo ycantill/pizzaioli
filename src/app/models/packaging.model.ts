@@ -1,5 +1,5 @@
 export interface PackagingItem {
-  costId: string;
+  supplyId: string;
   quantity: number;
 }
 

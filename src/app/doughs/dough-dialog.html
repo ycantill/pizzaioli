@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>{{ data.dough ? 'Editar' : 'Nueva' }} Masa</h2>
+<form [formGroup]="form" (ngSubmit)="onSave()">
+  <mat-dialog-content class="dialog-content">
+    <mat-form-field class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Masa napolitana">
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-label>Peso por bollo (g)</mat-label>
+      <input matInput type="number" formControlName="ballWeight" placeholder="Ej: 250">
+      <mat-hint>Peso estándar para cada bollo de masa</mat-hint>
+    </mat-form-field>
+
+    <div class="ingredients-section">
+      <div class="section-header">
+        <h3>Ingredientes</h3>
+        <button mat-mini-fab color="primary" type="button" (click)="addIngredient()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <div formArrayName="ingredients" class="ingredients-list">
+        @for (ingredient of ingredients.controls; track $index) {
+          <div [formGroupName]="$index" class="ingredient-row">
+            <mat-form-field class="cost-field">
+              <mat-label>Insumo</mat-label>
+              <mat-select formControlName="supplyId">
+                @for (cost of data.costs; track cost.id) {
+                  <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="quantity-field">
+              <mat-label>Cantidad (g)</mat-label>
+              <input matInput type="number" formControlName="quantity" placeholder="Ej: 100">
+            </mat-form-field>
+
+            <button mat-icon-button color="warn" type="button" (click)="removeIngredient($index)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!form.valid">
+      Guardar
+    </button>
+  </mat-dialog-actions>
+</form>

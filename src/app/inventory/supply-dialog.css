@@ -1,0 +1,71 @@
+/* Estilos específicos para el diálogo de insumos */
+
+.full-width {
+  width: 100%;
+}
+
+.hint {
+  margin: 4px 0 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.unit-change {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.unit-change-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.unit-change-hint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.unit-change-preview {
+  margin-top: 10px;
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  padding: 3px 0;
+}
+
+.preview-value {
+  font-weight: 500;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Contraste verificado contra WCAG AA (>= 4.5:1) */
+.alert-warning {
+  background: #fff4e5;
+  color: #7a4100;
+}
+
+.alert-error {
+  background: #fdecea;
+  color: #8c1c13;
+}

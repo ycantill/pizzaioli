@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>{{ data.recipe ? 'Editar' : 'Nueva' }} Receta</h2>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de la receta</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Pizza Margherita">
+      @if (form.get('name')?.hasError('required')) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tipo de Receta</mat-label>
+      <mat-select formControlName="recipeTypeId">
+        @for (type of data.recipeTypes; track type.id) {
+          <mat-option [value]="type.id">{{ type.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('recipeTypeId')?.hasError('required')) {
+        <mat-error>El tipo de receta es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="toppings-section">
+      <div class="section-header">
+        <h3>Toppings</h3>
+        <button mat-icon-button type="button" (click)="addTopping()" color="primary"
+                [disabled]="availableToppings(null).length === 0">
+          <mat-icon>add_circle</mat-icon>
+        </button>
+      </div>
+
+      <div formArrayName="toppings" class="toppings-list">
+        @for (ctrl of toppingsArray.controls; track $index) {
+          <div class="topping-row">
+            <mat-form-field appearance="outline" class="topping-field">
+              <mat-label>Topping</mat-label>
+              <mat-select [formControlName]="$index">
+                @for (topping of availableToppings($index); track topping.id) {
+                  <mat-option [value]="topping.id">{{ getToppingLabel(topping) }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <button mat-icon-button type="button" color="warn" (click)="removeTopping($index)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          (click)="onSave()"
+          [disabled]="!form.valid">
+    {{ data.recipe ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>

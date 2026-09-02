@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>{{ data.consumption ? 'Editar' : 'Nuevo' }} Consumo</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="form-container">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Preparación de masa">
+      @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Servicio</mat-label>
+      <mat-select formControlName="rateId" (selectionChange)="onCostChange()">
+        @for (cost of data.costs; track cost.id) {
+          <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('rateId')?.hasError('required') && form.get('rateId')?.touched) {
+        <mat-error>El servicio es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Consumo en 1 hora{{ getUnitLabel() }}</mat-label>
+      <input matInput type="number" formControlName="quantity" min="0.1" step="0.1">
+      @if (form.get('quantity')?.hasError('required') && form.get('quantity')?.touched) {
+        <mat-error>La cantidad es requerida</mat-error>
+      }
+      @if (form.get('quantity')?.hasError('min')) {
+        <mat-error>La cantidad debe ser mayor a 0</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="onSave()" [disabled]="!form.valid">
+    Guardar
+  </button>
+</mat-dialog-actions>

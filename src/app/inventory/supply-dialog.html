@@ -1,0 +1,103 @@
+<h2 mat-dialog-title>{{ data.supply ? 'Editar' : 'Nuevo' }} insumo</h2>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Harina">
+      @if (form.get('name')?.hasError('required')) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Unidad</mat-label>
+      <mat-select formControlName="unitId">
+        @for (unit of data.units; track unit.id) {
+          <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('unitId')?.hasError('required')) {
+        <mat-error>La unidad es requerida</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Categoría</mat-label>
+      <mat-select formControlName="categoryId">
+        @for (category of data.categories; track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('categoryId')?.hasError('required')) {
+        <mat-error>La categoría es requerida</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Stock mínimo (opcional)</mat-label>
+      <input matInput type="number" min="0" step="any" formControlName="minStock">
+      <mat-hint>Si se define, el insumo se marca cuando el stock baja de aquí</mat-hint>
+    </mat-form-field>
+
+    @if (unitChanged()) {
+      <div class="unit-change">
+        <h3 class="unit-change-title">Cambiaste la unidad</h3>
+
+        @if (!convertible()) {
+          <p class="alert alert-error" role="alert">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            {{ unitName(data.supply!.unitId) }} y {{ unitName(form.getRawValue().unitId) }} no miden
+            lo mismo, así que el saldo no se puede convertir. Solo se cambiará la etiqueta.
+          </p>
+        } @else {
+          <p class="unit-change-hint">
+            Si el costo guardado ya estaba en {{ unitName(form.getRawValue().unitId) }} y la
+            etiqueta estaba mal, dejá esto sin marcar: no se toca ningún número y los precios de
+            venta no se mueven.
+          </p>
+
+          <mat-checkbox formControlName="convertBalance">
+            Convertir también el saldo y el costo
+          </mat-checkbox>
+
+          @if (converting() && rescaled(); as balance) {
+            <div class="unit-change-preview">
+              <div class="preview-row">
+                <span>Stock</span>
+                <span class="preview-value">
+                  {{ data.supply!.stock }} {{ unitName(data.supply!.unitId) }} →
+                  {{ balance.stock }} {{ unitName(form.getRawValue().unitId) }}
+                </span>
+              </div>
+              <div class="preview-row">
+                <span>Costo unitario</span>
+                <span class="preview-value">
+                  ${{ data.supply!.unitCost.toFixed(2) }} → ${{ balance.unitCost.toFixed(4) }}
+                </span>
+              </div>
+              <p class="alert alert-warning">
+                <mat-icon aria-hidden="true">warning_amber</mat-icon>
+                Convertir cambia el costo unitario, así que <strong>los precios de venta se van a
+                mover</strong>. Marcalo solo si el costo estaba realmente en
+                {{ unitName(data.supply!.unitId) }}.
+              </p>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (!data.supply) {
+      <p class="hint">
+        El insumo se crea con stock y costo en cero. El costo aparece al registrar la primera
+        compra.
+      </p>
+    }
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!form.valid" (click)="onSave()">
+    {{ data.supply ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>

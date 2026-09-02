@@ -1,0 +1,69 @@
+mat-dialog-content {
+  min-width: 500px;
+  padding-top: 20px;
+}
+
+.items-section {
+  margin-top: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.item-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.consumption-field {
+  flex: 3;
+  margin: 0;
+}
+
+.time-field {
+  flex: 1;
+  margin: 0;
+}
+
+mat-dialog-actions {
+  padding: 16px 24px;
+}
+
+@media (max-width: 600px) {
+  mat-dialog-content {
+    min-width: auto;
+  }
+
+  .item-row {
+    flex-wrap: wrap;
+  }
+
+  .consumption-field {
+    flex: 1 1 100%;
+  }
+
+  .time-field {
+    flex: 1 1 40%;
+  }
+}

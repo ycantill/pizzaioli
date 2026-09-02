@@ -13,33 +13,8 @@ export interface ConfirmDialogData {
     MatDialogModule,
     MatButtonModule
   ],
-  template: `
-    <h2 mat-dialog-title>{{ data.title }}</h2>
-    <mat-dialog-content>
-      <p>{{ data.message }}</p>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancelar</button>
-      <button mat-flat-button color="warn" (click)="onConfirm()">
-        Eliminar
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    mat-dialog-content {
-      min-width: 300px;
-      padding-top: 20px;
-    }
-
-    p {
-      margin: 0;
-      color: #666;
-    }
-
-    mat-dialog-actions {
-      padding: 16px 24px;
-    }
-  `]
+  templateUrl: './confirm-dialog.html',
+  styleUrl: './confirm-dialog.css'
 })
 export class ConfirmDialog {
   data: ConfirmDialogData = inject(MAT_DIALOG_DATA);
