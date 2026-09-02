@@ -4,8 +4,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   position: sticky;
   top: 0;
 
@@ -25,7 +25,7 @@
 }
 
 .additions-empty {
-  color: #999;
+  color: var(--mat-sys-outline);
   font-size: 0.875rem;
   margin: 0;
   padding: 8px 0;
@@ -37,7 +37,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 /* Container */
@@ -81,7 +81,7 @@ table {
 
 th.mat-header-cell {
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 td.mat-cell {
@@ -89,7 +89,7 @@ td.mat-cell {
 }
 
 td.warning {
-  color: #f44336;
+  color: var(--mat-sys-error);
   font-style: italic;
 }
 
@@ -100,7 +100,7 @@ td.warning {
 
 .summary-rows {
   padding: 16px;
-  background-color: #f5f5f5;
+  background-color: var(--mat-sys-surface-container);
   border-radius: 8px;
   margin-bottom: 24px;
 }
@@ -114,23 +114,23 @@ td.warning {
 .summary-row.highlight {
   margin-top: 8px;
   padding-top: 12px;
-  border-top: 2px solid #e0e0e0;
+  border-top: 2px solid var(--mat-sys-outline-variant);
 }
 
 .summary-label {
   font-size: 1rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .summary-value {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .summary-value.price {
   font-size: 1.5rem;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 /* Ajuste Section */
@@ -140,7 +140,7 @@ td.warning {
   gap: 12px;
   margin-bottom: 16px;
   padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
 .ajuste-mode-group {
@@ -190,17 +190,17 @@ td.warning {
 .saved-price-value {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 .saved-price-ingredients {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .ingredients-cell {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   max-width: 300px;
 }
 
@@ -221,7 +221,7 @@ td.warning {
 }
 
 .additions-empty {
-  color: #999;
+  color: var(--mat-sys-outline);
   font-size: 0.875rem;
   margin: 0;
   padding: 8px 0;

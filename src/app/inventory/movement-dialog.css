@@ -4,7 +4,7 @@
   margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(0, 0, 0, 0.75);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .full-width {
@@ -34,7 +34,7 @@
 }
 
 .outcome {
-  background: rgba(0, 0, 0, 0.04);
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
   border-radius: 4px;
   padding: 10px 14px;
 }
@@ -48,11 +48,11 @@
 }
 
 .outcome-value {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .outcome-value strong {
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--mat-sys-on-surface);
 }
 
 .alert {
@@ -66,13 +66,4 @@
   line-height: 1.4;
 }
 
-/* Contraste verificado contra WCAG AA (>= 4.5:1) */
-.alert-warning {
-  background: #fff4e5;
-  color: #7a4100;
-}
 
-.alert-error {
-  background: #fdecea;
-  color: #8c1c13;
-}

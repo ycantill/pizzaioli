@@ -21,7 +21,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .consumption-row:last-child {
@@ -36,7 +36,7 @@
   display: block;
   font-size: 1rem;
   font-weight: 600;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
   margin-bottom: 2px;
 }
 
@@ -44,7 +44,7 @@
   display: block;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
   margin-bottom: 4px;
 }
 
@@ -52,7 +52,7 @@
   display: flex;
   gap: 12px;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .consumption-actions {

@@ -6,8 +6,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -17,7 +17,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .add-button {
@@ -58,7 +58,7 @@
   font-size: 1.1rem;
   font-weight: 500;
   margin: 0;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .card-actions {
@@ -80,14 +80,32 @@
 
 .row-label {
   font-weight: 500;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .row-value {
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 /* Desktop View - Table */
 .desktop-view {
   display: block;
+}
+
+/* Variantes de alerta. Solo mapean tokens, así que viven una vez aquí en vez
+   de repetidas en inventario y en cada diálogo. El layout de `.alert` (márgenes
+   y padding) lo pone cada componente, porque sí cambia según el contexto. */
+.alert-warning {
+  background: var(--app-warning-container);
+  color: var(--app-on-warning-container);
+}
+
+.alert-error {
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.alert-ok {
+  background: var(--app-success-container);
+  color: var(--app-on-success-container);
 }

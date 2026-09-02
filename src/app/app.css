@@ -5,7 +5,7 @@
 
 .sidenav {
   width: 250px;
-  background-color: #fff;
+  background-color: var(--mat-sys-surface-container-lowest);
 }
 
 .sidenav-header {
@@ -31,16 +31,16 @@ mat-nav-list a {
 }
 
 mat-nav-list a:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
 }
 
 mat-nav-list a.active {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-primary);
 }
 
 mat-nav-list a.active mat-icon {
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 .app-toolbar {

@@ -8,7 +8,7 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 mat-card-content {
@@ -21,10 +21,10 @@ table {
 
 th.mat-header-cell {
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 td.mat-cell {
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 

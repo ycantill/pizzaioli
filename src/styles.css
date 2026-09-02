@@ -1,5 +1,19 @@
 @import './shared-styles.css';
 
+/* Tokens semánticos propios.
+   M3 define roles para primary/secondary/tertiary/error, pero no para
+   "aviso" ni "correcto", y la app los necesita en las alertas de inventario.
+   Se declaran con light-dark() igual que los --mat-sys-*, así que el día que
+   `color-scheme` pase a `light dark` acompañan al tema sin más cambios.
+   Contraste verificado contra WCAG AA: 7.5:1 y 9.8:1 (aviso, claro/oscuro),
+   8.0:1 y 9.3:1 (correcto, claro/oscuro). */
+:root {
+  --app-warning-container: light-dark(#fff4e5, #4a2800);
+  --app-on-warning-container: light-dark(#7a4100, #ffd8a8);
+  --app-success-container: light-dark(#e6f4ea, #12341f);
+  --app-on-success-container: light-dark(#14532d, #a6e3bd);
+}
+
 * {
   box-sizing: border-box;
 }

@@ -3,8 +3,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -14,7 +14,7 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .container {
@@ -39,14 +39,14 @@
 .item-chip {
   display: inline-block;
   padding: 4px 12px;
-  background-color: #e3f2fd;
+  background-color: var(--mat-sys-primary-container);
   border-radius: 16px;
   font-size: 0.875rem;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 .no-config {
-  color: #999;
+  color: var(--mat-sys-outline);
   font-style: italic;
 }
 
@@ -60,7 +60,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .labor-row:last-child {
@@ -75,7 +75,7 @@
   display: block;
   font-size: 1rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
   margin-bottom: 6px;
 }
 
