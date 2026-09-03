@@ -1,9 +1,5 @@
 <div class="page-header">
   <h1 class="page-title">Inventario</h1>
-  <button mat-fab extended class="add-button" [disabled]="saving()" (click)="addSupply()">
-    <mat-icon aria-hidden="true">add</mat-icon>
-    <span class="button-text">Nuevo insumo</span>
-  </button>
 </div>
 
 <div class="container">
@@ -102,6 +98,11 @@
         }
       </p>
     }
+
+    <button type="button" class="add-line" [disabled]="saving()" (click)="addSupply()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Nuevo insumo
+    </button>
 
     <div class="audit">
       <button mat-stroked-button [disabled]="saving()" (click)="runAudit()">

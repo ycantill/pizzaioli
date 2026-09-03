@@ -44,16 +44,6 @@
   overflow-wrap: anywhere;
 }
 
-/* El puntillado que lleva del concepto al importe, como en un ticket.
-   Es decorativo: nunca lleva texto encima. */
-.row-leader {
-  flex: 1;
-  align-self: baseline;
-  border-bottom: 1px dotted var(--app-rule);
-  transform: translateY(-3px);
-  min-width: 12px;
-}
-
 .row-flag {
   display: inline-flex;
   align-items: center;
@@ -137,46 +127,6 @@
   margin-top: 14px;
   padding-top: 12px;
   border-top: 2px solid var(--app-rule-strong);
-}
-
-.detail-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--app-ink-muted);
-  border-radius: 2px;
-  background: none;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--app-ink-muted);
-  cursor: pointer;
-}
-
-.detail-action.is-destructive {
-  border-color: var(--app-stamp);
-  color: var(--app-stamp);
-}
-
-.detail-action:disabled {
-  border-color: var(--app-rule);
-  color: var(--app-ink-faint);
-  cursor: not-allowed;
-}
-
-.detail-action:focus-visible {
-  outline: 2px solid var(--app-ink);
-  outline-offset: 2px;
-}
-
-.detail-action mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
 }
 
 .row-detail {

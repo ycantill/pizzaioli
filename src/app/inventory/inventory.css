@@ -2,62 +2,6 @@
    protagonista, y costo/valor solo al expandir —son datos de costeo, no de
    cocina—. */
 
-/* Encabezado de comanda: título en versalitas y una regla gruesa debajo.
-   El botón de alta sale del flujo (ver .add-button). */
-.page-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 16px 10px;
-  background: var(--app-paper);
-  border-bottom: 2px solid var(--app-rule-strong);
-}
-
-/* Acción principal flotante, al alcance del pulgar. En la cabecera obligaba
-   a la cabecera a ocupar tres filas (129px) y dejaba la acción más usada en
-   la esquina más difícil de alcanzar con una mano. */
-.add-button {
-  position: fixed;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  z-index: 20;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.total-value {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.total-label {
-  color: var(--app-ink-muted);
-  font-size: 12px;
-}
-
-.total-amount {
-  font-size: 20px;
-  font-weight: 500;
-}
-
-.container {
-  padding: 0 16px 96px;
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  padding: 48px 0;
-}
-
 /* Línea de papel en vez del campo de Material: sin borde redondeado ni
    etiqueta flotante, que era lo que más delataba al framework. */
 .search-bar {
@@ -156,13 +100,6 @@
   border-top: 1px dotted var(--app-rule);
 }
 
-.empty {
-  padding: 32px 0;
-  text-align: center;
-  color: var(--app-ink-muted);
-  font-size: 13px;
-}
-
 /* Filtro de stock bajo. Sustituye al banner que listaba los nombres: cada
    fila ya se marca sola, así que lo útil no es repetir la lista sino poder
    quedarse solo con ella. */
@@ -256,9 +193,6 @@ details.alert summary:focus-visible {
 .alert-body p {
   margin: 0 0 6px;
 }
-
-
-
 
 .audit {
   margin-top: 24px;

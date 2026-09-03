@@ -11,7 +11,7 @@
       </span>
     }
   </span>
-  <span class="row-leader" aria-hidden="true"></span>
+  <span class="ticket-leader" aria-hidden="true"></span>
   <span class="row-cost">
     ${{ supply().unitCost | number:unitCostFormat }}<span class="row-unit">/{{ unitAbbr() }}</span>
   </span>
@@ -56,12 +56,12 @@
     </ul>
 
     <div class="detail-actions">
-      <button type="button" class="detail-action" [disabled]="saving()"
+      <button type="button" class="button-outline" [disabled]="saving()"
               (click)="action.emit('edit')">
         <mat-icon aria-hidden="true">edit</mat-icon>
         Editar
       </button>
-      <button type="button" class="detail-action is-destructive" [disabled]="saving()"
+      <button type="button" class="button-outline is-destructive" [disabled]="saving()"
               (click)="action.emit('delete')">
         <mat-icon aria-hidden="true">delete</mat-icon>
         Eliminar
