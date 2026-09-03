@@ -1,10 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Supply } from '../models/supply.model';
 import { CatalogService } from '../services/catalog.service';
@@ -13,6 +10,7 @@ import { InventoryService } from '../services/inventory.service';
 import { SuppliesDataService } from '../services/supplies-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { DialogService } from '../shared/dialog.service';
 import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { getUnitAbbreviation, getUnitName } from '../shared/lookup.utils';
 import { describeUnit } from '../services/unit-conversion';
@@ -27,9 +25,7 @@ import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
   imports: [
     DecimalPipe,
     MatButtonModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     SupplyRow
   ],
@@ -37,7 +33,7 @@ import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
   styleUrl: './inventory.css'
 })
 export class Inventory {
-  private dialog = inject(MatDialog);
+  private dialogs = inject(DialogService);
   private inventoryService = inject(InventoryService);
   private unitsService = inject(UnitsDataService);
   private categoriesService = inject(SupplyCategoriesDataService);
@@ -63,7 +59,7 @@ export class Inventory {
   readonly categories = this.catalog.supplyCategories;
 
   readonly search = signal('');
-  readonly soloBajoMinimo = signal(false);
+  readonly onlyLowStock = signal(false);
 
   /**
    * La despensa se piensa por categoría (harinas, quesos, salsas), así que la
@@ -72,11 +68,11 @@ export class Inventory {
    */
   readonly groups = computed(() => {
     const term = this.search().trim().toLowerCase();
-    const soloBajos = this.soloBajoMinimo();
+    const lowStockOnly = this.onlyLowStock();
 
     const matches = this.supplies().filter(supply =>
       (!term || supply.name.toLowerCase().includes(term)) &&
-      (!soloBajos || this.isLowStock(supply))
+      (!lowStockOnly || this.isLowStock(supply))
     );
 
     const byCategory = new Map<string, Supply[]>();
@@ -103,8 +99,8 @@ export class Inventory {
     this.search.set('');
   }
 
-  toggleBajoMinimo() {
-    this.soloBajoMinimo.update(activo => !activo);
+  toggleLowStockFilter() {
+    this.onlyLowStock.update(active => !active);
   }
 
   unitName(unitId: string): string {
@@ -155,12 +151,13 @@ export class Inventory {
     return !!supplyId && this.expandedId() === supplyId;
   }
 
+
   /** Traduce lo que pide la fila a la operación correspondiente. */
-  onAction(supply: Supply, accion: SupplyAction) {
-    switch (accion) {
-      case 'editar': return this.editSupply(supply);
-      case 'eliminar': return this.deleteSupply(supply);
-      default: return this.registerMovement(supply, accion);
+  onAction(supply: Supply, action: SupplyAction) {
+    switch (action) {
+      case 'edit': return this.editSupply(supply);
+      case 'delete': return this.deleteSupply(supply);
+      case 'entrada': return this.registerMovement(supply, 'entrada');
     }
   }
 
@@ -170,10 +167,7 @@ export class Inventory {
   }
 
   addSupply() {
-    const dialogRef = this.dialog.open(SupplyDialog, {
-      width: '440px',
-      data: { units: this.units(), categories: this.categories() }
-    });
+    const dialogRef = this.dialogs.openFullScreen<SupplyDialog, SupplyDialogResult>(SupplyDialog, { units: this.units(), categories: this.categories() });
 
     dialogRef.afterClosed().subscribe(async (result: SupplyDialogResult | undefined) => {
       if (!result) return;
@@ -197,10 +191,7 @@ export class Inventory {
   }
 
   editSupply(supply: Supply) {
-    const dialogRef = this.dialog.open(SupplyDialog, {
-      width: '440px',
-      data: { supply, units: this.units(), categories: this.categories() }
-    });
+    const dialogRef = this.dialogs.openFullScreen<SupplyDialog, SupplyDialogResult>(SupplyDialog, { supply, units: this.units(), categories: this.categories() });
 
     dialogRef.afterClosed().subscribe(async (result: SupplyDialogResult | undefined) => {
       if (!result || !supply.id) return;
@@ -221,16 +212,13 @@ export class Inventory {
   deleteSupply(supply: Supply) {
     if (!supply.id) return;
 
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      width: '440px',
-      data: {
+    const dialogRef = this.dialogs.openConfirm<ConfirmDialog, boolean>(ConfirmDialog, {
         title: 'Confirmar eliminación',
         message: `¿Eliminar "${supply.name}"? Las recetas que lo usen quedarán sin ese insumo. ` +
           `Sus movimientos históricos no se borran.`
-      }
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean | undefined) => {
       if (!confirmed) return;
 
       this.saving.set(true);
@@ -246,11 +234,7 @@ export class Inventory {
 
   /** La operación se elige antes de abrir, así el formulario no cambia de forma. */
   registerMovement(supply: Supply, kind: MovementKind) {
-    const dialogRef = this.dialog.open(MovementDialog, {
-      width: '440px',
-      maxHeight: '90vh',
-      data: { kind, supply, unitName: this.unitName(supply.unitId), units: this.units() }
-    });
+    const dialogRef = this.dialogs.openFullScreen<MovementDialog, MovementDialogResult>(MovementDialog, { kind, supply, unitName: this.unitName(supply.unitId), units: this.units() });
 
     dialogRef.afterClosed().subscribe(async (result: MovementDialogResult | undefined) => {
       if (!result) return;

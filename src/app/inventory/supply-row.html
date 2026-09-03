@@ -11,44 +11,19 @@
       </span>
     }
   </span>
+  <span class="row-leader" aria-hidden="true"></span>
   <span class="row-cost">
-    ${{ supply().unitCost | number:precioUnitario }}<span class="row-unit">/{{ unitAbbr() }}</span>
+    ${{ supply().unitCost | number:unitCostFormat }}<span class="row-unit">/{{ unitAbbr() }}</span>
   </span>
 </button>
 
-<div class="row-actions">
-  <button mat-icon-button
-          class="buy-button"
-          [disabled]="saving()"
-          [attr.aria-label]="'Registrar compra de ' + supply().name"
-          (click)="action.emit('entrada')">
-    <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
-  </button>
-  <button mat-icon-button
-          [matMenuTriggerFor]="rowMenu"
-          [disabled]="saving()"
-          [attr.aria-label]="'Más acciones para ' + supply().name">
-    <mat-icon aria-hidden="true">more_vert</mat-icon>
-  </button>
-  <mat-menu #rowMenu>
-    <button mat-menu-item (click)="action.emit('salida')">
-      <mat-icon aria-hidden="true">arrow_downward</mat-icon>
-      <span>Registrar salida</span>
-    </button>
-    <button mat-menu-item (click)="action.emit('ajuste')">
-      <mat-icon aria-hidden="true">fact_check</mat-icon>
-      <span>Hacer conteo</span>
-    </button>
-    <button mat-menu-item (click)="action.emit('editar')">
-      <mat-icon aria-hidden="true">edit</mat-icon>
-      <span>Editar insumo</span>
-    </button>
-    <button mat-menu-item (click)="action.emit('eliminar')">
-      <mat-icon aria-hidden="true">delete</mat-icon>
-      <span>Eliminar insumo</span>
-    </button>
-  </mat-menu>
-</div>
+<button type="button"
+        class="buy-button"
+        [disabled]="saving()"
+        [attr.aria-label]="'Registrar compra de ' + supply().name"
+        (click)="action.emit('entrada')">
+  <mat-icon aria-hidden="true">add</mat-icon>
+</button>
 
 @if (expanded()) {
   <div class="row-detail">
@@ -70,7 +45,7 @@
           <span class="movement-date">{{ entry.date }}</span>
           <span class="movement-kind">{{ movementLabel(entry) }}</span>
           <span class="movement-quantity">{{ entry.quantity | number }}</span>
-          <span class="movement-cost">${{ entry.unitCost | number:precioUnitario }}</span>
+          <span class="movement-cost">${{ entry.unitCost | number:unitCostFormat }}</span>
           @if (entry.note) {
             <span class="movement-note">{{ entry.note }}</span>
           }
@@ -79,5 +54,18 @@
         <li class="movement empty">Sin movimientos registrados.</li>
       }
     </ul>
+
+    <div class="detail-actions">
+      <button type="button" class="detail-action" [disabled]="saving()"
+              (click)="action.emit('edit')">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+        Editar
+      </button>
+      <button type="button" class="detail-action is-destructive" [disabled]="saving()"
+              (click)="action.emit('delete')">
+        <mat-icon aria-hidden="true">delete</mat-icon>
+        Eliminar
+      </button>
+    </div>
   </div>
 }

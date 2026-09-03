@@ -12,19 +12,21 @@
       <mat-spinner></mat-spinner>
     </div>
   } @else {
-    <mat-form-field class="search" appearance="outline" subscriptSizing="dynamic">
-      <mat-label>Buscar insumo</mat-label>
-      <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-      <input matInput
-             type="search"
+    <div class="search-bar">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <input type="search"
+             class="search-input"
+             placeholder="Buscar insumo"
+             aria-label="Buscar insumo"
              [value]="search()"
              (input)="updateSearch($event)">
       @if (search()) {
-        <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="clearSearch()">
+        <button type="button" class="search-clear"
+                aria-label="Limpiar búsqueda" (click)="clearSearch()">
           <mat-icon aria-hidden="true">close</mat-icon>
         </button>
       }
-    </mat-form-field>
+    </div>
 
     @if (mislabeled().length > 0) {
       <details class="alert alert-warning">
@@ -57,13 +59,13 @@
 
     @if (lowStock().length > 0) {
       <button type="button"
-              class="filtro-bajos"
-              [class.activo]="soloBajoMinimo()"
-              [attr.aria-pressed]="soloBajoMinimo()"
-              (click)="toggleBajoMinimo()">
+              class="low-stock-filter"
+              [class.is-active]="onlyLowStock()"
+              [attr.aria-pressed]="onlyLowStock()"
+              (click)="toggleLowStockFilter()">
         <mat-icon aria-hidden="true">inventory</mat-icon>
         Solo bajo mínimo
-        <span class="filtro-cuenta">{{ lowStock().length }}</span>
+        <span class="filter-count">{{ lowStock().length }}</span>
       </button>
     }
 
@@ -89,11 +91,11 @@
       </ul>
     } @empty {
       <p class="empty">
-        @if (search() && soloBajoMinimo()) {
+        @if (search() && onlyLowStock()) {
           Ningún insumo bajo mínimo coincide con «{{ search() }}».
         } @else if (search()) {
           No hay insumos que coincidan con «{{ search() }}».
-        } @else if (soloBajoMinimo()) {
+        } @else if (onlyLowStock()) {
           Ningún insumo está por debajo de su stock mínimo.
         } @else {
           No hay insumos en el inventario.

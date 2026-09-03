@@ -2,13 +2,23 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { EXIT_REASONS, ExitReason, StockEntry } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { InventoryService } from '../services/inventory.service';
+import { MovementKind } from './movement-dialog';
 
-/** Lo que la fila pide hacer; la pantalla decide cómo. */
-export type SupplyAction = 'entrada' | 'salida' | 'ajuste' | 'editar' | 'eliminar';
+/**
+ * Lo que la fila pide hacer; la pantalla decide cómo.
+ *
+ * Solo hay una operación de stock: la compra. Salida y conteo se quitaron de
+ * la interfaz porque nunca se usaron —26 insumos, 26 movimientos, todos de
+ * apertura— y el descuento por pedidos, cuando exista, llamará al servicio
+ * directamente en vez de pasar por aquí.
+ *
+ * 'entrada' viene de MovementKind y se guarda tal cual en Firestore: va en
+ * español porque es del dominio y renombrarlo rompería los datos.
+ */
+export type SupplyAction = Extract<MovementKind, 'entrada'> | 'edit' | 'delete';
 
 function exitReasonLabel(reason: ExitReason | undefined): string {
   return EXIT_REASONS.find(r => r.value === reason)?.label ?? 'Salida';
@@ -17,7 +27,7 @@ function exitReasonLabel(reason: ExitReason | undefined): string {
 @Component({
   selector: 'app-supply-row',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [DecimalPipe, MatButtonModule, MatIconModule],
   templateUrl: './supply-row.html',
   styleUrl: './supply-row.css',
   host: { class: 'supply-row', '[class.is-low]': 'lowStock()' }
@@ -38,7 +48,7 @@ export class SupplyRow {
    * Costos en pesos por unidad base: $3,20 el gramo de harina, $1.700 la caja.
    * Dos decimales fijos alinean la columna sin arrastrar ceros inútiles.
    */
-  readonly precioUnitario = '1.2-2';
+  readonly unitCostFormat = '1.2-2';
 
   /** Solo se leen al desplegar: son 26 filas y casi ninguna se abre. */
   readonly movements = computed<StockEntry[]>(() => {
