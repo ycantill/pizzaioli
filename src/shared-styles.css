@@ -10,8 +10,8 @@
   flex-wrap: wrap;
   gap: 16px;
   padding: 16px;
-  background-color: var(--mat-sys-surface-container-lowest);
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--app-paper);
+  border-bottom: 1px solid var(--app-rule);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -21,11 +21,14 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 500;
-  color: var(--mat-sys-on-surface);
+  color: var(--app-ink);
 }
 
+/* La altura la fija --mat-fab-extended-container-height (48px). Antes había
+   aquí un `height: 40px !important` de la época de las tarjetas, que dejaba la
+   acción principal por debajo del mínimo táctil y ganaba a cualquier token. */
 .add-button {
-  height: 40px !important;
+  min-width: 0;
 }
 
 .button-text {
@@ -89,7 +92,7 @@
   font-size: 1.1rem;
   font-weight: 500;
   margin: 0;
-  color: var(--mat-sys-on-surface);
+  color: var(--app-ink);
 }
 
 .card-actions {
@@ -111,11 +114,11 @@
 
 .row-label {
   font-weight: 500;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--app-ink-muted);
 }
 
 .row-value {
-  color: var(--mat-sys-on-surface);
+  color: var(--app-ink);
 }
 
 /* Variantes de alerta. Solo mapean tokens, así que viven una vez aquí en vez
@@ -127,11 +130,306 @@
 }
 
 .alert-error {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  background: var(--app-error-container);
+  color: var(--app-on-error-container);
 }
 
 .alert-ok {
   background: var(--app-success-container);
   color: var(--app-on-success-container);
+}
+
+/* ====================================================================
+   Diálogos y formularios en clave de comanda.
+
+   Va en global a propósito: la superficie del diálogo la crea MatDialog
+   en el overlay del CDK, fuera del árbol del componente, así que el CSS
+   encapsulado no la alcanza. Lo de dentro del diálogo sí es plantilla
+   del componente, pero el vocabulario de campos se declara aquí una vez
+   para que los tres diálogos lo compartan.
+   ==================================================================== */
+
+/* Papel, no tarjeta flotante: sin esquinas redondeadas ni sombra difusa. */
+.mat-mdc-dialog-surface {
+  border-radius: 0 !important;
+  background: var(--app-paper) !important;
+  box-shadow: 0 10px 28px rgb(23 21 15 / 0.28) !important;
+}
+
+/* --- Formularios a pantalla completa -------------------------------
+   Scrollea la superficie entera y el encabezado va pegado arriba, en vez
+   de fijar los botones al fondo: con el teclado abierto un pie fijo queda
+   tapado, y así los botones llegan detrás de los campos, que es donde se
+   los busca. */
+.full-screen-dialog .mat-mdc-dialog-surface {
+  overflow-y: auto;
+  box-shadow: none !important;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.full-screen-dialog .mat-mdc-dialog-title.mat-mdc-dialog-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--app-paper);
+}
+
+.full-screen-dialog .mat-mdc-dialog-content.mat-mdc-dialog-content {
+  max-height: none;
+  overflow: visible;
+  /* Sin estirar: Material da flex:1 al contenido y empujaba los botones al
+     fondo de la pantalla, dejando 700px de papel en blanco entre el último
+     campo y "Crear". Así los botones van detrás de los campos, que es donde
+     se los busca, y en un formulario largo el comportamiento es el mismo. */
+  flex: none;
+}
+
+.full-screen-dialog .mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+  padding-bottom: 24px;
+}
+
+/* La cabecera lleva el cierre a la izquierda del título, donde no compite
+   con el pulgar que va a los botones de acción. */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--app-paper);
+  border-bottom: 2px solid var(--app-rule-strong);
+}
+
+.dialog-header .mat-mdc-dialog-title.mat-mdc-dialog-title {
+  flex: 1;
+  border-bottom: none;
+  position: static;
+}
+
+.dialog-close {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: 8px;
+  border: none;
+  background: none;
+  color: var(--app-ink);
+  cursor: pointer;
+}
+
+.dialog-close:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: -2px;
+}
+
+.mat-mdc-dialog-container {
+  --mat-dialog-container-shape: 0;
+  /* El título toma su tipografía de estos tokens, no del font-size de la
+     regla: ponerlo por CSS no lo pisa. */
+  --mat-dialog-subhead-size: 11px;
+  --mat-dialog-subhead-line-height: 1.4;
+  --mat-dialog-subhead-weight: 700;
+  --mat-dialog-subhead-tracking: 0.2em;
+  --mat-dialog-subhead-color: var(--app-ink);
+  --mat-dialog-supporting-text-size: 14px;
+  --mat-dialog-supporting-text-color: var(--app-ink);
+}
+
+/* Encabezado de comanda: versalitas y regla gruesa. */
+.mat-mdc-dialog-title.mat-mdc-dialog-title {
+  padding: 16px 20px 10px;
+  border-bottom: 2px solid var(--app-rule-strong);
+  text-transform: uppercase;
+}
+
+.mat-mdc-dialog-title::before {
+  display: none;
+}
+
+.mat-mdc-dialog-content.mat-mdc-dialog-content {
+  padding: 16px 20px 8px;
+  color: var(--app-ink);
+  font-size: 14px;
+}
+
+.mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px dotted var(--app-rule);
+}
+
+/* --- Campos: una línea de papel con su rótulo encima ---------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+}
+
+/* 44px de alto: el control en sí medía 20-22px y aunque la etiqueta amplía
+   el área efectiva, el usuario apunta a la línea. */
+.field-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border-bottom: 1px solid var(--app-rule);
+}
+
+/* Foco en tinta, no en rojo: el rojo está reservado a los errores y si se
+   usa también para el foco, un campo recién enfocado parece equivocado. */
+.field:focus-within .field-line {
+  border-bottom-color: var(--app-ink);
+  border-bottom-width: 2px;
+}
+
+.field-input,
+.field-select {
+  flex: 1;
+  min-height: 44px;
+  min-width: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--app-ink);
+}
+
+.field-input:focus,
+.field-select:focus {
+  outline: none;
+}
+
+.field-input::placeholder {
+  color: var(--app-ink-faint);
+}
+
+/* Las cantidades y los importes se escriben monoespaciados: se teclean
+   mirando el número, no la palabra. */
+.field-input[type="number"],
+.field-input[type="date"] {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fuera las flechitas del input numérico: con el pulgar no se aciertan y
+   parten la línea del campo. El teclado numérico ya lo da inputmode. */
+.field-input[type="number"] {
+  appearance: textfield;
+}
+
+.field-input[type="number"]::-webkit-outer-spin-button,
+.field-input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* <select> nativo en vez de mat-select: en el teléfono abre el selector
+   del sistema, que se maneja mejor con una mano que un overlay propio. */
+.field-select {
+  appearance: none;
+  padding-right: 18px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--app-ink-muted) 50%),
+                    linear-gradient(135deg, var(--app-ink-muted) 50%, transparent 50%);
+  background-position: right 6px top 55%, right 1px top 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.field-suffix,
+.field-prefix {
+  flex: none;
+  font-family: var(--app-mono);
+  font-size: 12px;
+  color: var(--app-ink-muted);
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--app-ink-muted);
+}
+
+.field-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-stamp);
+}
+
+.field-error ~ .field-line,
+.field.has-error .field-line {
+  border-bottom-color: var(--app-stamp);
+}
+
+/* --- Casilla ------------------------------------------------------- */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--app-stamp);
+}
+
+/* --- Botones de diálogo ------------------------------------------- */
+.button-stamp,
+.button-plain {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 2px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.button-stamp {
+  border: 1px solid var(--app-stamp);
+  background: var(--app-stamp);
+  color: var(--app-paper);
+}
+
+/* Deshabilitado va vaciado, no relleno: el relleno daba 1,9:1 y, aunque
+   WCAG exime los controles inis-actives, era ilegible. Así queda en 4,7:1. */
+.button-stamp:disabled {
+  border-color: var(--app-rule);
+  background: none;
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.button-plain {
+  border: 1px solid transparent;
+  background: none;
+  color: var(--app-ink-muted);
+}
+
+.button-stamp:focus-visible,
+.button-plain:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
 }

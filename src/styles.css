@@ -1,25 +1,67 @@
 @import './shared-styles.css';
 
-/* Tokens semánticos propios.
-   M3 define roles para primary/secondary/tertiary/error, pero no para
-   "aviso" ni "correcto", y la app los necesita en las alertas de inventario.
-   Se declaran con light-dark() igual que los --mat-sys-*, así que el día que
-   `color-scheme` pase a `light dark` acompañan al tema sin más cambios.
-   Contraste verificado contra WCAG AA: 7.5:1 y 9.8:1 (aviso, claro/oscuro),
-   8.0:1 y 9.3:1 (correcto, claro/oscuro). */
+/* Piel "ticket de cocina".
+   El referente es la comanda impresa: papel, tinta, reglas finas y figures
+   monoespaciadas. Los tokens de Material siguen existiendo por debajo para
+   sus componentes; estos son los que gobiernan lo que escribimos nosotros.
+
+   Contraste verificado sobre el papel (#fffdf7), no estimado:
+   tinta 17,9:1 · apagado 5,7:1 · tenue 4,7:1 · sello 7,3:1.
+   La regla (1,9:1) es decorativa y nunca lleva texto encima. */
 :root {
-  --app-warning-container: light-dark(#fff4e5, #4a2800);
-  --app-on-warning-container: light-dark(#7a4100, #ffd8a8);
-  --app-success-container: light-dark(#e6f4ea, #12341f);
-  --app-on-success-container: light-dark(#14532d, #a6e3bd);
+  --app-paper: #fffdf7;
+  --app-paper-sunken: #f7f2e6;
+  --app-ink: #17150f;
+  --app-ink-muted: #6f6551;
+  --app-ink-faint: #7c725e;
+  --app-rule: #c4b89e;
+  --app-rule-strong: #17150f;
+
+  /* El rojo del sello de caucho. Se gasta con cuentagotas: acciones y avisos. */
+  --app-stamp: #9e2b25;
+
+  --app-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Estados. M3 no tiene rol para "aviso" ni "correcto", y aquí además tienen
+     que sonar a papel y no a semáforo de aplicación web. */
+  --app-warning-container: #fdf0d5;
+  --app-on-warning-container: #6b4a05;
+  --app-success-container: #e8efdc;
+  --app-on-success-container: #33471c;
+  /* El rol de error de M3 salía rosa saturado y desentonaba con el papel;
+     este es el mismo aviso en tinta de comanda. 7,6:1. */
+  --app-error-container: #fbe6e2;
+  --app-on-error-container: #8a1f1a;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* Objetivos táctiles.
+   Se apunta con el pulgar y a veces con las manos ocupadas, así que ningún
+   control baja de 44px: es el mínimo de la pauta reforzada de WCAG (2.5.5) y
+   el que recomienda Apple. Material, aun con densidad 0, deja los botones de
+   icono en 40px y los de texto en 40px, así que se suben por token. */
+:root {
+  --mat-icon-button-state-layer-size: 44px;
+  --mat-icon-button-touch-target-size: 44px;
+  --mat-button-text-container-height: 44px;
+  --mat-button-outlined-container-height: 44px;
+  --mat-button-filled-container-height: 44px;
+  --mat-button-tonal-container-height: 44px;
+  --mat-button-protected-container-height: 44px;
+  --mat-fab-extended-container-height: 48px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   font-size: 16px;
+}
+
+/* Las figures se alinean en columna: siempre monoespaciadas y tabulares. */
+.figure {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
 }
