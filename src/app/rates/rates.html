@@ -1,9 +1,5 @@
 <div class="page-header">
   <h1 class="page-title">Tarifas</h1>
-  <button mat-fab extended class="add-button" [disabled]="saving()" (click)="addRate()">
-    <mat-icon>add</mat-icon>
-    <span class="button-text">Nueva</span>
-  </button>
 </div>
 
 <div class="container">
@@ -17,83 +13,29 @@
       <mat-spinner></mat-spinner>
     </div>
   } @else {
-    <!-- Mobile View: Cards -->
-    <div class="mobile-view">
+    <ul class="rate-list">
       @for (rate of rates(); track rate.id) {
-        <mat-card class="rate-card">
-          <mat-card-content>
-            <div class="card-header">
-              <h3 class="rate-name">{{ rate.name }}</h3>
-              <div class="card-actions">
-                <button mat-icon-button color="primary"
-                        [disabled]="saving()"
-                        [attr.aria-label]="'Editar ' + rate.name"
-                        (click)="editRate(rate)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn"
-                        [disabled]="saving()"
-                        [attr.aria-label]="'Eliminar ' + rate.name"
-                        (click)="deleteRate(rate)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </div>
-            <div class="card-details">
-              <div class="detail-item">
-                <span class="label">Valor:</span>
-                <span class="value">${{ rate.value.toFixed(2) }} / {{ unitName(rate.unitId) }}</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <li>
+          <button type="button"
+                  class="rate-row"
+                  [disabled]="saving()"
+                  [attr.aria-label]="'Editar ' + rate.name"
+                  (click)="editRate(rate)">
+            <span class="ticket-name">{{ rate.name }}</span>
+            <span class="ticket-leader" aria-hidden="true"></span>
+            <span class="ticket-value">
+              ${{ rate.value | number:'1.2-2' }}<span class="ticket-unit">/{{ unitName(rate.unitId) }}</span>
+            </span>
+          </button>
+        </li>
       } @empty {
         <p class="empty">No hay tarifas registradas.</p>
       }
-    </div>
+    </ul>
 
-    <!-- Desktop View: Table -->
-    <mat-card class="desktop-view">
-      <mat-card-content>
-        <table mat-table [dataSource]="rates()" class="mat-elevation-z2">
-
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef scope="col">Tarifa</th>
-            <td mat-cell *matCellDef="let rate">{{ rate.name }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="unit">
-            <th mat-header-cell *matHeaderCellDef scope="col">Unidad</th>
-            <td mat-cell *matCellDef="let rate">{{ unitName(rate.unitId) }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="value">
-            <th mat-header-cell *matHeaderCellDef scope="col">Valor</th>
-            <td mat-cell *matCellDef="let rate">${{ rate.value.toFixed(2) }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef scope="col">Acciones</th>
-            <td mat-cell *matCellDef="let rate">
-              <button mat-icon-button color="primary"
-                      [disabled]="saving()"
-                      [attr.aria-label]="'Editar ' + rate.name"
-                      (click)="editRate(rate)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn"
-                      [disabled]="saving()"
-                      [attr.aria-label]="'Eliminar ' + rate.name"
-                      (click)="deleteRate(rate)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </mat-card-content>
-    </mat-card>
+    <button type="button" class="add-line" [disabled]="saving()" (click)="addRate()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Nueva tarifa
+    </button>
   }
 </div>

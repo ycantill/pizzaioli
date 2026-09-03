@@ -1,82 +1,48 @@
-/* Estilos específicos para tarifas */
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-}
-
-.container {
-  padding: 0 16px 16px;
-}
+/* Tarifas: lista de comanda. Son tres o cuatro y no tienen historial, así
+   que no hay buscador ni detalle desplegable: la fila entera abre la edición,
+   que es lo único que se hace aquí —el valor se mantiene a mano—. */
 
 .intro {
-  margin: 0 0 16px;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 14px;
+  margin: 14px 0 18px;
+  font-size: 13px;
   line-height: 1.5;
+  color: var(--app-ink-muted);
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  padding: 48px 0;
-}
-
-.rate-card {
-  margin-bottom: 16px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.rate-name {
+.rate-list {
+  list-style: none;
   margin: 0;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 0;
+  border-top: 2px solid var(--app-rule-strong);
 }
 
-.card-details {
+.rate-list li + li .rate-row {
+  border-top: 1px dotted var(--app-rule);
+}
+
+/* La fila entera es el objetivo: no hay iconos que apuntar. */
+.rate-row {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: 8px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.label {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 14px;
-}
-
-.value {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.empty {
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 14px;
-}
-
-table {
   width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rate-row:disabled {
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.rate-row:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
 }
 
