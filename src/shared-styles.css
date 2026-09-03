@@ -1,52 +1,116 @@
 /* Shared styles for list/table views */
 
-/* Page Header */
+/* Encabezado de pantalla: versalitas y regla gruesa, como el de una comanda. */
 .page-header {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  /* En móvil el título y los botones de acción no caben en una línea:
-     sin esto se apiñan hasta tocarse (p. ej. "Recetas" contra "Imprimir"). */
-  flex-wrap: wrap;
   gap: 16px;
-  padding: 16px;
-  background-color: var(--app-paper);
-  border-bottom: 1px solid var(--app-rule);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  padding: 14px 16px 10px;
+  background: var(--app-paper);
+  border-bottom: 2px solid var(--app-rule-strong);
 }
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--app-ink);
-}
-
-/* La altura la fija --mat-fab-extended-container-height (48px). Antes había
-   aquí un `height: 40px !important` de la época de las tarjetas, que dejaba la
-   acción principal por debajo del mínimo táctil y ganaba a cualquier token. */
-.add-button {
-  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 .button-text {
   margin-left: 4px;
 }
 
-/* Container */
 .container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 16px 32px;
 }
 
 .loading-container {
   display: flex;
   justify-content: center;
+  padding: 48px 0;
+}
+
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--app-ink-muted);
+  font-size: 13px;
+}
+
+/* --- Vocabulario de la línea de comanda ---------------------------------
+   Concepto a la izquierda, puntillado, importe monoespaciado a la derecha.
+   Vive aquí porque lo comparten inventario y tarifas, y lo usarán las demás
+   pantallas: cada componente arma su fila, pero la tipografía es una sola. */
+.ticket-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* Decorativo: nunca lleva texto encima. */
+.ticket-leader {
+  flex: 1;
+  align-self: baseline;
+  min-width: 12px;
+  border-bottom: 1px dotted var(--app-rule);
+  transform: translateY(-3px);
+}
+
+.ticket-value {
+  flex: none;
+  font-family: var(--app-mono);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ticket-unit {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--app-ink-muted);
+}
+
+/* La línea siguiente del ticket: donde termina la lista se escribe lo que
+   sigue. Sustituye al botón flotante, que era una píldora con sombra —la
+   única de la pantalla— flotando sobre el papel vacío. */
+.add-line {
+  display: flex;
   align-items: center;
-  min-height: 300px;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  border-top: 1px dashed var(--app-rule);
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-stamp);
+  cursor: pointer;
+}
+
+.add-line:disabled {
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.add-line:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
+}
+
+.add-line mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Vistas responsive (mobile-first)
@@ -194,18 +258,26 @@
 .dialog-header {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   position: sticky;
   top: 0;
   z-index: 2;
+  padding: 10px 16px 10px 8px;
   background: var(--app-paper);
   border-bottom: 2px solid var(--app-rule-strong);
 }
 
+/* Dentro de la cabecera el título no pone su propia caja: el h2 de Material
+   trae padding asimétrico (16px arriba, 10px abajo) y una caja de 70px para
+   un texto de 11px, así que el texto quedaba 17px por debajo del icono de
+   cerrar aunque las cajas estuvieran centradas. */
 .dialog-header .mat-mdc-dialog-title.mat-mdc-dialog-title {
   flex: 1;
+  margin: 0;
+  padding: 0;
   border-bottom: none;
   position: static;
+  line-height: 1.2;
 }
 
 .dialog-close {
@@ -215,7 +287,6 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  margin-left: 8px;
   border: none;
   background: none;
   color: var(--app-ink);
@@ -247,7 +318,11 @@
   text-transform: uppercase;
 }
 
-.mat-mdc-dialog-title::before {
+/* MDC mete un ::before de 40px como espaciador de línea base, y era lo que
+   empujaba el título 17px por debajo del icono de cerrar. La clase va
+   duplicada porque Material inyecta su regla en el <head> después de esta
+   hoja: a igual especificidad ganaba la suya. */
+.mat-mdc-dialog-title.mat-mdc-dialog-title::before {
   display: none;
 }
 
@@ -413,8 +488,53 @@
   color: var(--app-paper);
 }
 
+/* Acción secundaria: contorno, no relleno. Se usa dentro de formularios y
+   detalles, donde no debe competir con la acción principal. Vive aquí y no
+   en un componente porque ya la comparten la fila de insumo y el diálogo de
+   tarifa: al declararla en un CSS encapsulado, el otro componente no la
+   alcanzaba y el botón salía sin estilo. */
+.button-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--app-ink-muted);
+  border-radius: 2px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  cursor: pointer;
+}
+
+.button-outline.is-destructive {
+  border-color: var(--app-stamp);
+  color: var(--app-stamp);
+}
+
+.button-outline:disabled {
+  border-color: var(--app-rule);
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.button-outline:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
+}
+
+.button-outline mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 /* Deshabilitado va vaciado, no relleno: el relleno daba 1,9:1 y, aunque
-   WCAG exime los controles inis-actives, era ilegible. Así queda en 4,7:1. */
+   WCAG exime los controles inactivos, era ilegible. Así queda en 4,7:1. */
 .button-stamp:disabled {
   border-color: var(--app-rule);
   background: none;
