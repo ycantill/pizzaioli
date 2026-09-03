@@ -2,7 +2,7 @@
   "name": "Pizzaioli",
   "short_name": "Pizzaioli",
   "description": "Gestión de inventario, recetas y costos de pizzería",
-  "start_url": "/inventario",
+  "start_url": "/inventory",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
