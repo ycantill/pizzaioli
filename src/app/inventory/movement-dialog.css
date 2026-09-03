@@ -4,7 +4,7 @@
   margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--app-ink-muted);
 }
 
 .full-width {
@@ -24,9 +24,38 @@
   flex: 3;
 }
 
+/* Enlace de comanda, no botón: abre un apartado secundario del formulario. */
 .details-toggle {
-  margin-bottom: 8px;
-  padding-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: 0 0 8px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  cursor: pointer;
+}
+
+.details-toggle:hover {
+  color: var(--app-ink);
+}
+
+.details-toggle:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
+}
+
+.details-toggle mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .details {
@@ -34,8 +63,8 @@
 }
 
 .outcome {
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent);
-  border-radius: 4px;
+  background: var(--app-paper-sunken);
+  border-left: 3px solid currentColor;
   padding: 10px 14px;
 }
 
@@ -48,11 +77,11 @@
 }
 
 .outcome-value {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--app-ink-muted);
 }
 
 .outcome-value strong {
-  color: var(--mat-sys-on-surface);
+  color: var(--app-ink);
 }
 
 .alert {
@@ -61,7 +90,7 @@
   gap: 8px;
   margin: 12px 0 0;
   padding: 8px 12px;
-  border-radius: 4px;
+  border-left: 3px solid currentColor;
   font-size: 13px;
   line-height: 1.4;
 }

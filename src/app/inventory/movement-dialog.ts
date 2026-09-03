@@ -1,12 +1,9 @@
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { EXIT_REASONS, ExitReason } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
@@ -38,13 +35,10 @@ export interface MovementDialogResult {
   selector: 'app-movement-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    DecimalPipe,
     ReactiveFormsModule,
     MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatSelectModule
   ],
   templateUrl: './movement-dialog.html',
   styleUrl: './movement-dialog.css'

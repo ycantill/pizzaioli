@@ -1,4 +1,9 @@
-<h2 mat-dialog-title>{{ title() }}</h2>
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>{{ title() }}</h2>
+</div>
 <mat-dialog-content>
   <form [formGroup]="form">
     @if (isCount) {
@@ -9,46 +14,56 @@
     }
 
     @if (isExit) {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Motivo</mat-label>
-        <mat-select formControlName="reason">
-          @for (reason of exitReasons; track reason.value) {
-            <mat-option [value]="reason.value">{{ reason.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <label class="field">
+        <span class="field-label">Motivo</span>
+        <span class="field-line">
+          <select class="field-select" formControlName="reason">
+            @for (reason of exitReasons; track reason.value) {
+              <option [value]="reason.value">{{ reason.label }}</option>
+            }
+          </select>
+        </span>
+      </label>
     }
 
     <div class="quantity-row">
-      <mat-form-field appearance="outline" class="quantity-field">
-        <mat-label>{{ isCount ? 'Cantidad contada' : 'Cantidad' }}</mat-label>
-        <input matInput type="number" min="0" step="any" formControlName="quantity">
-        @if (!isPurchase) {
-          <span matTextSuffix>{{ data.unitName }}</span>
-        }
-      </mat-form-field>
+      <label class="field quantity-field">
+        <span class="field-label">{{ isCount ? 'Cantidad contada' : 'Cantidad' }}</span>
+        <span class="field-line">
+          <input class="field-input" type="number" min="0" step="any" inputmode="decimal"
+                 formControlName="quantity">
+          @if (!isPurchase) {
+            <span class="field-suffix">{{ data.unitName }}</span>
+          }
+        </span>
+      </label>
 
       @if (isPurchase) {
-        <mat-form-field appearance="outline" class="unit-field">
-          <mat-label>Unidad</mat-label>
-          <mat-select formControlName="unitId">
-            @for (unit of purchaseUnits(); track unit.id) {
-              <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <label class="field unit-field">
+          <span class="field-label">Unidad</span>
+          <span class="field-line">
+            <select class="field-select" formControlName="unitId">
+              @for (unit of purchaseUnits(); track unit.id) {
+                <option [value]="unit.id">{{ unit.name }}</option>
+              }
+            </select>
+          </span>
+        </label>
       }
     </div>
 
     @if (isPurchase) {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Total pagado</mat-label>
-        <input matInput type="number" min="0" step="any" formControlName="totalPaid">
-        <span matTextPrefix>$&nbsp;</span>
-      </mat-form-field>
+      <label class="field">
+        <span class="field-label">Total pagado</span>
+        <span class="field-line">
+          <span class="field-prefix">$</span>
+          <input class="field-input" type="number" min="0" step="any" inputmode="decimal"
+                 formControlName="totalPaid">
+        </span>
+      </label>
     }
 
-    <button type="button" mat-button class="details-toggle" (click)="toggleDetails()"
+    <button type="button" class="details-toggle" (click)="toggleDetails()"
             [attr.aria-expanded]="showDetails()">
       <mat-icon aria-hidden="true">{{ showDetails() ? 'expand_less' : 'expand_more' }}</mat-icon>
       Fecha y nota
@@ -56,15 +71,20 @@
 
     @if (showDetails()) {
       <div class="details">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Fecha</mat-label>
-          <input matInput type="date" formControlName="date">
-        </mat-form-field>
+        <label class="field">
+          <span class="field-label">Fecha</span>
+          <span class="field-line">
+            <input class="field-input" type="date" formControlName="date">
+          </span>
+        </label>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nota</mat-label>
-          <input matInput type="text" formControlName="note" placeholder="Ej: proveedor, factura">
-        </mat-form-field>
+        <label class="field">
+          <span class="field-label">Nota</span>
+          <span class="field-line">
+            <input class="field-input" type="text" formControlName="note"
+                   placeholder="Ej: proveedor, factura">
+          </span>
+        </label>
       </div>
     }
 
@@ -72,15 +92,15 @@
       @if (isPurchase) {
         <div class="outcome-row">
           <span>Costo promedio</span>
-          <span class="outcome-value">
-            ${{ data.supply.unitCost.toFixed(2) }} →
-            <strong>${{ preview().balance.unitCost.toFixed(2) }}</strong>
+          <span class="outcome-value figure">
+            ${{ data.supply.unitCost | number:'1.2-2' }} →
+            <strong>${{ preview().balance.unitCost | number:'1.2-2' }}</strong>
           </span>
         </div>
       }
       <div class="outcome-row">
         <span>Stock</span>
-        <span class="outcome-value">
+        <span class="outcome-value figure">
           {{ data.supply.stock }} →
           <strong>{{ preview().balance.stock }}</strong> {{ data.unitName }}
         </span>
@@ -114,8 +134,8 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary" [disabled]="!valid()" (click)="onSave()">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!valid()" (click)="onSave()">
     Registrar
   </button>
 </mat-dialog-actions>
