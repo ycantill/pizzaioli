@@ -55,6 +55,22 @@ const EMPTY_BREAKDOWN: PriceBreakdown = {
 };
 
 /**
+ * Lo que deja una unidad por cada minuto de cocina que ocupa.
+ *
+ * El margen por unidad no alcanza para decidir qué empujar en la carta: el
+ * horno es el cuello de botella, y un producto que lo ocupa el doble de tiempo
+ * rinde la mitad de unidades por hora. Dos platos que dejan lo mismo por
+ * unidad no dejan lo mismo por noche.
+ *
+ * Sin tiempo configurado no hay nada que dividir; se devuelve cero en vez de
+ * un infinito que ensuciaría la comparación.
+ */
+export function contributionPerMinute(breakdown: PriceBreakdown): number {
+  if (breakdown.productionMinutes <= 0) return 0;
+  return Math.round((breakdown.contribution / breakdown.productionMinutes) * 100) / 100;
+}
+
+/**
  * Arma el desglose de costo de una unidad.
  *
  * Vivía dentro de la pantalla de precios, donde nadie más podía usarlo. El

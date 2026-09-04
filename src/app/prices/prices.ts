@@ -22,7 +22,11 @@ import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
 import { PricesDataService } from '../services/prices-data.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
-import { PriceCalculationService, PriceSpec } from '../services/price-calculation.service';
+import {
+  contributionPerMinute,
+  PriceCalculationService,
+  PriceSpec
+} from '../services/price-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { formatMinutes } from '../shared/format.utils';
 import {
@@ -72,7 +76,23 @@ export class Prices {
   recipeTypes = this.recipeTypesService.recipeTypes;
   toppings = this.toppingsService.toppings;
   savedPrices = this.pricesService.prices;
-  sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
+  /**
+   * Cada precio guardado con lo que deja por minuto de cocina, para poder
+   * comparar la carta entera. La contribución se recalcula con los costos de
+   * hoy; el precio de la columna es el que se guardó.
+   */
+  savedPriceRows = computed(() =>
+    [...this.savedPrices()]
+      .sort((a, b) => a.price - b.price)
+      .map(price => {
+        const breakdown = this.priceCalc.breakdownOf(this.priceCalc.specOf(price));
+        return {
+          price,
+          productionMinutes: breakdown.productionMinutes,
+          perMinute: contributionPerMinute(breakdown)
+        };
+      })
+  );
 
   selectedDoughId = signal<string | null>(null);
   selectedRecipeId = signal<string | null>(null);
@@ -96,7 +116,7 @@ export class Prices {
   recipeIngredientColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost', 'remove'];
   additionColumns: string[] = ['name', 'quantity', 'unitCost', 'baseCost', 'margin', 'costWithMargin', 'roundedCost', 'remove'];
   laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin', 'roundedCost'];
-  savedPricesColumns: string[] = ['name', 'ingredients', 'price', 'actions'];
+  savedPricesColumns: string[] = ['name', 'ingredients', 'price', 'perMinute', 'actions'];
 
   constructor() {
     effect(() => {
@@ -176,6 +196,12 @@ export class Prices {
   totalBaseCost = computed(() => this.breakdown().variableCost);
 
   totalWithMargin = computed(() => this.breakdown().price);
+
+  /** Minutos de cocina que ocupa esta unidad, ya repartidos por tanda. */
+  productionMinutes = computed(() => this.breakdown().productionMinutes);
+
+  /** Lo que deja por cada minuto de cocina: con qué se compara la carta. */
+  contributionPerMinute = computed(() => contributionPerMinute(this.breakdown()));
 
   totalMarginAmount = computed(() =>
     Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100
