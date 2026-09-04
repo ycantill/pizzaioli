@@ -17,17 +17,6 @@
       <mat-card-content>
         <div class="config-grid">
           <mat-form-field appearance="outline">
-            <mat-label>Masa</mat-label>
-            <mat-select [value]="selectedDoughId()"
-                        (selectionChange)="onDoughSelected($event.value)">
-              <mat-option [value]="null">Seleccionar masa</mat-option>
-              @for (dough of doughs(); track dough.id) {
-                <mat-option [value]="dough.id">{{ dough.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
             <mat-label>Receta</mat-label>
             <mat-select [value]="selectedRecipeId()"
                         (selectionChange)="onRecipeSelected($event.value)">
@@ -38,24 +27,61 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Peso del bollo (g)</mat-label>
-            <input matInput type="number"
-                   [ngModel]="ballWeight()"
-                   (ngModelChange)="ballWeight.set($event)">
-          </mat-form-field>
-        </div>
+       </div>
+
+        <h3 class="config-subtitle">Preparaciones</h3>
+        <p class="config-note">
+          Lo que se hace aparte y se consume por partes: la masa de una pizza, el té y las perlas
+          de un vaso. La cantidad es la que lleva una unidad.
+        </p>
+
+        @for (consumption of preparationConsumptions(); track consumption.preparationId) {
+          <div class="preparation-row">
+            <span class="preparation-name">{{ preparationName(consumption.preparationId) }}</span>
+            <mat-form-field appearance="outline" class="preparation-quantity">
+              <mat-label>Cantidad ({{ preparationUnit(consumption.preparationId) }})</mat-label>
+              <input matInput type="number" min="0"
+                     [ngModel]="consumption.quantity"
+                     (ngModelChange)="setPreparationQuantity(consumption.preparationId, $event)">
+            </mat-form-field>
+            <button mat-icon-button color="warn"
+                    (click)="removePreparation(consumption.preparationId)"
+                    [attr.aria-label]="'Quitar ' + preparationName(consumption.preparationId)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+
+        @if (availablePreparations().length > 0) {
+          <div class="preparation-add">
+            <mat-form-field appearance="outline">
+              <mat-label>Agregar preparación</mat-label>
+              <mat-select [value]="pendingPreparationId()"
+                          (selectionChange)="pendingPreparationId.set($event.value)">
+                @for (preparation of availablePreparations(); track preparation.id) {
+                  <mat-option [value]="preparation.id">{{ preparation.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-stroked-button
+                    [disabled]="!pendingPreparationId()"
+                    (click)="addPreparation()">
+              <mat-icon>add</mat-icon>
+              Agregar
+            </button>
+          </div>
+        }
       </mat-card-content>
     </mat-card>
 
-    <!-- Dough Ingredients -->
-    @if (selectedDough() && doughLineItems().length > 0) {
+    <!-- Preparaciones -->
+    @if (preparationLineItems().length > 0) {
       <mat-card class="section-card">
         <mat-card-header>
-          <mat-card-title>Ingredientes de Masa</mat-card-title>
+          <mat-card-title>Ingredientes de las preparaciones</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <table mat-table [dataSource]="doughLineItems()">
+          <table mat-table [dataSource]="preparationLineItems()">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Ingrediente</th>
                 <td mat-cell *matCellDef="let item">{{ item.name }}</td>
@@ -75,7 +101,7 @@
                 <th mat-header-cell *matHeaderCellDef>Costo Base</th>
                 <td mat-cell *matCellDef="let item">{{ item.baseCost | number:'1.0-2' }}</td>
                 <td mat-footer-cell *matFooterCellDef>
-                  <strong>{{ doughSubtotal().baseCost | number:'1.0-2' }}</strong>
+                  <strong>{{ preparationSubtotal().baseCost | number:'1.0-2' }}</strong>
                 </td>
               </ng-container>
               <ng-container matColumnDef="margin">
@@ -95,7 +121,7 @@
                   <strong>{{ item.costWithMargin | number:'1.0-2' }}</strong>
                 </td>
                 <td mat-footer-cell *matFooterCellDef>
-                  <strong>{{ doughSubtotal().costWithMargin | number:'1.0-2' }}</strong>
+                  <strong>{{ preparationSubtotal().costWithMargin | number:'1.0-2' }}</strong>
                 </td>
               </ng-container>
               <ng-container matColumnDef="roundedCost">
@@ -104,7 +130,7 @@
                   <strong>{{ item.roundedCost | number:'1.0-0' }}</strong>
                 </td>
                 <td mat-footer-cell *matFooterCellDef>
-                  <strong>{{ doughSubtotal().roundedCost | number:'1.0-0' }}</strong>
+                  <strong>{{ preparationSubtotal().roundedCost | number:'1.0-0' }}</strong>
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ingredientColumns"></tr>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Dough, DoughRecipeIngredient } from '../models/dough.model';
+import { Preparation, PreparationIngredient } from '../models/preparation.model';
 import { PricedItem } from '../models/priced-item.model';
 
 export interface CalculatedIngredient {
@@ -9,6 +9,14 @@ export interface CalculatedIngredient {
   bakerPercentage: number;
 }
 
+/**
+ * Porcentaje panadero: la harina es el 100 % y el resto se mide contra ella.
+ *
+ * Es matemática de pan y vive solo en la calculadora de masa, que es una
+ * herramienta de cocina. El costo ya no pasa por aquí: una preparación se
+ * cotiza por su rendimiento, así que una masa sin harina —o una infusión— se
+ * costea bien aunque esto no sepa qué hacer con ella.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -17,7 +25,7 @@ export class DoughCalculationService {
   /**
    * Find the flour ingredient in a dough recipe
    */
-  findFlourIngredient(dough: Dough, items: PricedItem[]): DoughRecipeIngredient | null {
+  findFlourIngredient(dough: Preparation, items: PricedItem[]): PreparationIngredient | null {
     const flourIngredient = dough.ingredients.find(ing => {
       const item = items.find(i => i.id === ing.supplyId);
       return item?.name.toLowerCase().includes('harina');
@@ -29,7 +37,7 @@ export class DoughCalculationService {
    * Calculate baker's percentage for each ingredient based on flour weight
    */
   calculateBakerPercentages(
-    dough: Dough,
+    dough: Preparation,
     flourBaseWeight: number,
   ): Map<string, number> {
     const percentages = new Map<string, number>();
@@ -46,7 +54,7 @@ export class DoughCalculationService {
    * Get baker's percentages for a dough (convenience method)
    */
   getDoughBakerPercentages(
-    dough: Dough,
+    dough: Preparation,
     items: PricedItem[]
   ): { supplyId: string; bakerPercentage: number }[] {
     const flourIngredient = this.findFlourIngredient(dough, items);
@@ -67,7 +75,7 @@ export class DoughCalculationService {
    * 2. ingredientQuantity = ingredientMultiplier * ingredientBakerPercentage
    */
   calculateIngredientQuantities(
-    dough: Dough,
+    dough: Preparation,
     doughBallWeight: number,
     quantity: number,
     items: PricedItem[]

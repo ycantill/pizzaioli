@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,8 +11,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { Price } from '../models/price.model';
-import { DoughsDataService } from '../services/doughs-data.service';
+import { Price, preparationsOf } from '../models/price.model';
+import {
+  defaultQuantityOf,
+  Preparation,
+  PreparationConsumption
+} from '../models/preparation.model';
+import { PreparationsDataService } from '../services/preparations-data.service';
 import { RecipesDataService } from '../services/recipes-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { CatalogService } from '../services/catalog.service';
@@ -28,6 +33,7 @@ import {
   PriceSpec
 } from '../services/price-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { getUnitAbbreviation } from '../shared/lookup.utils';
 import { formatMinutes } from '../shared/format.utils';
 import {
   CostLineItem,
@@ -60,18 +66,20 @@ import {
 export class Prices {
   private priceCalc = inject(PriceCalculationService);
   private dialog = inject(MatDialog);
-  private doughsService = inject(DoughsDataService);
+  private preparationsService = inject(PreparationsDataService);
   private recipesService = inject(RecipesDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
+
   private packagingsService = inject(PackagingsDataService);
   private consumptionsService = inject(ConsumptionsDataService);
   private laborsService = inject(LaborsDataService);
   private pricesService = inject(PricesDataService);
   private toppingsService = inject(ToppingsDataService);
 
-  doughs = this.doughsService.doughs;
+  preparations = this.preparationsService.preparations;
+  units = this.unitsService.units;
   recipes = this.recipesService.recipes;
   recipeTypes = this.recipeTypesService.recipeTypes;
   toppings = this.toppingsService.toppings;
@@ -94,16 +102,17 @@ export class Prices {
       })
   );
 
-  selectedDoughId = signal<string | null>(null);
   selectedRecipeId = signal<string | null>(null);
-  ballWeight = signal(250);
+  /** Lo que se prepara aparte y cuánto lleva una unidad. */
+  preparationConsumptions = signal<PreparationConsumption[]>([]);
+  pendingPreparationId = signal<string | null>(null);
   priceName = signal('');
   selectedAdditionIds = signal<string[]>([]);
   removedIngredientIds = signal<string[]>([]);
   pendingAdditionId = signal<string | null>(null);
 
   loading = computed(() =>
-    this.doughsService.isLoading() || this.recipesService.isLoading() ||
+    this.preparationsService.isLoading() || this.recipesService.isLoading() ||
     this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
     this.unitsService.isLoading() ||
     this.packagingsService.isLoading() || this.consumptionsService.isLoading() ||
@@ -118,21 +127,6 @@ export class Prices {
   laborColumns: string[] = ['name', 'costPerHour', 'hours', 'baseCost', 'margin', 'costWithMargin', 'roundedCost'];
   savedPricesColumns: string[] = ['name', 'ingredients', 'price', 'perMinute', 'actions'];
 
-  constructor() {
-    effect(() => {
-      const doughId = this.selectedDoughId();
-      if (doughId) {
-        const dough = this.doughs().find(d => d.id === doughId);
-        if (dough) this.ballWeight.set(dough.ballWeight);
-      }
-    });
-  }
-
-  selectedDough = computed(() => {
-    const id = this.selectedDoughId();
-    return id ? this.doughs().find(d => d.id === id) ?? null : null;
-  });
-
   selectedRecipe = computed(() => {
     const id = this.selectedRecipeId();
     return id ? this.recipes().find(r => r.id === id) ?? null : null;
@@ -146,9 +140,8 @@ export class Prices {
 
   /** Lo que se está cotizando ahora mismo. */
   private spec = computed<PriceSpec>(() => ({
-    doughId: this.selectedDoughId(),
+    preparations: this.preparationConsumptions(),
     recipeId: this.selectedRecipeId(),
-    ballWeight: this.ballWeight(),
     additionToppingIds: this.selectedAdditionIds(),
     removedIngredientIds: this.removedIngredientIds()
   }));
@@ -156,7 +149,13 @@ export class Prices {
   /** El desglose entero, calculado una vez y repartido en las tablas. */
   breakdown = computed(() => this.priceCalc.breakdownOf(this.spec()));
 
-  doughLineItems = computed(() => this.breakdown().dough);
+  preparationLineItems = computed(() => this.breakdown().preparations);
+
+  /** Las que todavía no se agregaron, para no ofrecer dos veces la misma. */
+  availablePreparations = computed(() => {
+    const used = new Set(this.preparationConsumptions().map(c => c.preparationId));
+    return this.preparations().filter(p => p.id && !used.has(p.id));
+  });
 
   recipeLineItems = computed(() => this.breakdown().recipe);
 
@@ -182,7 +181,7 @@ export class Prices {
 
   laborLineItems = computed(() => this.breakdown().labor);
 
-  doughSubtotal = computed(() => subtotal(this.doughLineItems()));
+  preparationSubtotal = computed(() => subtotal(this.preparationLineItems()));
 
   recipeSubtotal = computed(() => subtotal(this.recipeLineItems()));
 
@@ -248,8 +247,39 @@ export class Prices {
     this.priceName().trim().length > 0 && this.suggestedPrice() > 0 && !this.saving()
   );
 
-  onDoughSelected(doughId: string | null) {
-    this.selectedDoughId.set(doughId);
+  preparationName(preparationId: string): string {
+    return this.preparationsService.find(preparationId)?.name ?? 'Desconocida';
+  }
+
+  /** La unidad en la que se mide lo que se consume, para rotular la cantidad. */
+  preparationUnit(preparationId: string): string {
+    const preparation = this.preparationsService.find(preparationId);
+    return getUnitAbbreviation(this.units(), preparation?.yieldUnitId ?? '') || 'g';
+  }
+
+  addPreparation() {
+    const id = this.pendingPreparationId();
+    if (!id) return;
+
+    const preparation = this.preparationsService.find(id);
+    this.preparationConsumptions.update(list => [
+      ...list,
+      // Arranca en lo que consume una unidad, que casi siempre es lo correcto.
+      { preparationId: id, quantity: defaultQuantityOf(preparation ?? {} as Preparation) }
+    ]);
+    this.pendingPreparationId.set(null);
+  }
+
+  setPreparationQuantity(preparationId: string, quantity: number) {
+    this.preparationConsumptions.update(list =>
+      list.map(c => c.preparationId === preparationId ? { ...c, quantity: quantity || 0 } : c)
+    );
+  }
+
+  removePreparation(preparationId: string) {
+    this.preparationConsumptions.update(list =>
+      list.filter(c => c.preparationId !== preparationId)
+    );
   }
 
   onRecipeSelected(recipeId: string | null) {
@@ -322,9 +352,8 @@ export class Prices {
       const priceData: Price = {
         name: this.priceName().trim(),
         price: this.suggestedPrice(),
-        doughId: this.selectedDoughId(),
+        preparations: this.preparationConsumptions(),
         recipeId: this.selectedRecipeId(),
-        ballWeight: this.ballWeight(),
         ...(this.selectedAdditionIds().length ? { additionToppingIds: this.selectedAdditionIds() } : {}),
         ...(this.removedIngredientIds().length ? { removedIngredientIds: this.removedIngredientIds() } : {}),
       };
@@ -338,13 +367,13 @@ export class Prices {
   }
 
   loadPrice(price: Price): void {
-    this.selectedDoughId.set(price.doughId ?? null);
     this.selectedRecipeId.set(price.recipeId ?? null);
-    this.ballWeight.set(price.ballWeight ?? 250);
+    this.preparationConsumptions.set(preparationsOf(price));
     this.priceName.set(price.name);
     this.selectedAdditionIds.set(price.additionToppingIds ?? []);
     this.removedIngredientIds.set(price.removedIngredientIds ?? []);
     this.pendingAdditionId.set(null);
+    this.pendingPreparationId.set(null);
   }
 
   deletePrice(price: Price) {

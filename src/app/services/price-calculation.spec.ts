@@ -3,7 +3,7 @@ import { contributionPerMinute, PriceBreakdown } from './price-calculation.servi
 
 function breakdown(contribution: number, productionMinutes: number): PriceBreakdown {
   return {
-    dough: [], recipe: [], additions: [], packaging: [], labor: [], all: [],
+    preparations: [], recipe: [], additions: [], packaging: [], labor: [], all: [],
     variableCost: 0, price: 0, contribution, recipeTypeId: 'rt1', productionMinutes
   };
 }
