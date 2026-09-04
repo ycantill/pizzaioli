@@ -1,0 +1,133 @@
+<div class="page-header">
+  <h1 class="page-title">Costos fijos</h1>
+</div>
+
+<div class="container">
+  <p class="intro">
+    Lo que se paga todos los meses aunque no se venda nada. No entra al precio de cada unidad:
+    lo que paga el arriendo es lo que deja cada venta, así que lo que se calcula aquí no es un
+    costo sino cuántas unidades hacen falta al mes para cubrirlo.
+  </p>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  } @else {
+    <button type="button" class="add-line" [disabled]="saving()" (click)="addFixedCost()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Nuevo gasto fijo
+    </button>
+
+    <ul class="cost-list">
+      @for (cost of fixedCosts(); track cost.id) {
+        <li>
+          <button type="button"
+                  class="cost-row"
+                  [disabled]="saving()"
+                  [attr.aria-label]="'Editar ' + cost.name"
+                  (click)="editFixedCost(cost)">
+            <span class="ticket-name">{{ cost.name }}</span>
+            <span class="ticket-leader" aria-hidden="true"></span>
+            <span class="ticket-value">${{ cost.monthlyAmount | number:'1.0-0' }}</span>
+          </button>
+        </li>
+      } @empty {
+        <p class="empty">No hay gastos fijos cargados.</p>
+      }
+    </ul>
+
+    @if (fixedCosts().length > 0) {
+      <p class="total-line">
+        <span>Total del mes</span>
+        <span class="total-value">${{ monthlyTotal() | number:'1.0-0' }}</span>
+      </p>
+    }
+
+    <h2 class="section-heading">Punto de equilibrio</h2>
+
+    @if (monthlyTotal() === 0) {
+      <p class="empty">Cargá los gastos del mes para calcularlo.</p>
+    } @else if (!hasPrices()) {
+      <p class="empty">
+        Guardá al menos un precio para saber cuánto deja cada venta.
+      </p>
+    } @else {
+      <p class="intro">
+        Cada tipo de receta carga con la parte del mes que le toca según los minutos de cocina
+        que ocupa una unidad, y esas son las que hay que vender para cubrirla.
+      </p>
+
+      <ul class="break-even-list">
+        @for (line of breakEven().lines; track line.recipeTypeId) {
+          <li>
+            <div class="break-even-row">
+              <span class="row-head">
+                <span class="ticket-name">{{ line.name }}</span>
+                <span class="ticket-leader" aria-hidden="true"></span>
+                @if (line.viable) {
+                  <span class="ticket-value">
+                    {{ line.unitsPerMonth | number:'1.0-0' }}<span class="ticket-unit">/mes</span>
+                  </span>
+                } @else {
+                  <span class="ticket-tag is-warning">No cubre nada</span>
+                }
+              </span>
+
+              <span class="row-items">
+                @if (line.viable) {
+                  <span class="row-item">
+                    deja
+                    <span class="row-item-qty">${{ line.contribution | number:'1.0-0' }}</span>
+                    por unidad
+                  </span>
+                  <span class="row-item">
+                    le toca
+                    <span class="row-item-qty">${{ line.assignedFixedCost | number:'1.0-0' }}</span>
+                    del mes
+                  </span>
+                  <span class="row-item">
+                    <span class="row-item-qty">{{ line.unitsPerDay | number:'1.0-0' }}</span>
+                    al día
+                  </span>
+                  <span class="row-item">
+                    <span class="row-item-qty">{{ line.unitsAlone | number:'1.0-0' }}</span>
+                    si solo vendieras esto
+                  </span>
+                } @else {
+                  <span class="row-item">
+                    Se vende por debajo de lo que cuesta producirla: no hay cantidad que alcance.
+                  </span>
+                }
+              </span>
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (breakEven().viable) {
+        <p class="total-line">
+          <span>Vendiendo esa mezcla</span>
+          <span class="total-value">
+            {{ breakEven().totalUnitsPerMonth | number:'1.0-0' }} al mes
+            ({{ breakEven().totalUnitsPerDay | number:'1.0-0' }} al día)
+          </span>
+        </p>
+      }
+    }
+
+    <ul class="cost-list is-settings">
+      <li>
+        <button type="button"
+                class="cost-row"
+                [disabled]="saving()"
+                aria-label="Editar los días que abrís al mes"
+                (click)="editOperatingDays()">
+          <span class="ticket-name">Días que abrís al mes</span>
+          <span class="ticket-leader" aria-hidden="true"></span>
+          <span class="ticket-value">{{ settings().operatingDaysPerMonth }}</span>
+        </button>
+      </li>
+    </ul>
+  }
+</div>

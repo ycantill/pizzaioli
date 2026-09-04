@@ -4,8 +4,9 @@
 
 <div class="container">
   <p class="intro">
-    Cuánto tiempo de cada consumo lleva un tipo de receta. El costo sale de multiplicar ese tiempo
-    por la tarifa del consumo.
+    Cuánto tiempo de cada tarifa lleva un tipo de receta. El costo sale de multiplicar ese tiempo
+    por lo que la tarifa gasta cada hora. Si una tanda rinde varias unidades, el tiempo se reparte entre
+    ellas: lo que se ve aquí es lo que le toca a una.
   </p>
 
   @if (loading()) {
@@ -35,8 +36,11 @@
               <span class="row-items">
                 @for (item of labor.items; track $index) {
                   <span class="row-item">
-                    {{ getConsumptionName(item.consumptionId) }}
-                    <span class="row-item-qty">{{ formatMinutes(item.minutes) }}</span>
+                    {{ getRateName(item) }}
+                    <span class="row-item-qty">{{ formatMinutes(minutesPerUnit(item)) }}</span>
+                    @if (batchLabel(item); as batch) {
+                      <span class="row-item-note">{{ batch }}</span>
+                    }
                   </span>
                 }
               </span>

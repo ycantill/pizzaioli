@@ -28,12 +28,6 @@
             </a>
           </li>
           <li>
-            <a class="nav-item" routerLink="/consumptions" routerLinkActive="is-active" (click)="toggleMenu()">
-              <mat-icon aria-hidden="true">electrical_services</mat-icon>
-              Consumos
-            </a>
-          </li>
-          <li>
             <a class="nav-item" routerLink="/labor" routerLinkActive="is-active" (click)="toggleMenu()">
               <mat-icon aria-hidden="true">engineering</mat-icon>
               Mano de Obra
@@ -72,15 +66,15 @@
               Tipos de receta
             </a>
           </li>
+          <li>
+            <a class="nav-item" routerLink="/dough-calculator" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">calculate</mat-icon>
+              Calculadora de masa
+            </a>
+          </li>
         </ul>
         <h3 class="nav-group">Precios</h3>
         <ul class="nav-list">
-          <li>
-            <a class="nav-item" routerLink="/margins" routerLinkActive="is-active" (click)="toggleMenu()">
-              <mat-icon aria-hidden="true">trending_up</mat-icon>
-              Márgenes
-            </a>
-          </li>
           <li>
             <a class="nav-item" routerLink="/prices" routerLinkActive="is-active" (click)="toggleMenu()">
               <mat-icon aria-hidden="true">price_check</mat-icon>
@@ -88,9 +82,9 @@
             </a>
           </li>
           <li>
-            <a class="nav-item" routerLink="/dough-calculator" routerLinkActive="is-active" (click)="toggleMenu()">
-              <mat-icon aria-hidden="true">calculate</mat-icon>
-              Calculadora de masa
+            <a class="nav-item" routerLink="/fixed-costs" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">receipt_long</mat-icon>
+              Costos fijos
             </a>
           </li>
         </ul>

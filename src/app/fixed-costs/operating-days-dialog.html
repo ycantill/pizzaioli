@@ -1,0 +1,27 @@
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>Días que abrís al mes</h2>
+</div>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <label class="field">
+      <span class="field-label">Días de operación</span>
+      <span class="field-line">
+        <input class="field-input" type="number" min="1" max="31" step="1"
+               inputmode="numeric" formControlName="operatingDaysPerMonth">
+        <span class="field-suffix">días</span>
+      </span>
+      <span class="field-hint">
+        Solo sirve para pasar el equilibrio del mes al día. Si cerrás los lunes, son 26.
+      </span>
+    </label>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
+    Guardar
+  </button>
+</mat-dialog-actions>

@@ -15,7 +15,10 @@ export interface CostLineItem {
 
 export interface LaborLineItem {
   name: string;
+  /** Horas que le tocan a una unidad, ya prorrateadas por el tamaño de tanda. */
   hours: number;
+  /** Unidades que salen de la tanda. 1 significa que no se reparte. */
+  batchSize: number;
   costPerHour: number;
   baseCost: number;
   marginPercent: number;
@@ -34,6 +37,12 @@ export interface Subtotal {
 const ROUNDING_STEP = 100;
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
+
+/** Redondea hacia arriba al siguiente múltiplo. Un paso de 0 no redondea. */
+function ceilTo(value: number, step: number): number {
+  if (step <= 0) return value;
+  return Math.ceil(value / step) * step;
+}
 
 /**
  * Los tres porcentajes se suman y actúan como multiplicador, no como recargo:
@@ -70,7 +79,7 @@ export function buildLineItem(
     baseCost: round2(baseCost),
     marginPercent: totalMargin,
     costWithMargin,
-    roundedCost: Math.ceil(costWithMargin / ROUNDING_STEP) * ROUNDING_STEP,
+    roundedCost: ceilTo(costWithMargin, ROUNDING_STEP),
     isRecoveryOnly: isRecoveryOnly(item.margin)
   };
 }
@@ -78,15 +87,21 @@ export function buildLineItem(
 /**
  * La mano de obra se cotiza distinto: la tarifa se consume a un ritmo por hora
  * (por ejemplo 2 m³ de gas por hora) durante una cantidad de minutos.
+ *
+ * Esos minutos son los de la tanda entera. Si el horno saca cuatro pizzas de
+ * una, el gas de esos minutos lo pagan las cuatro, no cada una: cobrarlo
+ * completo por unidad multiplicaba por cuatro el costo de hornear.
  */
 export function buildLaborLineItem(
   name: string,
   item: PricedItem,
   quantityPerHour: number,
-  minutes: number
+  minutes: number,
+  batchSize = 1
 ): LaborLineItem {
   const totalMargin = marginPercent(item.margin);
-  const hours = minutes / 60;
+  const units = batchSize > 0 ? batchSize : 1;
+  const hours = minutes / 60 / units;
   const costPerHour = quantityPerHour * item.unitCost;
   const baseCost = hours * costPerHour;
   const costWithMargin = round2(baseCost * (totalMargin / 100));
@@ -94,11 +109,12 @@ export function buildLaborLineItem(
   return {
     name,
     hours,
+    batchSize: units,
     costPerHour: round2(costPerHour),
     baseCost: round2(baseCost),
     marginPercent: totalMargin,
     costWithMargin,
-    roundedCost: Math.ceil(costWithMargin / ROUNDING_STEP) * ROUNDING_STEP,
+    roundedCost: ceilTo(costWithMargin, ROUNDING_STEP),
     isRecoveryOnly: isRecoveryOnly(item.margin)
   };
 }

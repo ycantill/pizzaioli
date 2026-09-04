@@ -1,0 +1,44 @@
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>{{ data.fixedCost ? 'Editar gasto' : 'Nuevo gasto fijo' }}</h2>
+</div>
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <label class="field">
+      <span class="field-label">Concepto</span>
+      <span class="field-line">
+        <input class="field-input" type="text" formControlName="name" placeholder="Arriendo">
+      </span>
+    </label>
+
+    <label class="field">
+      <span class="field-label">Al mes</span>
+      <span class="field-line">
+        <span class="field-prefix">$</span>
+        <input class="field-input" type="number" min="0" step="1000" inputmode="numeric"
+               formControlName="monthlyAmount">
+      </span>
+      <span class="field-hint">
+        Lo que pagás cada mes, tal como sale de la cuenta. No lo dividas por unidad: de eso se
+        encarga el punto de equilibrio.
+      </span>
+    </label>
+
+    @if (data.fixedCost) {
+      <div class="danger-zone">
+        <button type="button" class="button-outline is-destructive" (click)="onDelete()">
+          <mat-icon aria-hidden="true">delete</mat-icon>
+          Eliminar gasto
+        </button>
+      </div>
+    }
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
+    Guardar
+  </button>
+</mat-dialog-actions>

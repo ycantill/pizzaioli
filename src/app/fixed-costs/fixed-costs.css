@@ -1,0 +1,114 @@
+/* Costos fijos: la lista de gastos arriba y el equilibrio debajo, que es para
+   lo único que sirven. Las filas de gasto se editan; las del equilibrio no son
+   botones porque no hay nada que abrir: son el resultado. */
+
+.intro {
+  margin: 14px 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+}
+
+.cost-list,
+.break-even-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--app-rule-strong);
+}
+
+.cost-list li + li .cost-row,
+.break-even-list li + li .break-even-row {
+  border-top: 1px dotted var(--app-rule);
+}
+
+.cost-list.is-settings {
+  margin-top: 28px;
+}
+
+.cost-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cost-row:disabled {
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.cost-row:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
+}
+
+.break-even-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+}
+
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.row-head .ticket-name {
+  flex: none;
+  max-width: 55%;
+}
+
+.ticket-tag.is-warning {
+  color: var(--app-stamp);
+}
+
+.row-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--app-ink-muted);
+}
+
+.row-item-qty {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* El total cierra la lista que tiene encima, como la línea de un tiquete. */
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 0;
+  border-top: 2px solid var(--app-rule-strong);
+  font-size: 13px;
+}
+
+.total-value {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.section-heading {
+  margin: 28px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+}

@@ -68,3 +68,9 @@
   font-family: var(--app-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* La tanda se menciona en voz baja: es una aclaración del tiempo de al lado,
+   no otro dato de la fila. */
+.row-item-note {
+  color: var(--app-ink-faint);
+}

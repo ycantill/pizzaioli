@@ -7,18 +7,41 @@
 <mat-dialog-content>
   <form [formGroup]="form">
     <h3 class="section-title">Cuánto tiempo lleva</h3>
+    <p class="section-note">
+      El tiempo es el de la tanda entera. Si de esa tanda salen varias unidades, se reparte
+      entre ellas.
+    </p>
+
+    @if (legacyMismatches.length > 0) {
+      <div class="alert alert-warning">
+        <p>
+          Esta configuración venía de los consumos viejos, que llevaban su propio ritmo de gasto.
+          Ahora el ritmo lo pone la tarifa, y no coinciden:
+        </p>
+        <ul class="legacy-list">
+          @for (mismatch of legacyMismatches; track mismatch.name) {
+            <li>
+              <strong>{{ mismatch.name }}</strong> gastaba {{ mismatch.was }} {{ mismatch.unit }}/h;
+              la tarifa «{{ mismatch.rateName }}» dice {{ mismatch.now }} {{ mismatch.unit }}/h.
+            </li>
+          }
+        </ul>
+        <p>
+          Si guardás así, el costo pasa a calcularse con el de la tarifa. Corregí primero la
+          tarifa si el bueno era el viejo.
+        </p>
+      </div>
+    }
 
     <ul formArrayName="items" class="items-list">
       @for (item of itemsArray.controls; track $index) {
         <li [formGroupName]="$index" class="item-row">
           <label class="field">
-            <span class="field-label">Consumo</span>
+            <span class="field-label">Tarifa</span>
             <span class="field-line">
-              <select class="field-select" formControlName="consumptionId">
-                @for (consumption of availableConsumptions($index); track consumption.id) {
-                  <option [value]="consumption.id">
-                    {{ consumption.name }} ({{ getCostName(consumption.rateId) }})
-                  </option>
+              <select class="field-select" formControlName="rateId">
+                @for (rate of availableRates($index); track rate.id) {
+                  <option [value]="rate.id">{{ rateLabel(rate) }}</option>
                 }
               </select>
             </span>
@@ -44,18 +67,31 @@
             <button type="button"
                     class="item-remove"
                     [disabled]="itemsArray.length === 1"
-                    [attr.aria-label]="'Quitar consumo ' + ($index + 1)"
+                    [attr.aria-label]="'Quitar tarifa ' + ($index + 1)"
                     (click)="removeItem($index)">
               <mat-icon aria-hidden="true">delete</mat-icon>
             </button>
           </div>
+
+          <label class="field">
+            <span class="field-label">Rinde</span>
+            <span class="field-line">
+              <input class="field-input" type="number" min="1" step="1" inputmode="numeric"
+                     formControlName="batchSize">
+              <span class="field-suffix">unidades</span>
+            </span>
+            <span class="field-hint">
+              Cuántas unidades salen de ese tiempo. El horno hornea varias a la vez y el gas lo
+              pagan entre todas: a cada unidad le tocan {{ perUnitLabels()[$index] }}.
+            </span>
+          </label>
         </li>
       }
     </ul>
 
     <button type="button" class="add-line" (click)="addItem()">
       <mat-icon aria-hidden="true">add</mat-icon>
-      Agregar consumo
+      Agregar tarifa
     </button>
 
     @if (data.labor) {

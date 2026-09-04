@@ -1,6 +1,5 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { SupplyCategoryKind } from '../models/supply-category.model';
-import { MarginConfig } from '../models/margin-config.model';
 import { PricedItem } from '../models/priced-item.model';
 import { Rate } from '../models/rate.model';
 import { Supply } from '../models/supply.model';
@@ -35,11 +34,6 @@ export class CatalogService {
   /** Solo lo inventariable. */
   readonly supplyItems = computed(() =>
     this.suppliesService.supplies().filter(s => s.id).map(supplyToPricedItem)
-  );
-
-  /** Solo servicios y mano de obra. */
-  readonly rateItems = computed(() =>
-    this.ratesService.rates().filter(r => r.id).map(rateToPricedItem)
   );
 
   /** Categorías agrupadas por función, resolviendo las que aún no la declaran. */
@@ -95,32 +89,6 @@ export class CatalogService {
     return this.find(id)?.name ?? fallback;
   }
 
-  /** Un id del catálogo es de un insumo o de una tarifa, nunca de ambos. */
-  kindOf(id: string): 'supply' | 'rate' | undefined {
-    if (this.suppliesService.supplies().some(s => s.id === id)) return 'supply';
-    if (this.ratesService.rates().some(r => r.id === id)) return 'rate';
-    return undefined;
-  }
-
-  /**
-   * Guarda el margen en el documento que lo contiene. Reemplaza a la antigua
-   * colección `margins`: ya no hay forma de que un margen quede huérfano.
-   */
-  async updateMargin(id: string, margin: MarginConfig): Promise<void> {
-    const supply = this.suppliesService.supplies().find(s => s.id === id);
-    if (supply) {
-      await this.suppliesService.update(id, { ...supply, margin });
-      return;
-    }
-
-    const rate = this.ratesService.rates().find(r => r.id === id);
-    if (rate) {
-      await this.ratesService.update(id, { ...rate, margin });
-      return;
-    }
-
-    throw new Error(`No existe insumo ni tarifa con id ${id}.`);
-  }
 }
 
 /**

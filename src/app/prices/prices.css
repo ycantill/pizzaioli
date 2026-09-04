@@ -93,6 +93,14 @@ td.warning {
   font-style: italic;
 }
 
+/* El reparto de la tanda se anuncia en voz baja: aclara el tiempo de al lado,
+   no es otro dato de la fila. */
+.cell-note {
+  display: block;
+  font-size: 11px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 /* Summary Card */
 .summary-card {
   margin-bottom: 16px;
@@ -126,6 +134,14 @@ td.warning {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--mat-sys-on-surface);
+}
+
+/* El tiempo acompaña a la cifra: "deja 900" no dice nada sin saber en cuántos
+   minutos, y en su propia fila competiría con el precio. */
+.summary-aside {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .summary-value.price {
@@ -225,4 +241,11 @@ td.warning {
   font-size: 0.875rem;
   margin: 0;
   padding: 8px 0;
+}
+
+/* En la lista guardada el dato va bajo el precio, en voz baja: sirve para
+   comparar productos entre sí, no para leer uno solo. */
+.saved-price-per-minute {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
 }

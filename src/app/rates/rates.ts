@@ -2,13 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DEFAULT_MARGIN } from '../models/margin-config.model';
-import { Rate } from '../models/rate.model';
+import { quantityPerHourOf, Rate } from '../models/rate.model';
 import { RatesDataService } from '../services/rates-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
-import { getUnitName } from '../shared/lookup.utils';
+import { getUnitAbbreviation, getUnitName } from '../shared/lookup.utils';
 import { RateDialog, RateDialogResult } from './rate-dialog';
 
 @Component({
@@ -41,6 +40,13 @@ export class Rates {
     return getUnitName(this.units(), unitId) || unitId;
   }
 
+  /** El ritmo de consumo solo se anuncia cuando dice algo: "1/h" es el defecto. */
+  perHour(rate: Rate): string {
+    const quantity = quantityPerHourOf(rate);
+    if (quantity === 1) return '';
+    return `${quantity} ${getUnitAbbreviation(this.units(), rate.unitId)}/h`;
+  }
+
   addRate() {
     const dialogRef = this.dialogs.openFullScreen<RateDialog, RateDialogResult>(RateDialog, { units: this.units() });
 
@@ -49,7 +55,7 @@ export class Rates {
 
       this.saving.set(true);
       try {
-        await this.ratesService.add({ ...result, margin: DEFAULT_MARGIN });
+        await this.ratesService.add(result);
       } catch (error) {
         console.error('Error adding rate:', error);
       } finally {
@@ -70,7 +76,6 @@ export class Rates {
 
       this.saving.set(true);
       try {
-        // El margen embebido se conserva: aquí solo se edita la tarifa.
         await this.ratesService.update(rate.id, { ...rate, ...result });
       } catch (error) {
         console.error('Error updating rate:', error);

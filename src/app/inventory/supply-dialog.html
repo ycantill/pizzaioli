@@ -104,6 +104,8 @@
       </div>
     }
 
+    <app-margin-fields [group]="marginGroup" [total]="marginTotal()" />
+
     @if (!data.supply) {
       <p class="field-hint">
         El insumo se crea con stock y costo en cero. El costo aparece al registrar la primera

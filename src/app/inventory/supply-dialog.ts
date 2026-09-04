@@ -4,11 +4,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MarginConfig } from '../models/margin-config.model';
 import { SupplyCategory } from '../models/supply-category.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
+import { marginPercent } from '../services/pricing';
 import { convert } from '../services/unit-conversion';
 import { rescaleBalance, StockBalance } from '../services/weighted-average';
+import { marginFromForm, MarginFields, marginGroup } from '../shared/margin-fields';
 
 export interface SupplyDialogData {
   supply?: Supply;
@@ -20,6 +23,7 @@ export interface SupplyDialogResult {
   name: string;
   unitId: string;
   categoryId: string;
+  margin: MarginConfig;
   minStock?: number;
   /** Presente solo si se pidió convertir el saldo a la unidad nueva. */
   balance?: StockBalance;
@@ -32,7 +36,8 @@ export interface SupplyDialogResult {
     DecimalPipe,
     ReactiveFormsModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    MarginFields
   ],
   templateUrl: './supply-dialog.html',
   styleUrl: './supply-dialog.css'
@@ -47,13 +52,20 @@ export class SupplyDialog {
     unitId: [this.data.supply?.unitId ?? '', Validators.required],
     categoryId: [this.data.supply?.categoryId ?? '', Validators.required],
     minStock: [this.data.supply?.minStock ?? null as number | null],
+    margin: marginGroup(this.fb, this.data.supply?.margin),
     // Por defecto se corrige la etiqueta, que es el caso frecuente.
     convertBalance: [false]
   });
 
+  get marginGroup() {
+    return this.form.controls.margin;
+  }
+
   private formValue = toSignal(this.form.valueChanges, {
     initialValue: this.form.getRawValue()
   });
+
+  readonly marginTotal = computed(() => marginPercent(marginFromForm(this.formValue().margin)));
 
   readonly unitChanged = computed(() =>
     !!this.data.supply && this.formValue().unitId !== this.data.supply.unitId
@@ -109,11 +121,12 @@ export class SupplyDialog {
   onSave(): void {
     if (!this.form.valid) return;
 
-    const { name, unitId, categoryId, minStock } = this.form.getRawValue();
+    const { name, unitId, categoryId, minStock, margin } = this.form.getRawValue();
     const result: SupplyDialogResult = {
       name: name.trim(),
       unitId,
       categoryId,
+      margin: marginFromForm(margin),
       // El stock mínimo es opcional: Firestore no acepta undefined.
       ...(minStock !== null && minStock >= 0 ? { minStock } : {}),
       ...(this.converting() && this.rescaled() ? { balance: this.rescaled()! } : {})

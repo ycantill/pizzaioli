@@ -5,7 +5,8 @@
 <div class="container">
   <p class="intro">
     Servicios y mano de obra: lo que se paga por unidad consumida y no se puede almacenar. Su valor
-    se mantiene a mano, a diferencia de los insumos, cuyo costo sale de las compras.
+    se mantiene a mano, a diferencia de los insumos, cuyo costo sale de las compras. Cada una sabe
+    a qué ritmo se gasta por hora, que es lo que la mano de obra multiplica por el tiempo.
   </p>
 
   @if (loading()) {
@@ -30,6 +31,9 @@
             <span class="ticket-leader" aria-hidden="true"></span>
             <span class="ticket-value">
               ${{ rate.value | number:'1.2-2' }}<span class="ticket-unit">/{{ unitName(rate.unitId) }}</span>
+              @if (perHour(rate); as perHour) {
+                <span class="ticket-unit">· {{ perHour }}</span>
+              }
             </span>
           </button>
         </li>
