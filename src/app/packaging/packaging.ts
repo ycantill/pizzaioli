@@ -1,35 +1,28 @@
 import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog } from '@angular/material/dialog';
 import { Packaging } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { PackagingsDataService } from '../services/packagings-data.service';
+import { ConfirmDialog } from '../shared/confirm-dialog';
+import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
 import { PackagingDialog } from './packaging-dialog';
 
 @Component({
   selector: 'app-packaging',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MatCardModule,
-    MatButtonModule,
     MatIconModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule
+    MatProgressSpinnerModule
   ],
   templateUrl: './packaging.html',
   styleUrl: './packaging.css'
 })
 export class PackagingConfig {
-  private dialog = inject(MatDialog);
+  private dialogs = inject(DialogService);
   private catalog = inject(CatalogService);
   private unitsService = inject(UnitsDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
@@ -41,7 +34,6 @@ export class PackagingConfig {
     this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
     this.unitsService.isLoading() || this.packagingsService.isLoading()
   );
-  displayedColumns: string[] = ['name', 'items', 'actions'];
 
   getRecipeTypeName(recipeTypeId: string): string {
     const type = this.recipeTypes().find(t => t.id === recipeTypeId);
@@ -61,18 +53,22 @@ export class PackagingConfig {
 
     const filteredCosts = this.catalog.packagingSupplies();
 
-    const dialogRef = this.dialog.open(PackagingDialog, {
-      width: '600px',
-      maxHeight: '90vh',
-      data: {
+    const dialogRef = this.dialogs.openFullScreen<PackagingDialog, Packaging | DeleteRequested>(
+      PackagingDialog,
+      {
         packaging: existingPackaging,
         recipeType,
         costs: filteredCosts,
         units: this.unitsService.units()
       }
-    });
+    );
 
-    dialogRef.afterClosed().subscribe(async (result: Packaging | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result) => {
+      // Borrar se pide desde la propia configuración: la lista no tiene controles.
+      if (result === DELETE_REQUESTED) {
+        if (existingPackaging?.id) this.deletePackaging(existingPackaging.id, recipeType.name);
+        return;
+      }
       if (result) {
         try {
           if (existingPackaging?.id) {
@@ -87,13 +83,25 @@ export class PackagingConfig {
     });
   }
 
-  async deletePackaging(id: string) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta configuración de paquetería?')) {
+  /**
+   * Antes usaba el confirm() del navegador, que no se parece en nada al resto
+   * de la app y no se puede leer con la piel puesta.
+   */
+  deletePackaging(id: string, recipeTypeName: string) {
+    const dialogRef = this.dialogs.openConfirm<ConfirmDialog, boolean>(ConfirmDialog, {
+      title: 'Confirmar eliminación',
+      message: `¿Eliminar la paquetería de "${recipeTypeName}"? El precio de venta dejará de ` +
+        `incluir su costo.`
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean | undefined) => {
+      if (!confirmed) return;
+
       try {
         await this.packagingsService.remove(id);
       } catch (error) {
         console.error('Error deleting packaging:', error);
       }
-    }
+    });
   }
 }

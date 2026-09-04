@@ -1,89 +1,51 @@
 <div class="page-header">
-  <h1 class="page-title">Configuración de Paquetería</h1>
+  <h1 class="page-title">Paquetería</h1>
 </div>
 
 <div class="container">
+  <p class="intro">
+    Qué se empaca con cada tipo de receta. Su costo se suma al precio de venta, igual que los
+    ingredientes.
+  </p>
+
   @if (loading()) {
     <div class="loading-container">
       <mat-spinner></mat-spinner>
     </div>
   } @else {
-    <div class="desktop-view">
-      <table mat-table [dataSource]="recipeTypes()" class="mat-elevation-z2">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Tipo de Receta</th>
-          <td mat-cell *matCellDef="let recipeType">
-            {{ recipeType.name }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="items">
-          <th mat-header-cell *matHeaderCellDef>Items</th>
-          <td mat-cell *matCellDef="let recipeType">
-            @if (getPackagingForType(recipeType.id!); as packaging) {
-              <div class="items-summary">
-                @for (item of packaging.items; track $index) {
-                  <span class="item-chip">{{ getCostName(item.supplyId) }} ({{ item.quantity }})</span>
-                }
-              </div>
-            } @else {
-              <span class="no-config">Sin configuración</span>
-            }
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Acciones</th>
-          <td mat-cell *matCellDef="let recipeType">
-            <button mat-icon-button color="primary" (click)="openDialog(recipeType)" 
-                    [matTooltip]="getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar'">
-              <mat-icon>{{ getPackagingForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
-            </button>
-            @if (getPackagingForType(recipeType.id!); as packaging) {
-              <button mat-icon-button color="warn" (click)="deletePackaging(packaging.id!)" matTooltip="Eliminar">
-                <mat-icon>delete</mat-icon>
-              </button>
-            }
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </div>
-
-    <div class="mobile-view">
+    <ul class="packaging-list">
       @for (recipeType of recipeTypes(); track recipeType.id) {
-        <div class="packaging-row">
-          <div class="packaging-info">
-            <span class="type-name">{{ recipeType.name }}</span>
+        <li>
+          <button type="button"
+                  class="packaging-row"
+                  [attr.aria-label]="(getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar')
+                    + ' paquetería de ' + recipeType.name"
+                  (click)="openDialog(recipeType)">
+            <span class="row-head">
+              <span class="ticket-name">{{ recipeType.name }}</span>
+              <span class="ticket-leader" aria-hidden="true"></span>
+              @if (getPackagingForType(recipeType.id!); as packaging) {
+                <span class="ticket-tag">{{ packaging.items.length }} ítem(s)</span>
+              } @else {
+                <span class="ticket-tag is-empty">Sin configurar</span>
+              }
+            </span>
+
             @if (getPackagingForType(recipeType.id!); as packaging) {
-              <div class="items-list">
+              <span class="row-items">
                 @for (item of packaging.items; track $index) {
-                  <span class="item-chip">{{ getCostName(item.supplyId) }} ({{ item.quantity }})</span>
+                  <span class="row-item">
+                    {{ getCostName(item.supplyId) }}
+                    <span class="row-item-qty">×{{ item.quantity }}</span>
+                  </span>
                 }
-              </div>
-            } @else {
-              <span class="no-config">Sin configuración</span>
+              </span>
             }
-          </div>
-          <div class="packaging-actions">
-            <button mat-icon-button color="primary"
-                    [attr.aria-label]="(getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar')
-                      + ' paquetería de ' + recipeType.name"
-                    (click)="openDialog(recipeType)">
-              <mat-icon>{{ getPackagingForType(recipeType.id!) ? 'edit' : 'add' }}</mat-icon>
-            </button>
-            @if (getPackagingForType(recipeType.id!); as packaging) {
-              <button mat-icon-button color="warn"
-                      [attr.aria-label]="'Eliminar paquetería de ' + recipeType.name"
-                      (click)="deletePackaging(packaging.id!)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            }
-          </div>
-        </div>
+          </button>
+        </li>
+      } @empty {
+        <p class="empty">No hay tipos de receta. Creá uno para poder configurar su paquetería.</p>
       }
-    </div>
+    </ul>
   }
 </div>

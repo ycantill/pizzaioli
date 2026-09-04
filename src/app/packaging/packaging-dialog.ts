@@ -1,15 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Packaging, PackagingItem } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { PricedItem } from '../models/priced-item.model';
 import { Unit } from '../models/unit.model';
+import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 
 export interface PackagingDialogData {
   packaging?: Packaging;
@@ -20,21 +17,18 @@ export interface PackagingDialogData {
 
 @Component({
   selector: 'app-packaging-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule
+    MatIconModule
   ],
   templateUrl: './packaging-dialog.html',
   styleUrl: './packaging-dialog.css'
 })
 export class PackagingDialog {
   data: PackagingDialogData = inject(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<PackagingDialog>);
+  private dialogRef = inject(MatDialogRef<PackagingDialog, Packaging | DeleteRequested>);
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
@@ -83,6 +77,10 @@ export class PackagingDialog {
     if (this.itemsArray.length > 1) {
       this.itemsArray.removeAt(index);
     }
+  }
+
+  onDelete(): void {
+    this.dialogRef.close(DELETE_REQUESTED);
   }
 
   onCancel(): void {

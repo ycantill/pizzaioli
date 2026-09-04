@@ -1,47 +1,64 @@
-<h2 mat-dialog-title>Configurar Paquetería - {{ data.recipeType.name }}</h2>
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>Paquetería de {{ data.recipeType.name }}</h2>
+</div>
 <mat-dialog-content>
   <form [formGroup]="form">
-    <div class="items-section">
-      <div class="section-header">
-        <h3>Costos de Paquetería</h3>
-        <button mat-icon-button type="button" (click)="addItem()" color="primary">
-          <mat-icon>add_circle</mat-icon>
+    <h3 class="section-title">Qué se empaca</h3>
+
+    <ul formArrayName="items" class="items-list">
+      @for (item of itemsArray.controls; track $index) {
+        <li [formGroupName]="$index" class="item-row">
+          <label class="field item-supply">
+            <span class="field-label">Insumo</span>
+            <span class="field-line">
+              <select class="field-select" formControlName="supplyId">
+                @for (cost of availableCosts($index); track cost.id) {
+                  <option [value]="cost.id">{{ cost.name }}</option>
+                }
+              </select>
+            </span>
+          </label>
+
+          <label class="field item-quantity">
+            <span class="field-label">Cantidad</span>
+            <span class="field-line">
+              <input class="field-input" type="number" min="1" step="1" inputmode="numeric"
+                     formControlName="quantity">
+            </span>
+          </label>
+
+          <button type="button"
+                  class="item-remove"
+                  [disabled]="itemsArray.length === 1"
+                  [attr.aria-label]="'Quitar ítem ' + ($index + 1)"
+                  (click)="removeItem($index)">
+            <mat-icon aria-hidden="true">delete</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <button type="button" class="add-line" (click)="addItem()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Agregar ítem
+    </button>
+
+    @if (data.packaging) {
+      <div class="danger-zone">
+        <button type="button" class="button-outline is-destructive" (click)="onDelete()">
+          <mat-icon aria-hidden="true">delete</mat-icon>
+          Eliminar paquetería
         </button>
       </div>
-
-      <div formArrayName="items" class="items-list">
-        @for (item of itemsArray.controls; track $index) {
-          <div [formGroupName]="$index" class="item-row">
-            <mat-form-field appearance="outline" class="cost-field">
-              <mat-label>Costo</mat-label>
-              <mat-select formControlName="supplyId">
-                @for (cost of availableCosts($index); track cost.id) {
-                  <mat-option [value]="cost.id">{{ cost.name }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="quantity-field">
-              <mat-label>Cantidad</mat-label>
-              <input matInput type="number" formControlName="quantity" min="1">
-            </mat-form-field>
-
-            <button mat-icon-button type="button" color="warn"
-                    (click)="removeItem($index)"
-                    [disabled]="itemsArray.length === 1">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        }
-      </div>
-    </div>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary"
-          (click)="onSave()"
-          [disabled]="!form.valid">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
     Guardar
   </button>
 </mat-dialog-actions>
