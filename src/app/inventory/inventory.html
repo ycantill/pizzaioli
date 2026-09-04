@@ -65,6 +65,11 @@
       </button>
     }
 
+    <button type="button" class="add-line" [disabled]="saving()" (click)="addSupply()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Nuevo insumo
+    </button>
+
     @for (group of groups(); track group.name) {
       <h2 class="group-header">
         {{ group.name }}
@@ -99,37 +104,5 @@
       </p>
     }
 
-    <button type="button" class="add-line" [disabled]="saving()" (click)="addSupply()">
-      <mat-icon aria-hidden="true">add</mat-icon>
-      Nuevo insumo
-    </button>
-
-    <div class="audit">
-      <button mat-stroked-button [disabled]="saving()" (click)="runAudit()">
-        <mat-icon aria-hidden="true">fact_check</mat-icon>
-        Auditar saldos
-      </button>
-
-      @if (auditIssues(); as issues) {
-        @if (issues.length === 0) {
-          <p class="alert alert-ok" role="status">
-            <mat-icon aria-hidden="true">check_circle_outline</mat-icon>
-            Todos los saldos cuadran con sus movimientos.
-          </p>
-        } @else {
-          <div class="alert alert-error" role="alert">
-            <mat-icon aria-hidden="true">error_outline</mat-icon>
-            <span>
-              {{ issues.length }} saldo(s) no cuadran:
-              <ul>
-                @for (issue of issues; track $index) {
-                  <li>{{ issue }}</li>
-                }
-              </ul>
-            </span>
-          </div>
-        }
-      }
-    </div>
   }
 </div>

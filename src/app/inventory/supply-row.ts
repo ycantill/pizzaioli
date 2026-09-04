@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { EXIT_REASONS, ExitReason, StockEntry } from '../models/stock-entry.model';
 import { Supply } from '../models/supply.model';
@@ -27,7 +26,7 @@ function exitReasonLabel(reason: ExitReason | undefined): string {
 @Component({
   selector: 'app-supply-row',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, MatButtonModule, MatIconModule],
+  imports: [DecimalPipe, MatIconModule],
   templateUrl: './supply-row.html',
   styleUrl: './supply-row.css',
   host: { class: 'supply-row', '[class.is-low]': 'lowStock()' }

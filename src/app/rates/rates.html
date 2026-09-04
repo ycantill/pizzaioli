@@ -13,6 +13,11 @@
       <mat-spinner></mat-spinner>
     </div>
   } @else {
+    <button type="button" class="add-line" [disabled]="saving()" (click)="addRate()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Nueva tarifa
+    </button>
+
     <ul class="rate-list">
       @for (rate of rates(); track rate.id) {
         <li>
@@ -33,9 +38,6 @@
       }
     </ul>
 
-    <button type="button" class="add-line" [disabled]="saving()" (click)="addRate()">
-      <mat-icon aria-hidden="true">add</mat-icon>
-      Nueva tarifa
-    </button>
+
   }
 </div>

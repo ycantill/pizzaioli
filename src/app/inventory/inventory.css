@@ -194,10 +194,3 @@ details.alert summary:focus-visible {
   margin: 0 0 6px;
 }
 
-.audit {
-  margin-top: 24px;
-}
-
-.audit .alert {
-  margin: 12px 0 0;
-}

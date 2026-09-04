@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Supply } from '../models/supply.model';
@@ -24,7 +23,6 @@ import { SupplyDialog, SupplyDialogResult } from './supply-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DecimalPipe,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     SupplyRow
@@ -53,7 +51,6 @@ export class Inventory {
   readonly mislabeled = this.inventoryService.mislabeledUnits;
   readonly expandedId = signal<string | null>(null);
   readonly saving = signal(false);
-  readonly auditIssues = signal<string[] | null>(null);
 
   readonly units = this.unitsService.units;
   readonly categories = this.catalog.supplyCategories;
@@ -130,27 +127,9 @@ export class Inventory {
     return supply.minStock !== undefined && supply.stock <= supply.minStock;
   }
 
-  /**
-   * Reconstruye cada saldo desde su historial y lo compara con el guardado.
-   * El saldo denormalizado es la fuente de verdad, así que esto detecta que se
-   * haya desincronizado; fue lo que delató las aperturas duplicadas.
-   */
-  runAudit() {
-    const issues = this.inventoryService.auditAll()
-      .filter(audit => !audit.ok)
-      .map(audit => {
-        const name = this.inventoryService.supplies().find(s => s.id === audit.supplyId)?.name
-          ?? audit.supplyId;
-        return `${name}: saldo ${audit.stored.stock} vs. ${audit.replayed.stock} según sus movimientos.`;
-      });
-
-    this.auditIssues.set(issues);
-  }
-
   isExpanded(supplyId: string | undefined): boolean {
     return !!supplyId && this.expandedId() === supplyId;
   }
-
 
   /** Traduce lo que pide la fila a la operación correspondiente. */
   onAction(supply: Supply, action: SupplyAction) {
