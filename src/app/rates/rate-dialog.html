@@ -47,6 +47,19 @@
       }
     </label>
 
+    <label class="field">
+      <span class="field-label">Consumo por hora</span>
+      <span class="field-line">
+        <input class="field-input" type="number" min="0" step="any" inputmode="decimal"
+               formControlName="quantityPerHour">
+        <span class="field-suffix">{{ unitAbbreviation() }}/h</span>
+      </span>
+      <span class="field-hint">
+        Cuánto gasta por cada hora de uso: un horno puede quemar 2 m³ de gas por hora. Para la
+        mano de obra, que ya se cobra por hora, es 1.
+      </span>
+    </label>
+
     <p class="field-hint">
       Las tarifas no llevan inventario: su valor se mantiene a mano. Cambiarlo mueve de inmediato
       los precios que dependan de ella.

@@ -36,11 +36,6 @@ export class CatalogService {
     this.suppliesService.supplies().filter(s => s.id).map(supplyToPricedItem)
   );
 
-  /** Solo servicios y mano de obra. */
-  readonly rateItems = computed(() =>
-    this.ratesService.rates().filter(r => r.id).map(rateToPricedItem)
-  );
-
   /** Categorías agrupadas por función, resolviendo las que aún no la declaran. */
   private readonly categoryKinds = computed(() => {
     const kinds = new Map<string, SupplyCategoryKind>();

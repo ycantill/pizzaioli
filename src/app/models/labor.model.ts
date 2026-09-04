@@ -1,5 +1,12 @@
 export interface LaborItem {
-  consumptionId: string;
+  /** La tarifa que se consume: gas, energía, mano de obra. */
+  rateId?: string;
+  /**
+   * Forma vieja: apuntaba a un `consumption`, que a su vez apuntaba a la
+   * tarifa. Se sigue leyendo para no romper lo ya configurado; al volver a
+   * guardar la configuración desaparece. Ver `resolveLaborItem`.
+   */
+  consumptionId?: string;
   /** Minutos de la tanda entera, no de una unidad. */
   minutes: number;
   /**

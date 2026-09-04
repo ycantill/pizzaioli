@@ -72,3 +72,29 @@
   line-height: 1.5;
   color: var(--app-ink-muted);
 }
+
+/* El layout de la alerta lo pone cada componente; el color viene de la hoja
+   compartida. Aquí el aviso lleva varios párrafos, así que apila en vez de
+   alinear en fila. */
+.alert {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-left: 3px solid currentColor;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.alert p {
+  margin: 0;
+}
+
+/* El aviso de migración: la lista dentro de la alerta necesita su sangría, o
+   los nombres se pegan al borde del recuadro. */
+.legacy-list {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+.legacy-list li + li {
+  margin-top: 4px;
+}

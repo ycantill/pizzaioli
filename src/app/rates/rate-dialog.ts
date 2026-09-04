@@ -5,9 +5,10 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatIconModule } from '@angular/material/icon';
 import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 import { MarginConfig } from '../models/margin-config.model';
-import { Rate } from '../models/rate.model';
+import { quantityPerHourOf, Rate } from '../models/rate.model';
 import { Unit } from '../models/unit.model';
 import { marginPercent } from '../services/pricing';
+import { getUnitAbbreviation } from '../shared/lookup.utils';
 import { marginFromForm, MarginFields, marginGroup } from '../shared/margin-fields';
 
 export interface RateDialogData {
@@ -19,6 +20,7 @@ export interface RateDialogResult {
   name: string;
   unitId: string;
   value: number;
+  quantityPerHour: number;
   margin: MarginConfig;
 }
 
@@ -43,6 +45,10 @@ export class RateDialog {
     name: [this.data.rate?.name ?? '', Validators.required],
     unitId: [this.data.rate?.unitId ?? '', Validators.required],
     value: [this.data.rate?.value ?? 0, [Validators.required, Validators.min(0)]],
+    quantityPerHour: [
+      quantityPerHourOf(this.data.rate),
+      [Validators.required, Validators.min(0)]
+    ],
     margin: marginGroup(this.fb, this.data.rate?.margin)
   });
 
@@ -55,6 +61,11 @@ export class RateDialog {
   }
 
   readonly marginTotal = computed(() => marginPercent(marginFromForm(this.formValue().margin)));
+
+  /** La abreviatura de la unidad elegida, para leer "2 m³/h" mientras se escribe. */
+  readonly unitAbbreviation = computed(() =>
+    getUnitAbbreviation(this.data.units, this.formValue().unitId ?? '')
+  );
 
   /**
    * Un error solo se muestra si el usuario ya pasó por el campo: con controles
@@ -81,11 +92,12 @@ export class RateDialog {
   onSave(): void {
     if (!this.form.valid) return;
 
-    const { name, unitId, value, margin } = this.form.getRawValue();
+    const { name, unitId, value, quantityPerHour, margin } = this.form.getRawValue();
     const result: RateDialogResult = {
       name: name.trim(),
       unitId,
       value,
+      quantityPerHour: Number(quantityPerHour) || 1,
       margin: marginFromForm(margin)
     };
     this.dialogRef.close(result);

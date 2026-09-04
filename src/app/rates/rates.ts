@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Rate } from '../models/rate.model';
+import { quantityPerHourOf, Rate } from '../models/rate.model';
 import { RatesDataService } from '../services/rates-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
-import { getUnitName } from '../shared/lookup.utils';
+import { getUnitAbbreviation, getUnitName } from '../shared/lookup.utils';
 import { RateDialog, RateDialogResult } from './rate-dialog';
 
 @Component({
@@ -38,6 +38,13 @@ export class Rates {
 
   unitName(unitId: string): string {
     return getUnitName(this.units(), unitId) || unitId;
+  }
+
+  /** El ritmo de consumo solo se anuncia cuando dice algo: "1/h" es el defecto. */
+  perHour(rate: Rate): string {
+    const quantity = quantityPerHourOf(rate);
+    if (quantity === 1) return '';
+    return `${quantity} ${getUnitAbbreviation(this.units(), rate.unitId)}/h`;
   }
 
   addRate() {

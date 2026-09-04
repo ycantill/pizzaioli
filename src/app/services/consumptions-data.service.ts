@@ -2,6 +2,13 @@ import { Injectable, inject, resource, computed } from '@angular/core';
 import { FirestoreService } from '../firestore.service';
 import { Consumption } from '../models/consumption.model';
 
+/**
+ * Colección heredada. Los consumos se fundieron dentro de las tarifas —cada
+ * tarifa sabe a qué ritmo se gasta—, así que ya no se crean ni se editan: esto
+ * queda solo para poder leer las configuraciones de mano de obra guardadas
+ * antes del cambio. Ver `resolveLaborItem`.
+ */
+
 @Injectable({ providedIn: 'root' })
 export class ConsumptionsDataService {
   private firestoreService = inject(FirestoreService);

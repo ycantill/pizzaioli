@@ -3,10 +3,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { batchSizeOf, Labor, LaborItem, minutesPerUnit } from '../models/labor.model';
 import { RecipeType } from '../models/recipe-type.model';
-import { CatalogService } from '../services/catalog.service';
+import { RatesDataService } from '../services/rates-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
+import { UnitsDataService } from '../services/units-data.service';
+import { resolveLaborItem } from '../services/labor-rates';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
 import { formatMinutes } from '../shared/format.utils';
@@ -24,22 +26,25 @@ import { LaborDialog } from './labor-dialog';
 })
 export class LaborConfig {
   private dialogs = inject(DialogService);
-  private catalog = inject(CatalogService);
+  private ratesService = inject(RatesDataService);
+  private unitsService = inject(UnitsDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private consumptionsService = inject(ConsumptionsDataService);
   private laborsService = inject(LaborsDataService);
 
   labors = this.laborsService.labors;
   recipeTypes = this.recipeTypesService.recipeTypes;
-  consumptions = this.consumptionsService.consumptions;
   loading = computed(() =>
     this.recipeTypesService.isLoading() || this.consumptionsService.isLoading() ||
-    this.catalog.isLoading() || this.laborsService.isLoading()
+    this.ratesService.isLoading() || this.laborsService.isLoading()
   );
 
-  getConsumptionName(consumptionId: string): string {
-    const consumption = this.consumptions().find(c => c.id === consumptionId);
-    return consumption ? consumption.name : 'Desconocido';
+  /** El nombre de la tarifa que consume esa línea, sea nueva o vieja. */
+  getRateName(item: LaborItem): string {
+    const resolved = resolveLaborItem(
+      item, this.ratesService.rates(), this.consumptionsService.consumptions()
+    );
+    return resolved?.name ?? 'Desconocido';
   }
 
   /**
@@ -76,8 +81,9 @@ export class LaborConfig {
       {
         labor: existingLabor,
         recipeType,
-        consumptions: this.consumptions(),
-        costs: this.catalog.rateItems()
+        rates: this.ratesService.rates(),
+        units: this.unitsService.units(),
+        legacyConsumptions: this.consumptionsService.consumptions()
       }
     );
 

@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { batchSizeOf } from '../models/labor.model';
 import { Price } from '../models/price.model';
+import { resolveLaborItem } from './labor-rates';
+import { RatesDataService } from './rates-data.service';
 import { CatalogService } from './catalog.service';
 import { ConsumptionsDataService } from './consumptions-data.service';
 import { DoughCalculationService } from './dough-calculation.service';
@@ -69,6 +71,7 @@ export class PriceCalculationService {
   private packagingsService = inject(PackagingsDataService);
   private consumptionsService = inject(ConsumptionsDataService);
   private laborsService = inject(LaborsDataService);
+  private ratesService = inject(RatesDataService);
   private toppingsService = inject(ToppingsDataService);
 
   /** Un precio guardado vuelve a ser la receta que lo produjo. */
@@ -198,17 +201,18 @@ export class PriceCalculationService {
     const labor = this.laborsService.labors().find(l => l.recipeTypeId === recipeTypeId);
     if (!labor) return [];
 
-    const allConsumptions = this.consumptionsService.consumptions();
+    const rates = this.ratesService.rates();
+    const legacyConsumptions = this.consumptionsService.consumptions();
 
     return labor.items.map(laborItem => {
-      const consumption = allConsumptions.find(c => c.id === laborItem.consumptionId);
-      if (!consumption) return null;
+      const resolved = resolveLaborItem(laborItem, rates, legacyConsumptions);
+      if (!resolved) return null;
 
-      const item = this.catalog.find(consumption.rateId);
+      const item = this.catalog.find(resolved.rateId);
       if (!item) return null;
 
       return buildLaborLineItem(
-        consumption.name, item, consumption.quantity, laborItem.minutes, batchSizeOf(laborItem)
+        resolved.name, item, resolved.quantityPerHour, resolved.minutes, resolved.batchSize
       );
     }).filter((item): item is LaborLineItem => item !== null);
   }
