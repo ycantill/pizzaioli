@@ -1,0 +1,12 @@
+/* Dos campos: concepto y lo que se paga al mes. La ayuda del monto es la que
+   evita el error de siempre —escribir aquí la parte que le toca a una pizza—. */
+
+.field + .field {
+  margin-top: 18px;
+}
+
+.danger-zone {
+  margin: 20px 0 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--app-rule-strong);
+}

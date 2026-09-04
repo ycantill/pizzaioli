@@ -36,6 +36,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'fixed-costs',
+    loadComponent: () => import('./fixed-costs/fixed-costs').then((m) => m.FixedCosts),
+    canActivate: [authGuard]
+  },
+  {
     path: 'rates',
     loadComponent: () => import('./rates/rates').then((m) => m.Rates),
     canActivate: [authGuard]
