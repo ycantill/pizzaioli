@@ -52,6 +52,8 @@
       los precios que dependan de ella.
     </p>
 
+    <app-margin-fields [group]="marginGroup" [total]="marginTotal()" />
+
     @if (data.rate) {
       <div class="danger-zone">
         <button type="button" class="button-outline is-destructive" (click)="onDelete()">

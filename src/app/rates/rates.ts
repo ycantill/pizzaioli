@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { Rate } from '../models/rate.model';
 import { RatesDataService } from '../services/rates-data.service';
 import { UnitsDataService } from '../services/units-data.service';
@@ -49,7 +48,7 @@ export class Rates {
 
       this.saving.set(true);
       try {
-        await this.ratesService.add({ ...result, margin: DEFAULT_MARGIN });
+        await this.ratesService.add(result);
       } catch (error) {
         console.error('Error adding rate:', error);
       } finally {
@@ -70,7 +69,6 @@ export class Rates {
 
       this.saving.set(true);
       try {
-        // El margen embebido se conserva: aquí solo se edita la tarifa.
         await this.ratesService.update(rate.id, { ...rate, ...result });
       } catch (error) {
         console.error('Error updating rate:', error);

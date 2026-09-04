@@ -3,7 +3,6 @@ import { Units } from './units/units';
 import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
 import { Doughs } from './doughs/doughs';
-import { Margins } from './margins/margins';
 import { Categories } from './categories/categories';
 import { RecipeTypes } from './recipe-types/recipe-types';
 import { PackagingConfig } from './packaging/packaging';
@@ -22,7 +21,6 @@ export const routes: Routes = [
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
   { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
   { path: 'consumptions', component: Consumptions, canActivate: [authGuard] },
-  { path: 'margins', component: Margins, canActivate: [authGuard] },
   { path: 'units', component: Units, canActivate: [authGuard] },
   { path: 'doughs', component: Doughs, canActivate: [authGuard] },
   { path: 'recipes', component: Recipes, canActivate: [authGuard] },

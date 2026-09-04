@@ -1,10 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
+import { MarginConfig } from '../models/margin-config.model';
 import { Rate } from '../models/rate.model';
 import { Unit } from '../models/unit.model';
+import { marginPercent } from '../services/pricing';
+import { marginFromForm, MarginFields, marginGroup } from '../shared/margin-fields';
 
 export interface RateDialogData {
   rate?: Rate;
@@ -15,6 +19,7 @@ export interface RateDialogResult {
   name: string;
   unitId: string;
   value: number;
+  margin: MarginConfig;
 }
 
 @Component({
@@ -23,7 +28,8 @@ export interface RateDialogResult {
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    MarginFields
   ],
   templateUrl: './rate-dialog.html',
   styleUrl: './rate-dialog.css'
@@ -36,8 +42,19 @@ export class RateDialog {
   form = this.fb.nonNullable.group({
     name: [this.data.rate?.name ?? '', Validators.required],
     unitId: [this.data.rate?.unitId ?? '', Validators.required],
-    value: [this.data.rate?.value ?? 0, [Validators.required, Validators.min(0)]]
+    value: [this.data.rate?.value ?? 0, [Validators.required, Validators.min(0)]],
+    margin: marginGroup(this.fb, this.data.rate?.margin)
   });
+
+  private formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue()
+  });
+
+  get marginGroup() {
+    return this.form.controls.margin;
+  }
+
+  readonly marginTotal = computed(() => marginPercent(marginFromForm(this.formValue().margin)));
 
   /**
    * Un error solo se muestra si el usuario ya pasó por el campo: con controles
@@ -64,8 +81,13 @@ export class RateDialog {
   onSave(): void {
     if (!this.form.valid) return;
 
-    const { name, unitId, value } = this.form.getRawValue();
-    const result: RateDialogResult = { name: name.trim(), unitId, value };
+    const { name, unitId, value, margin } = this.form.getRawValue();
+    const result: RateDialogResult = {
+      name: name.trim(),
+      unitId,
+      value,
+      margin: marginFromForm(margin)
+    };
     this.dialogRef.close(result);
   }
 }

@@ -10,7 +10,6 @@ import { SuppliesDataService } from '../services/supplies-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DialogService } from '../shared/dialog.service';
-import { DEFAULT_MARGIN } from '../models/margin-config.model';
 import { getUnitAbbreviation, getUnitName } from '../shared/lookup.utils';
 import { describeUnit } from '../services/unit-conversion';
 import { MovementDialog, MovementDialogResult, MovementKind } from './movement-dialog';
@@ -158,8 +157,7 @@ export class Inventory {
           ...result,
           stock: 0,
           stockValue: 0,
-          unitCost: 0,
-          margin: DEFAULT_MARGIN
+          unitCost: 0
         });
       } catch (error) {
         console.error('Error adding supply:', error);
