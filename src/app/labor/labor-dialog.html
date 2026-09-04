@@ -1,52 +1,76 @@
-<h2 mat-dialog-title>Mano de Obra - {{ data.recipeType.name }}</h2>
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>Mano de obra de {{ data.recipeType.name }}</h2>
+</div>
 <mat-dialog-content>
   <form [formGroup]="form">
-    <div class="items-section">
-      <div class="section-header">
-        <h3>Consumos</h3>
-        <button mat-icon-button type="button" (click)="addItem()" color="primary">
-          <mat-icon>add_circle</mat-icon>
-        </button>
-      </div>
+    <h3 class="section-title">Cuánto tiempo lleva</h3>
 
-      <div formArrayName="items" class="items-list">
-        @for (item of itemsArray.controls; track $index) {
-          <div [formGroupName]="$index" class="item-row">
-            <mat-form-field appearance="outline" class="consumption-field">
-              <mat-label>Consumo</mat-label>
-              <mat-select formControlName="consumptionId">
+    <ul formArrayName="items" class="items-list">
+      @for (item of itemsArray.controls; track $index) {
+        <li [formGroupName]="$index" class="item-row">
+          <label class="field">
+            <span class="field-label">Consumo</span>
+            <span class="field-line">
+              <select class="field-select" formControlName="consumptionId">
                 @for (consumption of availableConsumptions($index); track consumption.id) {
-                  <mat-option [value]="consumption.id">{{ consumption.name }} ({{ getCostName(consumption.rateId) }})</mat-option>
+                  <option [value]="consumption.id">
+                    {{ consumption.name }} ({{ getCostName(consumption.rateId) }})
+                  </option>
                 }
-              </mat-select>
-            </mat-form-field>
+              </select>
+            </span>
+          </label>
 
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Horas</mat-label>
-              <input matInput type="number" formControlName="hours" min="0">
-            </mat-form-field>
+          <div class="item-time">
+            <label class="field">
+              <span class="field-label">Horas</span>
+              <span class="field-line">
+                <input class="field-input" type="number" min="0" step="1" inputmode="numeric"
+                       formControlName="hours">
+              </span>
+            </label>
 
-            <mat-form-field appearance="outline" class="time-field">
-              <mat-label>Minutos</mat-label>
-              <input matInput type="number" formControlName="minutes" min="0" max="59">
-            </mat-form-field>
+            <label class="field">
+              <span class="field-label">Minutos</span>
+              <span class="field-line">
+                <input class="field-input" type="number" min="0" max="59" step="1"
+                       inputmode="numeric" formControlName="minutes">
+              </span>
+            </label>
 
-            <button mat-icon-button type="button" color="warn"
-                    (click)="removeItem($index)"
-                    [disabled]="itemsArray.length === 1">
-              <mat-icon>delete</mat-icon>
+            <button type="button"
+                    class="item-remove"
+                    [disabled]="itemsArray.length === 1"
+                    [attr.aria-label]="'Quitar consumo ' + ($index + 1)"
+                    (click)="removeItem($index)">
+              <mat-icon aria-hidden="true">delete</mat-icon>
             </button>
           </div>
-        }
+        </li>
+      }
+    </ul>
+
+    <button type="button" class="add-line" (click)="addItem()">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Agregar consumo
+    </button>
+
+    @if (data.labor) {
+      <div class="danger-zone">
+        <button type="button" class="button-outline is-destructive" (click)="onDelete()">
+          <mat-icon aria-hidden="true">delete</mat-icon>
+          Eliminar mano de obra
+        </button>
       </div>
-    </div>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary"
-          (click)="onSave()"
-          [disabled]="!form.valid">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
     Guardar
   </button>
 </mat-dialog-actions>
