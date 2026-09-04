@@ -65,3 +65,25 @@ html, body {
   font-family: var(--app-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* El contenedor que scrollea dentro del menú lo crea Material en runtime, así
+   que no lo alcanza el CSS del componente. Sin esto, en cuanto el contenido
+   desborda aparece una barra de 15px que se lee como un borde gris pegado al
+   panel. */
+.mat-drawer-inner-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-rule) transparent;
+}
+
+.mat-drawer-inner-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mat-drawer-inner-container::-webkit-scrollbar-thumb {
+  background: var(--app-rule);
+  border-radius: 2px;
+}
+
+.mat-drawer-inner-container::-webkit-scrollbar-track {
+  background: transparent;
+}
