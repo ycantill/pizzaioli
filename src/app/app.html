@@ -66,6 +66,12 @@
               Tipos de receta
             </a>
           </li>
+          <li>
+            <a class="nav-item" routerLink="/dough-calculator" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">calculate</mat-icon>
+              Calculadora de masa
+            </a>
+          </li>
         </ul>
         <h3 class="nav-group">Precios</h3>
         <ul class="nav-list">
@@ -79,12 +85,6 @@
             <a class="nav-item" routerLink="/fixed-costs" routerLinkActive="is-active" (click)="toggleMenu()">
               <mat-icon aria-hidden="true">receipt_long</mat-icon>
               Costos fijos
-            </a>
-          </li>
-          <li>
-            <a class="nav-item" routerLink="/dough-calculator" routerLinkActive="is-active" (click)="toggleMenu()">
-              <mat-icon aria-hidden="true">calculate</mat-icon>
-              Calculadora de masa
             </a>
           </li>
         </ul>
