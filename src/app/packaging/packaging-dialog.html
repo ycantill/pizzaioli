@@ -2,7 +2,7 @@
   <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
     <mat-icon aria-hidden="true">close</mat-icon>
   </button>
-  <h2 mat-dialog-title>Paquetería de {{ data.recipeType.name }}</h2>
+  <h2 mat-dialog-title>Paquetería de {{ data.recipeType.name }}{{ data.size ? ' · ' + data.size.name : '' }}</h2>
 </div>
 <mat-dialog-content>
   <form [formGroup]="form">

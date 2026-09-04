@@ -68,3 +68,24 @@
   font-family: var(--app-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* Una familia agrupa sus tamaños: el nombre del tipo encabeza y las filas de
+   abajo son sus variantes, no otros tipos de receta. */
+.group-name {
+  margin: 14px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+}
+
+.size-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.size-list li + li .packaging-row {
+  border-top: 1px dotted var(--app-rule);
+}

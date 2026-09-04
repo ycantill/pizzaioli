@@ -11,3 +11,11 @@ mat-dialog-content {
 mat-dialog-actions {
   padding: 16px 24px;
 }
+
+/* La nota va pegada a su casilla, no al formulario entero. */
+.field-note {
+  margin: 4px 0 12px 32px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface-variant);
+}

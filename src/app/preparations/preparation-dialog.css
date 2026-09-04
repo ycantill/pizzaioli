@@ -64,3 +64,21 @@ mat-dialog-actions {
     flex: 1 1 100%;
   }
 }
+
+/* Rendimiento y unidad se leen juntos ("rinde 250 g"), así que van en fila. */
+.yield-row {
+  display: flex;
+  gap: 12px;
+}
+
+.yield-row mat-form-field {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 599px) {
+  .yield-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

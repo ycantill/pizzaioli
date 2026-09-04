@@ -9,8 +9,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { DoughIngredient } from '../models/dough.model';
+import { defaultQuantityOf } from '../models/preparation.model';
 import { CatalogService } from '../services/catalog.service';
-import { DoughsDataService } from '../services/doughs-data.service';
+import { PreparationsDataService } from '../services/preparations-data.service';
 import { DoughCalculationService } from '../services/dough-calculation.service';
 
 @Component({
@@ -32,12 +33,12 @@ import { DoughCalculationService } from '../services/dough-calculation.service';
 })
 export class DoughCalculator {
   private catalog = inject(CatalogService);
-  private doughsService = inject(DoughsDataService);
+  private preparationsService = inject(PreparationsDataService);
   private doughCalcService = inject(DoughCalculationService);
   @ViewChild('ingredientsContent') ingredientsContent?: ElementRef;
 
   costs = this.catalog.items;
-  doughs = this.doughsService.doughs;
+  doughs = this.preparationsService.preparations;
   selectedDoughId = signal<string | null>(null);
   weightPerUnit = signal(250);
   quantity = signal(10);
@@ -51,7 +52,8 @@ export class DoughCalculator {
       if (doughId) {
         const dough = this.doughs().find(d => d.id === doughId);
         if (dough) {
-          this.weightPerUnit.set(dough.ballWeight);
+          const perUnit = defaultQuantityOf(dough);
+          if (perUnit > 0) this.weightPerUnit.set(perUnit);
         }
       }
     });

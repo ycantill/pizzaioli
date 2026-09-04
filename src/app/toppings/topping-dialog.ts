@@ -39,6 +39,8 @@ export class ToppingDialog {
     supplyId: [this.data.topping?.supplyId ?? '', Validators.required],
     quantity: [this.data.topping?.quantity ?? null, [Validators.required, Validators.min(0.01)]],
     size: [this.data.topping?.size ?? 'M' as ToppingSize, Validators.required],
+    // Apagado por defecto: lo ya cargado no debe cambiar de costo solo.
+    scalesWithSize: [this.data.topping?.scalesWithSize ?? false],
     salsaBase: [this.data.topping?.salsaBase ?? false]
   });
 
@@ -50,7 +52,13 @@ export class ToppingDialog {
     if (this.form.valid) {
       const topping: Topping = {
         ...this.data.topping,
-        ...this.form.value as { supplyId: string; quantity: number; size: ToppingSize; salsaBase: boolean }
+        ...this.form.value as {
+          supplyId: string;
+          quantity: number;
+          size: ToppingSize;
+          scalesWithSize: boolean;
+          salsaBase: boolean;
+        }
       };
       this.dialogRef.close(topping);
     }

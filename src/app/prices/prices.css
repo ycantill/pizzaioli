@@ -249,3 +249,52 @@ td.warning {
   font-size: 12px;
   color: var(--mat-sys-on-surface-variant);
 }
+
+/* Las preparaciones ya no son un selector: son una lista, porque un vaso puede
+   llevar té y perlas y una pizza solo masa. */
+.config-subtitle {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.config-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.preparation-row,
+.preparation-add {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preparation-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.preparation-quantity {
+  width: 160px;
+}
+
+.preparation-add mat-form-field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* En un teléfono los tres controles en fila dejan el nombre ilegible. */
+@media (max-width: 599px) {
+  .preparation-row,
+  .preparation-add {
+    flex-wrap: wrap;
+  }
+
+  .preparation-quantity {
+    width: auto;
+    flex: 1;
+  }
+}

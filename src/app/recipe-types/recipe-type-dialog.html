@@ -1,10 +1,44 @@
-<h2 mat-dialog-title>{{ data ? 'Editar' : 'Nuevo' }} Tipo de Receta</h2>
+<h2 mat-dialog-title>{{ data.recipeType ? 'Editar' : 'Nuevo' }} tipo de receta</h2>
 <mat-dialog-content>
   <form [formGroup]="form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nombre</mat-label>
       <input matInput formControlName="name" required>
     </mat-form-field>
+
+    <h3 class="sizes-title">Tamaños</h3>
+    <p class="sizes-note">
+      Los tamaños en los que se vende esta familia. El factor dice cuánto lleva respecto del
+      tamaño base: una familiar con 1,8 lleva 80 % más de lo que diga la receta. Sin tamaños,
+      todo se cotiza en el base.
+    </p>
+
+    <div formArrayName="sizes">
+      @for (size of sizes.controls; track $index) {
+        <div [formGroupName]="$index" class="size-row">
+          <mat-form-field appearance="outline" class="size-name">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" placeholder="Familiar">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="size-factor">
+            <mat-label>Factor</mat-label>
+            <input matInput type="number" min="0.01" step="0.05" formControlName="factor">
+          </mat-form-field>
+
+          <button mat-icon-button color="warn" type="button"
+                  [attr.aria-label]="'Quitar tamaño ' + ($index + 1)"
+                  (click)="removeSize($index)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <button mat-stroked-button type="button" (click)="addSize()">
+      <mat-icon>add</mat-icon>
+      Agregar tamaño
+    </button>
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

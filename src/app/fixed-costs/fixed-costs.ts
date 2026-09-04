@@ -49,12 +49,14 @@ export class FixedCosts {
   /**
    * Lo que deja cada tipo de receta, sacado de los precios guardados.
    *
-   * Un tipo puede tener varios precios —margarita, pepperoni— con
-   * contribuciones distintas; se promedian, porque el equilibrio se calcula
-   * sobre lo que se vende en conjunto y no sobre una pizza en particular.
+   * Un tipo puede tener varios precios —margarita, pepperoni, y ahora cada uno
+   * en varios tamaños— con contribuciones y tiempos distintos. Se promedian los
+   * dos: el equilibrio se calcula sobre lo que se vende en conjunto y no sobre
+   * una pizza en particular, y quedarse con el primero haría que el reparto
+   * dependiera del orden en que se guardaron los precios.
    */
   private readonly products = computed<ProductContribution[]>(() => {
-    const byType = new Map<string, { name: string; minutes: number; contributions: number[] }>();
+    const byType = new Map<string, { name: string; minutes: number[]; contributions: number[] }>();
 
     for (const price of this.pricesService.prices()) {
       const breakdown = this.priceCalc.breakdownOf(this.priceCalc.specOf(price));
@@ -63,22 +65,20 @@ export class FixedCosts {
       const key = breakdown.recipeTypeId ?? '';
       const entry = byType.get(key) ?? {
         name: this.recipeTypeName(breakdown.recipeTypeId),
-        minutes: breakdown.productionMinutes,
+        minutes: [],
         contributions: []
       };
 
       entry.contributions.push(breakdown.contribution);
+      entry.minutes.push(breakdown.productionMinutes);
       byType.set(key, entry);
     }
 
     return [...byType.entries()].map(([key, entry]) => ({
       recipeTypeId: key || null,
       name: entry.name,
-      contribution: Math.round(
-        (entry.contributions.reduce((sum, value) => sum + value, 0) / entry.contributions.length)
-        * 100
-      ) / 100,
-      productionMinutes: entry.minutes
+      contribution: average(entry.contributions),
+      productionMinutes: average(entry.minutes)
     }));
   });
 
@@ -173,4 +173,11 @@ export class FixedCosts {
       }
     });
   }
+
+}
+
+/** Promedio redondeado a dos decimales; una lista vacía promedia cero. */
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100;
 }

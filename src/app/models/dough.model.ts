@@ -1,25 +1,13 @@
-export interface DoughRecipeIngredient {
-  supplyId: string;
-  quantity: number;
-}
-
-export interface Dough {
-  id?: string;
-  name: string;
-  ingredients: DoughRecipeIngredient[];
-  ballWeight: number;
-}
-
+/**
+ * Lo que queda del modelo de masa: los tipos de la calculadora de panadería.
+ *
+ * Las masas en sí pasaron a ser preparaciones —cualquier cosa que se hace
+ * aparte y se consume por partes—, en `preparation.model.ts`. Esto es solo la
+ * fila editable de la calculadora, que trabaja en porcentaje panadero.
+ */
 export interface DoughIngredient {
   id?: string;
   supplyId: string;
   bakerPercentage: number;
   calculatedWeight?: number;
-}
-
-export interface DoughCalculation {
-  weightPerUnit: number;
-  quantity: number;
-  ingredients: DoughIngredient[];
-  totalWeight?: number;
 }

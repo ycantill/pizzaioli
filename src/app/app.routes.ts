@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { Units } from './units/units';
 import { DoughCalculator } from './dough-calculator/dough-calculator';
 import { Recipes } from './recipes/recipes';
-import { Doughs } from './doughs/doughs';
+import { Preparations } from './preparations/preparations';
 import { Categories } from './categories/categories';
 import { RecipeTypes } from './recipe-types/recipe-types';
 import { PackagingConfig } from './packaging/packaging';
@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
   { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
   { path: 'units', component: Units, canActivate: [authGuard] },
-  { path: 'doughs', component: Doughs, canActivate: [authGuard] },
+  { path: 'preparations', component: Preparations, canActivate: [authGuard] },
   { path: 'recipes', component: Recipes, canActivate: [authGuard] },
   { path: 'dough-calculator', component: DoughCalculator, canActivate: [authGuard] },
   { path: 'prices', component: Prices, canActivate: [authGuard] },

@@ -17,35 +17,42 @@
     <ul class="labor-list">
       @for (recipeType of recipeTypes(); track recipeType.id) {
         <li>
-          <button type="button"
-                  class="labor-row"
-                  [attr.aria-label]="(getLaborForType(recipeType.id!) ? 'Editar' : 'Configurar')
-                    + ' mano de obra de ' + recipeType.name"
-                  (click)="openDialog(recipeType)">
-            <span class="row-head">
-              <span class="ticket-name">{{ recipeType.name }}</span>
-              <span class="ticket-leader" aria-hidden="true"></span>
-              @if (getLaborForType(recipeType.id!); as labor) {
-                <span class="ticket-value">{{ formatMinutes(totalMinutes(labor)) }}</span>
-              } @else {
-                <span class="ticket-tag is-empty">Sin configurar</span>
-              }
-            </span>
-
-            @if (getLaborForType(recipeType.id!); as labor) {
-              <span class="row-items">
-                @for (item of labor.items; track $index) {
-                  <span class="row-item">
-                    {{ getRateName(item) }}
-                    <span class="row-item-qty">{{ formatMinutes(minutesPerUnit(item)) }}</span>
-                    @if (batchLabel(item); as batch) {
-                      <span class="row-item-note">{{ batch }}</span>
+          <h2 class="group-name">{{ recipeType.name }}</h2>
+          <ul class="size-list">
+            @for (size of rowsFor(recipeType.id); track size?.id ?? 'base') {
+              <li>
+                <button type="button"
+                        class="labor-row"
+                        [attr.aria-label]="'Mano de obra de ' + recipeType.name + ', '
+                          + rowLabel(size)"
+                        (click)="openDialog(recipeType, size)">
+                  <span class="row-head">
+                    <span class="ticket-name">{{ rowLabel(size) }}</span>
+                    <span class="ticket-leader" aria-hidden="true"></span>
+                    @if (getLaborFor(recipeType.id!, size?.id ?? null); as labor) {
+                      <span class="ticket-value">{{ formatMinutes(totalMinutes(labor)) }}</span>
+                    } @else {
+                      <span class="ticket-tag is-empty">Sin configurar</span>
                     }
                   </span>
-                }
-              </span>
+
+                  @if (getLaborFor(recipeType.id!, size?.id ?? null); as labor) {
+                    <span class="row-items">
+                      @for (item of labor.items; track $index) {
+                        <span class="row-item">
+                          {{ getRateName(item) }}
+                          <span class="row-item-qty">{{ formatMinutes(minutesPerUnit(item)) }}</span>
+                          @if (batchLabel(item); as batch) {
+                            <span class="row-item-note">{{ batch }}</span>
+                          }
+                        </span>
+                      }
+                    </span>
+                  }
+                </button>
+              </li>
             }
-          </button>
+          </ul>
         </li>
       } @empty {
         <p class="empty">No hay tipos de receta. Creá uno para poder configurar su mano de obra.</p>

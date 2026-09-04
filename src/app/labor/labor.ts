@@ -3,10 +3,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { batchSizeOf, Labor, LaborItem, minutesPerUnit } from '../models/labor.model';
 import { RecipeType } from '../models/recipe-type.model';
+import { Size, sizesOf } from '../models/size.model';
 import { RatesDataService } from '../services/rates-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
+import { SizesDataService } from '../services/sizes-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { resolveLaborItem } from '../services/labor-rates';
 import { ConfirmDialog } from '../shared/confirm-dialog';
@@ -31,12 +33,14 @@ export class LaborConfig {
   private recipeTypesService = inject(RecipeTypesDataService);
   private consumptionsService = inject(ConsumptionsDataService);
   private laborsService = inject(LaborsDataService);
+  private sizesService = inject(SizesDataService);
 
   labors = this.laborsService.labors;
   recipeTypes = this.recipeTypesService.recipeTypes;
   loading = computed(() =>
     this.recipeTypesService.isLoading() || this.consumptionsService.isLoading() ||
-    this.ratesService.isLoading() || this.laborsService.isLoading()
+    this.ratesService.isLoading() || this.laborsService.isLoading() ||
+    this.sizesService.isLoading()
   );
 
   /** El nombre de la tarifa que consume esa línea, sea nueva o vieja. */
@@ -69,18 +73,34 @@ export class LaborConfig {
     return formatMinutes(totalMinutes);
   }
 
-  getLaborForType(recipeTypeId: string): Labor | undefined {
-    return this.labors().find(l => l.recipeTypeId === recipeTypeId);
+  /**
+   * Las filas de una familia: la que vale para todos los tamaños y una por
+   * tamaño, porque una familiar ocupa más horno que una personal.
+   */
+  rowsFor(recipeTypeId: string | undefined): (Size | null)[] {
+    return [null, ...sizesOf(this.sizesService.sizes(), recipeTypeId)];
   }
 
-  openDialog(recipeType: RecipeType) {
-    const existingLabor = this.getLaborForType(recipeType.id!);
+  /** Lo configurado para esa fila exacta, sin caer en el defecto. */
+  getLaborFor(recipeTypeId: string, sizeId: string | null): Labor | undefined {
+    return this.labors().find(l =>
+      l.recipeTypeId === recipeTypeId && (l.sizeId ?? null) === sizeId
+    );
+  }
+
+  rowLabel(size: Size | null): string {
+    return size ? size.name : 'Todos los tamaños';
+  }
+
+  openDialog(recipeType: RecipeType, size: Size | null) {
+    const existingLabor = this.getLaborFor(recipeType.id!, size?.id ?? null);
 
     const dialogRef = this.dialogs.openFullScreen<LaborDialog, Labor | DeleteRequested>(
       LaborDialog,
       {
         labor: existingLabor,
         recipeType,
+        size,
         rates: this.ratesService.rates(),
         units: this.unitsService.units(),
         legacyConsumptions: this.consumptionsService.consumptions()
@@ -90,7 +110,9 @@ export class LaborConfig {
     dialogRef.afterClosed().subscribe(async (result) => {
       // Borrar se pide desde la propia configuración: la lista no tiene controles.
       if (result === DELETE_REQUESTED) {
-        if (existingLabor?.id) this.deleteLabor(existingLabor.id, recipeType.name);
+        if (existingLabor?.id) {
+          this.deleteLabor(existingLabor.id, `${recipeType.name} (${this.rowLabel(size)})`);
+        }
         return;
       }
       if (result) {
