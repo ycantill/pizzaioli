@@ -1,59 +1,69 @@
 .sidenav-container {
-  height: 100vh;
+  /* dvh, no vh: en móvil la barra de URL cambia de alto y vh no la tiene en cuenta.
+     La toolbar de Material mide 56px hasta 600px y 64px a partir de ahí. */
+  --app-toolbar-h: 56px;
+  height: 100dvh;
   width: 100%;
 }
 
+@media (min-width: 600px) {
+  .sidenav-container {
+    --app-toolbar-h: 64px;
+  }
+}
+
+/* 84% del ancho, no 250px fijos: en un teléfono de 390px el panel dejaba
+   140px de contenido asomando, ni tapado ni usable.
+
+   Material le da 16px de radio al borde exterior; aquí todo es de esquina
+   recta, así que se anula por token. */
 .sidenav {
-  width: 250px;
-  background-color: #fff;
+  --mat-sidenav-container-shape: 0;
+  width: 84%;
+  max-width: 320px;
+  background-color: var(--app-paper);
 }
 
 .sidenav-header {
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 14px 16px;
+  background: var(--app-ink);
+  color: var(--app-paper);
 }
 
 .sidenav-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-}
-
-mat-nav-list {
-  padding-top: 8px;
-}
-
-mat-nav-list a {
-  margin: 4px 8px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-}
-
-mat-nav-list a:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
-mat-nav-list a.active {
-  background-color: #e3f2fd;
-  color: #1976d2;
-}
-
-mat-nav-list a.active mat-icon {
-  color: #1976d2;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .app-toolbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: var(--app-ink);
+  color: var(--app-paper);
+  /* Instalada como PWA la app ocupa la pantalla completa: sin esto la toolbar
+     queda por debajo de la barra de estado o del notch. */
+  padding-top: env(safe-area-inset-top);
+  height: calc(var(--app-toolbar-h) + env(safe-area-inset-top));
 }
 
 .app-title {
-  margin-left: 16px;
-  font-size: 1.25rem;
-  font-weight: 500;
+  margin-left: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Material fija el color en el propio botón y no hereda; sobre la tinta hay
+   que darlo explícito o el texto queda casi invisible. */
+.app-toolbar .mat-mdc-button,
+.app-toolbar .mat-mdc-icon-button {
+  --mat-icon-color: var(--app-paper);
+  color: var(--app-paper);
 }
 
 .toolbar-spacer {
@@ -61,14 +71,85 @@ mat-nav-list a.active mat-icon {
 }
 
 .content {
-  height: calc(100vh - 64px);
+  height: calc(100dvh - var(--app-toolbar-h) - env(safe-area-inset-top));
   overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .loading-container {
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--app-ink);
+}
+
+/* --- Menú -----------------------------------------------------------
+   Catorce entradas planas obligaban a recorrer la lista entera cada vez.
+   Se agrupan por función, con la misma rúbrica que las categorías del
+   inventario: versalitas sobre una regla gruesa. */
+/* El scroll lo hace el contenedor interno del mat-sidenav, no esto: poner
+   aquí overflow-y sería CSS que aparenta algo que no hace. Solo se reserva
+   sitio abajo para la barra gestual del teléfono. */
+.nav {
+  padding: 4px 0 calc(16px + env(safe-area-inset-bottom));
+}
+
+.nav-group {
+  margin: 14px 16px 0;
+  padding-bottom: 3px;
+  border-bottom: 2px solid var(--app-rule-strong);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--app-ink);
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list li + li .nav-item {
+  border-top: 1px dotted var(--app-rule);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  margin: 0 16px;
+  padding: 2px 0;
+  color: var(--app-ink);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.nav-item mat-icon {
+  flex: none;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: var(--app-ink-muted);
+}
+
+/* La pantalla actual se marca con el sello a la izquierda, no con una
+   píldora de fondo: es el mismo recurso que usan las alertas. */
+.nav-item.is-active {
+  margin-left: 0;
+  padding-left: 13px;
+  border-left: 3px solid var(--app-stamp);
+  font-weight: 700;
+}
+
+.nav-item.is-active mat-icon {
+  color: var(--app-stamp);
+}
+
+.nav-item:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
 }

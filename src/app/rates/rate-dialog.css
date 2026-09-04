@@ -6,7 +6,15 @@
 
 .hint {
   margin: 4px 0 0;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--app-ink-muted);
   font-size: 13px;
   line-height: 1.4;
+}
+
+/* Separada del formulario por una regla gruesa: no debe caer por descuido
+   junto a los campos que se acaban de editar. */
+.danger-zone {
+  margin: 20px 0 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--app-rule-strong);
 }

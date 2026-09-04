@@ -1,11 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
+import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 import { Labor, LaborItem } from '../models/labor.model';
 import { getItemName } from '../shared/lookup.utils';
 import { RecipeType } from '../models/recipe-type.model';
@@ -21,21 +18,18 @@ export interface LaborDialogData {
 
 @Component({
   selector: 'app-labor-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule
+    MatIconModule
   ],
   templateUrl: './labor-dialog.html',
   styleUrl: './labor-dialog.css'
 })
 export class LaborDialog {
   data: LaborDialogData = inject(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<LaborDialog>);
+  private dialogRef = inject(MatDialogRef<LaborDialog, Labor | DeleteRequested>);
   private fb = inject(FormBuilder);
 
   form = this.fb.group({
@@ -92,6 +86,10 @@ export class LaborDialog {
     if (this.itemsArray.length > 1) {
       this.itemsArray.removeAt(index);
     }
+  }
+
+  onDelete(): void {
+    this.dialogRef.close(DELETE_REQUESTED);
   }
 
   onCancel(): void {

@@ -1,63 +1,59 @@
-.container {
-  padding: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
+/* Consumos: lista de comanda. La tarifa de la que dependen va bajo el nombre;
+   el número protagonista es lo que gasta en una hora. */
+
+.intro {
+  margin: 14px 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
 }
 
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
+.consumption-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--app-rule-strong);
 }
 
-/* Mobile view */
-.mobile-view {
-  display: none;
+.consumption-list li + li .consumption-row {
+  border-top: 1px dotted var(--app-rule);
 }
 
 .consumption-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e0e0e0;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.consumption-row:last-child {
-  border-bottom: none;
+.consumption-row:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
 }
 
-.consumption-info {
-  flex: 1;
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.consumption-name {
-  display: block;
-  font-size: 1rem;
+.row-head .ticket-name {
+  flex: none;
+  max-width: 52%;
+}
+
+.row-service {
+  font-size: 11px;
   font-weight: 600;
-  color: #1976d2;
-  margin-bottom: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
 }
-
-.service-name {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-.consumption-details {
-  display: flex;
-  gap: 12px;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.consumption-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-

@@ -12,106 +12,104 @@
       <div class="sidenav-header">
         <h2>Pizzaioli</h2>
       </div>
-      <mat-nav-list>
-        <a mat-list-item
-           routerLink="/inventario"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>inventory</mat-icon>
-          <span matListItemTitle>Inventario</span>
-        </a>
-        <a mat-list-item
-           routerLink="/tarifas"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>bolt</mat-icon>
-          <span matListItemTitle>Tarifas</span>
-        </a>
-        <a mat-list-item
-           routerLink="/categorias"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>category</mat-icon>
-          <span matListItemTitle>Categorías</span>
-        </a>
-        <a mat-list-item
-           routerLink="/margins"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>trending_up</mat-icon>
-          <span matListItemTitle>Márgenes</span>
-        </a>
-        <a mat-list-item
-           routerLink="/units"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>straighten</mat-icon>
-          <span matListItemTitle>Unidades</span>
-        </a>
-        <a mat-list-item
-           routerLink="/doughs"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>bakery_dining</mat-icon>
-          <span matListItemTitle>Masas</span>
-        </a>
-        <a mat-list-item
-           routerLink="/recipes"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>restaurant_menu</mat-icon>
-          <span matListItemTitle>Recetas</span>
-        </a>
-        <a mat-list-item
-           routerLink="/recipe-types"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>local_pizza</mat-icon>
-          <span matListItemTitle>Tipos de Receta</span>
-        </a>
-        <a mat-list-item
-           routerLink="/packaging"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>inventory_2</mat-icon>
-          <span matListItemTitle>Paquetería</span>
-        </a>
-        <a mat-list-item
-           routerLink="/consumptions"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>inventory_2</mat-icon>
-          <span matListItemTitle>Consumos</span>
-        </a>
-        <a mat-list-item
-           routerLink="/labor"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>engineering</mat-icon>
-          <span matListItemTitle>Mano de Obra</span>
-        </a>
-        <a mat-list-item
-           routerLink="/toppings"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>add_circle</mat-icon>
-          <span matListItemTitle>Toppings</span>
-        </a>
-        <a mat-list-item
-           routerLink="/dough-calculator"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>calculate</mat-icon>
-          <span matListItemTitle>Calculadora de Masa</span>
-        </a>
-        <a mat-list-item
-           routerLink="/prices"
-           routerLinkActive="active"
-           (click)="toggleMenu()">
-          <mat-icon matListItemIcon>price_check</mat-icon>
-          <span matListItemTitle>Precios</span>
-        </a>
-      </mat-nav-list>
+      <nav class="nav">
+        <h3 class="nav-group">Costos</h3>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" routerLink="/inventory" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">inventory_2</mat-icon>
+              Inventario
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/rates" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">bolt</mat-icon>
+              Tarifas
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/consumptions" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">electrical_services</mat-icon>
+              Consumos
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/labor" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">engineering</mat-icon>
+              Mano de Obra
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/packaging" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">takeout_dining</mat-icon>
+              Paquetería
+            </a>
+          </li>
+        </ul>
+        <h3 class="nav-group">Recetas</h3>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" routerLink="/doughs" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">bakery_dining</mat-icon>
+              Masas
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/toppings" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">layers</mat-icon>
+              Toppings
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/recipes" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">restaurant_menu</mat-icon>
+              Recetas
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/recipe-types" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">local_pizza</mat-icon>
+              Tipos de receta
+            </a>
+          </li>
+        </ul>
+        <h3 class="nav-group">Precios</h3>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" routerLink="/margins" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">trending_up</mat-icon>
+              Márgenes
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/prices" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">price_check</mat-icon>
+              Precios
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/dough-calculator" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">calculate</mat-icon>
+              Calculadora de masa
+            </a>
+          </li>
+        </ul>
+        <h3 class="nav-group">Catálogo</h3>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" routerLink="/categories" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">category</mat-icon>
+              Categorías
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" routerLink="/units" routerLinkActive="is-active" (click)="toggleMenu()">
+              <mat-icon aria-hidden="true">straighten</mat-icon>
+              Unidades
+            </a>
+          </li>
+        </ul>
+      </nav>
     </mat-sidenav>
 
     <!-- Main content -->

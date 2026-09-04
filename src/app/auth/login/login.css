@@ -1,5 +1,5 @@
 .login-container {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -44,12 +44,12 @@ mat-card-content {
 
 .country-prefix {
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mat-sys-on-surface-variant);
   user-select: none;
 }
 
 .otp-description {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--mat-sys-on-surface-variant);
   font-size: 0.875rem;
   margin-bottom: 16px;
   line-height: 1.5;
@@ -59,11 +59,11 @@ mat-card-content {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #c62828;
+  color: var(--mat-sys-on-error-container);
   font-size: 0.875rem;
   margin-top: 12px;
   padding: 10px 14px;
-  background-color: #ffebee;
+  background-color: var(--mat-sys-error-container);
   border-radius: 8px;
 }
 
@@ -82,7 +82,7 @@ mat-card-actions {
 }
 
 .back-button {
-  color: rgba(0, 0, 0, 0.6) !important;
+  color: var(--mat-sys-on-surface-variant) !important;
 }
 
 #recaptcha-container {

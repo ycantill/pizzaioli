@@ -1,0 +1,71 @@
+<button type="button"
+        class="row-summary"
+        [attr.aria-expanded]="expanded()"
+        (click)="toggled.emit()">
+  <span class="row-text">
+    <span class="row-name">{{ supply().name }}</span>
+    @if (lowStock()) {
+      <span class="row-flag">
+        <mat-icon aria-hidden="true">warning_amber</mat-icon>
+        Bajo mínimo
+      </span>
+    }
+  </span>
+  <span class="ticket-leader" aria-hidden="true"></span>
+  <span class="row-cost">
+    ${{ supply().unitCost | number:unitCostFormat }}<span class="row-unit">/{{ unitAbbr() }}</span>
+  </span>
+</button>
+
+<button type="button"
+        class="buy-button"
+        [disabled]="saving()"
+        [attr.aria-label]="'Registrar compra de ' + supply().name"
+        (click)="action.emit('entrada')">
+  <mat-icon aria-hidden="true">add</mat-icon>
+</button>
+
+@if (expanded()) {
+  <div class="row-detail">
+    <dl class="detail-figures">
+      <div>
+        <dt>Stock</dt>
+        <dd>{{ supply().stock | number }} {{ unitAbbr() }}</dd>
+      </div>
+      <div>
+        <dt>Valor en stock</dt>
+        <dd>${{ supply().stockValue | number:'1.2-2' }}</dd>
+      </div>
+    </dl>
+
+    <h3 class="detail-title">Movimientos</h3>
+    <ul class="movements">
+      @for (entry of movements(); track entry.id) {
+        <li class="movement">
+          <span class="movement-date">{{ entry.date }}</span>
+          <span class="movement-kind">{{ movementLabel(entry) }}</span>
+          <span class="movement-quantity">{{ entry.quantity | number }}</span>
+          <span class="movement-cost">${{ entry.unitCost | number:unitCostFormat }}</span>
+          @if (entry.note) {
+            <span class="movement-note">{{ entry.note }}</span>
+          }
+        </li>
+      } @empty {
+        <li class="movement empty">Sin movimientos registrados.</li>
+      }
+    </ul>
+
+    <div class="detail-actions">
+      <button type="button" class="button-outline" [disabled]="saving()"
+              (click)="action.emit('edit')">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+        Editar
+      </button>
+      <button type="button" class="button-outline is-destructive" [disabled]="saving()"
+              (click)="action.emit('delete')">
+        <mat-icon aria-hidden="true">delete</mat-icon>
+        Eliminar
+      </button>
+    </div>
+  </div>
+}

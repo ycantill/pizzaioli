@@ -17,8 +17,8 @@ import { authGuard, noAuthGuard } from './auth/auth.guard';
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [noAuthGuard] },
   { path: 'order', loadComponent: () => import('./order/order').then((m) => m.Order) },
-  { path: '', redirectTo: '/inventario', pathMatch: 'full' },
-  { path: 'categorias', component: Categories, canActivate: [authGuard] },
+  { path: '', redirectTo: '/inventory', pathMatch: 'full' },
+  { path: 'categories', component: Categories, canActivate: [authGuard] },
   { path: 'recipe-types', component: RecipeTypes, canActivate: [authGuard] },
   { path: 'packaging', component: PackagingConfig, canActivate: [authGuard] },
   { path: 'consumptions', component: Consumptions, canActivate: [authGuard] },
@@ -31,12 +31,12 @@ export const routes: Routes = [
   { path: 'labor', component: LaborConfig, canActivate: [authGuard] },
   { path: 'toppings', component: Toppings, canActivate: [authGuard] },
   {
-    path: 'inventario',
+    path: 'inventory',
     loadComponent: () => import('./inventory/inventory').then((m) => m.Inventory),
     canActivate: [authGuard]
   },
   {
-    path: 'tarifas',
+    path: 'rates',
     loadComponent: () => import('./rates/rates').then((m) => m.Rates),
     canActivate: [authGuard]
   },

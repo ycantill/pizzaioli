@@ -1,12 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SupplyCategory, SupplyCategoryKind } from '../models/supply-category.model';
 import { inferCategoryKind } from '../services/catalog.service';
+import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 
 export interface CategoryDialogData {
   category?: SupplyCategory;
@@ -14,12 +12,10 @@ export interface CategoryDialogData {
 
 @Component({
   selector: 'app-category-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
+    MatIconModule,
     ReactiveFormsModule
   ],
   templateUrl: './category-dialog.html',
@@ -27,7 +23,7 @@ export interface CategoryDialogData {
 })
 export class CategoryDialog {
   data: CategoryDialogData = inject(MAT_DIALOG_DATA, { optional: true }) || {};
-  private dialogRef = inject(MatDialogRef<CategoryDialog>);
+  private dialogRef = inject(MatDialogRef<CategoryDialog, SupplyCategory | DeleteRequested>);
   private fb = inject(FormBuilder);
 
   form = this.fb.nonNullable.group({
@@ -38,8 +34,22 @@ export class CategoryDialog {
     ] as [SupplyCategoryKind]
   });
 
+  /**
+   * Un error solo se muestra si el usuario ya pasó por el campo: con controles
+   * nativos hay que reponer lo que hacía mat-form-field, o el formulario
+   * aparece en rojo antes de que nadie haya escrito nada.
+   */
+  showError(field: string, error: string): boolean {
+    const control = this.form.get(field);
+    return !!control && control.touched && control.hasError(error);
+  }
+
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  onDelete(): void {
+    this.dialogRef.close(DELETE_REQUESTED);
   }
 
   onSave(): void {

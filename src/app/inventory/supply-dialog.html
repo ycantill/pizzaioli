@@ -1,43 +1,58 @@
-<h2 mat-dialog-title>{{ data.supply ? 'Editar' : 'Nuevo' }} insumo</h2>
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>{{ data.supply ? 'Editar' : 'Nuevo' }} insumo</h2>
+</div>
 <mat-dialog-content>
   <form [formGroup]="form">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Nombre</mat-label>
-      <input matInput formControlName="name" placeholder="Ej: Harina">
-      @if (form.get('name')?.hasError('required')) {
-        <mat-error>El nombre es requerido</mat-error>
+    <label class="field">
+      <span class="field-label">Nombre</span>
+      <span class="field-line">
+        <input class="field-input" type="text" formControlName="name" placeholder="Ej: Harina">
+      </span>
+      @if (showError('name', 'required')) {
+        <span class="field-error">El nombre es requerido</span>
       }
-    </mat-form-field>
+    </label>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Unidad</mat-label>
-      <mat-select formControlName="unitId">
-        @for (unit of data.units; track unit.id) {
-          <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
-        }
-      </mat-select>
-      @if (form.get('unitId')?.hasError('required')) {
-        <mat-error>La unidad es requerida</mat-error>
+    <label class="field">
+      <span class="field-label">Unidad</span>
+      <span class="field-line">
+        <select class="field-select" formControlName="unitId">
+          <option value="" disabled>Elegí una unidad</option>
+          @for (unit of data.units; track unit.id) {
+            <option [value]="unit.id">{{ unit.name }}</option>
+          }
+        </select>
+      </span>
+      @if (showError('unitId', 'required')) {
+        <span class="field-error">La unidad es requerida</span>
       }
-    </mat-form-field>
+    </label>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Categoría</mat-label>
-      <mat-select formControlName="categoryId">
-        @for (category of data.categories; track category.id) {
-          <mat-option [value]="category.id">{{ category.name }}</mat-option>
-        }
-      </mat-select>
-      @if (form.get('categoryId')?.hasError('required')) {
-        <mat-error>La categoría es requerida</mat-error>
+    <label class="field">
+      <span class="field-label">Categoría</span>
+      <span class="field-line">
+        <select class="field-select" formControlName="categoryId">
+          <option value="" disabled>Elegí una categoría</option>
+          @for (category of data.categories; track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </span>
+      @if (showError('categoryId', 'required')) {
+        <span class="field-error">La categoría es requerida</span>
       }
-    </mat-form-field>
+    </label>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Stock mínimo (opcional)</mat-label>
-      <input matInput type="number" min="0" step="any" formControlName="minStock">
-      <mat-hint>Si se define, el insumo se marca cuando el stock baja de aquí</mat-hint>
-    </mat-form-field>
+    <label class="field">
+      <span class="field-label">Stock mínimo (opcional)</span>
+      <span class="field-line">
+        <input class="field-input" type="number" min="0" step="any" formControlName="minStock">
+      </span>
+      <span class="field-hint">Si se define, el insumo se marca cuando el stock baja de aquí</span>
+    </label>
 
     @if (unitChanged()) {
       <div class="unit-change">
@@ -56,23 +71,25 @@
             venta no se mueven.
           </p>
 
-          <mat-checkbox formControlName="convertBalance">
-            Convertir también el saldo y el costo
-          </mat-checkbox>
+          <label class="checkbox-row">
+            <input type="checkbox" formControlName="convertBalance">
+            <span>Convertir también el saldo y el costo</span>
+          </label>
 
           @if (converting() && rescaled(); as balance) {
             <div class="unit-change-preview">
               <div class="preview-row">
                 <span>Stock</span>
-                <span class="preview-value">
+                <span class="preview-value figure">
                   {{ data.supply!.stock }} {{ unitName(data.supply!.unitId) }} →
                   {{ balance.stock }} {{ unitName(form.getRawValue().unitId) }}
                 </span>
               </div>
               <div class="preview-row">
                 <span>Costo unitario</span>
-                <span class="preview-value">
-                  ${{ data.supply!.unitCost.toFixed(2) }} → ${{ balance.unitCost.toFixed(4) }}
+                <span class="preview-value figure">
+                  ${{ data.supply!.unitCost | number:'1.2-2' }} →
+                  ${{ balance.unitCost | number:'1.2-4' }}
                 </span>
               </div>
               <p class="alert alert-warning">
@@ -88,7 +105,7 @@
     }
 
     @if (!data.supply) {
-      <p class="hint">
+      <p class="field-hint">
         El insumo se crea con stock y costo en cero. El costo aparece al registrar la primera
         compra.
       </p>
@@ -96,8 +113,8 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary" [disabled]="!form.valid" (click)="onSave()">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
     {{ data.supply ? 'Guardar' : 'Crear' }}
   </button>
 </mat-dialog-actions>

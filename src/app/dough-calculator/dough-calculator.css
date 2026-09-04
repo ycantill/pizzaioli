@@ -3,8 +3,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -14,7 +14,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .container {
@@ -53,19 +53,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #e3f2fd;
+  background-color: var(--mat-sys-primary-container);
   border-radius: 8px;
 }
 
 .total-label {
   font-size: 1rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .total-value {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 /* Ingredients Card */
@@ -85,14 +85,9 @@ mat-card-header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Mobile View */
-.mobile-view {
-  display: none;
-}
-
 .ingredient-card {
   margin-bottom: 12px;
-  background-color: #fafafa;
+  background-color: var(--mat-sys-surface-container-low);
 }
 
 .ingredient-header {
@@ -112,14 +107,14 @@ mat-card-header {
   display: flex;
   flex-direction: column;
   padding: 12px;
-  background-color: #e3f2fd;
+  background-color: var(--mat-sys-primary-container);
   border-radius: 8px;
-  border: 2px solid #1976d2;
+  border: 2px solid var(--mat-sys-primary);
 }
 
 .flour-label {
   font-size: 0.75rem;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
   margin-bottom: 4px;
   font-weight: 500;
 }
@@ -127,7 +122,7 @@ mat-card-header {
 .flour-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .flour-cell {
@@ -139,13 +134,13 @@ mat-card-header {
 
 .flour-cell .flour-name {
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .flour-badge {
   padding: 2px 8px;
-  background-color: #1976d2;
-  color: white;
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -166,26 +161,21 @@ mat-card-header {
   display: flex;
   flex-direction: column;
   padding: 8px;
-  background-color: #fff;
+  background-color: var(--mat-sys-surface-container-lowest);
   border-radius: 4px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--mat-sys-outline-variant);
 }
 
 .weight-label {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   margin-bottom: 4px;
 }
 
 .weight-value {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
-}
-
-/* Desktop View */
-.desktop-view {
-  display: block;
+  color: var(--mat-sys-on-surface);
 }
 
 .table-field {
@@ -199,14 +189,14 @@ table {
 
 th {
   font-weight: 600;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 /* Total Summary */
 .total-summary {
   margin-top: 24px;
   padding: 16px;
-  background-color: #f5f5f5;
+  background-color: var(--mat-sys-surface-container);
   border-radius: 8px;
 }
 
@@ -218,17 +208,17 @@ th {
 
 .summary-label {
   font-size: 1rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .summary-value {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .summary-value.highlight {
   font-size: 1.3rem;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 

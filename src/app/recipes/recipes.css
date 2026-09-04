@@ -3,8 +3,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -20,7 +20,7 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .add-button {
@@ -44,11 +44,6 @@
   min-height: 300px;
 }
 
-/* Mobile View */
-.mobile-view {
-  display: none;
-}
-
 .recipe-card {
   margin-bottom: 16px;
 }
@@ -68,14 +63,14 @@
   margin: 0 0 8px 0;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #333;
+  color: var(--mat-sys-on-surface);
 }
 
 .recipe-type-badge {
   display: inline-block;
   padding: 4px 8px;
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-primary);
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -105,7 +100,7 @@
 
 .section-label {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   font-weight: 500;
   display: block;
   margin-bottom: 8px;
@@ -121,24 +116,19 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 12px;
-  background-color: #f5f5f5;
+  background-color: var(--mat-sys-surface-container);
   border-radius: 4px;
 }
 
 .ingredient-name {
-  color: #333;
+  color: var(--mat-sys-on-surface);
   font-size: 0.9rem;
 }
 
 .ingredient-quantity {
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   font-weight: 500;
   font-size: 0.9rem;
-}
-
-/* Desktop View */
-.desktop-view {
-  display: block;
 }
 
 table {
@@ -147,11 +137,11 @@ table {
 
 th {
   font-weight: 600;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .normal-recipe {
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   font-size: 0.9rem;
 }
 
@@ -164,19 +154,19 @@ th {
 .ingredient-badge {
   display: inline-block;
   padding: 4px 8px;
-  background-color: #e3f2fd;
+  background-color: var(--mat-sys-primary-container);
   border-radius: 12px;
   font-size: 0.8rem;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 .more-badge {
   display: inline-block;
   padding: 4px 8px;
-  background-color: #f5f5f5;
+  background-color: var(--mat-sys-surface-container);
   border-radius: 12px;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--mat-sys-on-surface-variant);
   font-weight: 500;
 }
 

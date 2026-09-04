@@ -1,13 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { SupplyCategory } from '../models/supply-category.model';
 import { Supply } from '../models/supply.model';
 import { Unit } from '../models/unit.model';
@@ -33,14 +29,10 @@ export interface SupplyDialogResult {
   selector: 'app-supply-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    DecimalPipe,
     ReactiveFormsModule,
     MatDialogModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSelectModule
+    MatIconModule
   ],
   templateUrl: './supply-dialog.html',
   styleUrl: './supply-dialog.css'
@@ -94,6 +86,16 @@ export class SupplyDialog {
 
   private unitById(unitId: string | undefined): Unit | undefined {
     return this.data.units.find(u => u.id === unitId);
+  }
+
+  /**
+   * Un error solo se muestra si el usuario ya pasó por el campo. mat-form-field
+   * lo hacía solo; con controles nativos hay que reponerlo, o el formulario
+   * aparece en rojo antes de que nadie haya escrito nada.
+   */
+  showError(field: string, error: string): boolean {
+    const control = this.form.get(field);
+    return !!control && control.touched && control.hasError(error);
   }
 
   unitName(unitId: string | undefined): string {

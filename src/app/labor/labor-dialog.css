@@ -1,69 +1,65 @@
-mat-dialog-content {
-  min-width: 500px;
-  padding-top: 20px;
-}
+/* Diálogo de mano de obra: una lista repetible de consumo + tiempo.
 
-.items-section {
-  margin-top: 16px;
-}
+   El consumo va en su propia línea y horas/minutos debajo: los tres campos
+   en una fila no caben en 390px sin dejar el select ilegible. */
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: #666;
-  font-weight: 500;
+.section-title {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
 }
 
 .items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-.item-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.consumption-field {
-  flex: 3;
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
 
-.time-field {
-  flex: 1;
-  margin: 0;
+.item-row + .item-row {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dotted var(--app-rule);
 }
 
-mat-dialog-actions {
-  padding: 16px 24px;
+.item-row .field {
+  margin-bottom: 12px;
 }
 
-@media (max-width: 600px) {
-  mat-dialog-content {
-    min-width: auto;
-  }
+.item-time {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 12px;
+}
 
-  .item-row {
-    flex-wrap: wrap;
-  }
+.item-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border: none;
+  background: none;
+  color: var(--app-stamp);
+  cursor: pointer;
+}
 
-  .consumption-field {
-    flex: 1 1 100%;
-  }
+.item-remove:disabled {
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
 
-  .time-field {
-    flex: 1 1 40%;
-  }
+.item-remove:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: -2px;
+}
+
+.danger-zone {
+  margin: 20px 0 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--app-rule-strong);
 }

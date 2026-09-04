@@ -20,11 +20,13 @@
             <div class="card-header">
               <h3 class="unit-name">{{ unit.name }}</h3>
               <div class="card-actions">
-                <button mat-icon-button color="primary" 
+                <button mat-icon-button color="primary"
+                        [attr.aria-label]="'Editar unidad ' + unit.name"
                         (click)="editUnit(unit)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" 
+                <button mat-icon-button color="warn"
+                        [attr.aria-label]="'Eliminar unidad ' + unit.name"
                         (click)="deleteUnit(unit)">
                   <mat-icon>delete</mat-icon>
                 </button>

@@ -1,51 +1,161 @@
 /* Shared styles for list/table views */
 
-/* Page Header */
+/* Encabezado de pantalla: versalitas y regla gruesa, como el de una comanda. */
 .page-header {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  gap: 16px;
+  padding: 14px 16px 10px;
+  background: var(--app-paper);
+  border-bottom: 2px solid var(--app-rule-strong);
 }
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.add-button {
-  height: 40px !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 .button-text {
   margin-left: 4px;
 }
 
-/* Container */
 .container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 16px 32px;
 }
 
 .loading-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 300px;
+  padding: 48px 0;
 }
 
-/* Mobile View - Cards */
-.mobile-view {
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--app-ink-muted);
+  font-size: 13px;
+}
+
+/* --- Vocabulario de la línea de comanda ---------------------------------
+   Concepto a la izquierda, puntillado, importe monoespaciado a la derecha.
+   Vive aquí porque lo comparten inventario y tarifas, y lo usarán las demás
+   pantallas: cada componente arma su fila, pero la tipografía es una sola. */
+.ticket-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* Decorativo: nunca lleva texto encima. */
+.ticket-leader {
+  flex: 1;
+  align-self: baseline;
+  min-width: 12px;
+  border-bottom: 1px dotted var(--app-rule);
+  transform: translateY(-3px);
+}
+
+.ticket-value {
+  flex: none;
+  font-family: var(--app-mono);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Cuando lo de la derecha no es una cifra sino una clasificación —la función
+   de una categoría, por ejemplo— va como etiqueta, no en monoespaciada. */
+.ticket-tag {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  white-space: nowrap;
+}
+
+.ticket-unit {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--app-ink-muted);
+}
+
+/* La línea siguiente del ticket: donde termina la lista se escribe lo que
+   sigue. Sustituye al botón flotante, que era una píldora con sombra —la
+   única de la pantalla— flotando sobre el papel vacío. */
+.add-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  border-top: 1px dashed var(--app-rule);
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-stamp);
+  cursor: pointer;
+}
+
+.add-line:disabled {
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.add-line:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
+}
+
+.add-line mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Vistas responsive (mobile-first)
+   Por defecto se muestran las tarjetas; la tabla aparece desde tablet.
+
+   El toggle vive solo aquí: los componentes no deben redefinir estos
+   display, porque el encapsulado de Angular les da mayor especificidad
+   y anularían el breakpoint.
+
+   La clase va duplicada a propósito. En varias pantallas .desktop-view
+   es un <mat-card>, y Material inyecta `.mat-mdc-card { display: flex }`
+   en el <head> DESPUÉS de esta hoja: a igual especificidad (0,1,0)
+   ganaría Material y la tabla se colaría en móvil. Duplicar la clase
+   sube la especificidad a (0,2,0) sin recurrir a !important. */
+.mobile-view.mobile-view {
+  display: block;
+}
+
+.desktop-view.desktop-view {
   display: none;
 }
+
+@media (min-width: 768px) {
+  .mobile-view.mobile-view {
+    display: none;
+  }
+
+  .desktop-view.desktop-view {
+    display: block;
+  }
+}
+
+/* Tarjetas (vista móvil) */
 
 .card-header {
   display: flex;
@@ -58,7 +168,7 @@
   font-size: 1.1rem;
   font-weight: 500;
   margin: 0;
-  color: #333;
+  color: var(--app-ink);
 }
 
 .card-actions {
@@ -80,14 +190,378 @@
 
 .row-label {
   font-weight: 500;
-  color: #666;
+  color: var(--app-ink-muted);
 }
 
 .row-value {
-  color: #333;
+  color: var(--app-ink);
 }
 
-/* Desktop View - Table */
-.desktop-view {
-  display: block;
+/* Variantes de alerta. Solo mapean tokens, así que viven una vez aquí en vez
+   de repetidas en inventario y en cada diálogo. El layout de `.alert` (márgenes
+   y padding) lo pone cada componente, porque sí cambia según el contexto. */
+.alert-warning {
+  background: var(--app-warning-container);
+  color: var(--app-on-warning-container);
+}
+
+.alert-error {
+  background: var(--app-error-container);
+  color: var(--app-on-error-container);
+}
+
+.alert-ok {
+  background: var(--app-success-container);
+  color: var(--app-on-success-container);
+}
+
+/* ====================================================================
+   Diálogos y formularios en clave de comanda.
+
+   Va en global a propósito: la superficie del diálogo la crea MatDialog
+   en el overlay del CDK, fuera del árbol del componente, así que el CSS
+   encapsulado no la alcanza. Lo de dentro del diálogo sí es plantilla
+   del componente, pero el vocabulario de campos se declara aquí una vez
+   para que los tres diálogos lo compartan.
+   ==================================================================== */
+
+/* Papel, no tarjeta flotante: sin esquinas redondeadas ni sombra difusa. */
+.mat-mdc-dialog-surface {
+  border-radius: 0 !important;
+  background: var(--app-paper) !important;
+  box-shadow: 0 10px 28px rgb(23 21 15 / 0.28) !important;
+}
+
+/* --- Formularios a pantalla completa -------------------------------
+   Scrollea la superficie entera y el encabezado va pegado arriba, en vez
+   de fijar los botones al fondo: con el teclado abierto un pie fijo queda
+   tapado, y así los botones llegan detrás de los campos, que es donde se
+   los busca. */
+.full-screen-dialog .mat-mdc-dialog-surface {
+  overflow-y: auto;
+  box-shadow: none !important;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.full-screen-dialog .mat-mdc-dialog-title.mat-mdc-dialog-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--app-paper);
+}
+
+.full-screen-dialog .mat-mdc-dialog-content.mat-mdc-dialog-content {
+  max-height: none;
+  overflow: visible;
+  /* Sin estirar: Material da flex:1 al contenido y empujaba los botones al
+     fondo de la pantalla, dejando 700px de papel en blanco entre el último
+     campo y "Crear". Así los botones van detrás de los campos, que es donde
+     se los busca, y en un formulario largo el comportamiento es el mismo. */
+  flex: none;
+}
+
+.full-screen-dialog .mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+  padding-bottom: 24px;
+}
+
+/* La cabecera lleva el cierre a la izquierda del título, donde no compite
+   con el pulgar que va a los botones de acción. */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 16px 10px 8px;
+  background: var(--app-paper);
+  border-bottom: 2px solid var(--app-rule-strong);
+}
+
+/* Dentro de la cabecera el título no pone su propia caja: el h2 de Material
+   trae padding asimétrico (16px arriba, 10px abajo) y una caja de 70px para
+   un texto de 11px, así que el texto quedaba 17px por debajo del icono de
+   cerrar aunque las cajas estuvieran centradas. */
+.dialog-header .mat-mdc-dialog-title.mat-mdc-dialog-title {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+  position: static;
+  line-height: 1.2;
+}
+
+.dialog-close {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  color: var(--app-ink);
+  cursor: pointer;
+}
+
+.dialog-close:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: -2px;
+}
+
+.mat-mdc-dialog-container {
+  --mat-dialog-container-shape: 0;
+  /* El título toma su tipografía de estos tokens, no del font-size de la
+     regla: ponerlo por CSS no lo pisa. */
+  --mat-dialog-subhead-size: 11px;
+  --mat-dialog-subhead-line-height: 1.4;
+  --mat-dialog-subhead-weight: 700;
+  --mat-dialog-subhead-tracking: 0.2em;
+  --mat-dialog-subhead-color: var(--app-ink);
+  --mat-dialog-supporting-text-size: 14px;
+  --mat-dialog-supporting-text-color: var(--app-ink);
+}
+
+/* Encabezado de comanda: versalitas y regla gruesa. */
+.mat-mdc-dialog-title.mat-mdc-dialog-title {
+  padding: 16px 20px 10px;
+  border-bottom: 2px solid var(--app-rule-strong);
+  text-transform: uppercase;
+}
+
+/* MDC mete un ::before de 40px como espaciador de línea base, y era lo que
+   empujaba el título 17px por debajo del icono de cerrar. La clase va
+   duplicada porque Material inyecta su regla en el <head> después de esta
+   hoja: a igual especificidad ganaba la suya. */
+.mat-mdc-dialog-title.mat-mdc-dialog-title::before {
+  display: none;
+}
+
+.mat-mdc-dialog-content.mat-mdc-dialog-content {
+  padding: 16px 20px 8px;
+  color: var(--app-ink);
+  font-size: 14px;
+}
+
+.mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px dotted var(--app-rule);
+}
+
+/* --- Campos: una línea de papel con su rótulo encima ---------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+}
+
+/* 44px de alto: el control en sí medía 20-22px y aunque la etiqueta amplía
+   el área efectiva, el usuario apunta a la línea. */
+.field-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border-bottom: 1px solid var(--app-rule);
+}
+
+/* Foco en tinta, no en rojo: el rojo está reservado a los errores y si se
+   usa también para el foco, un campo recién enfocado parece equivocado. */
+.field:focus-within .field-line {
+  border-bottom-color: var(--app-ink);
+  border-bottom-width: 2px;
+}
+
+.field-input,
+.field-select {
+  flex: 1;
+  min-height: 44px;
+  min-width: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--app-ink);
+}
+
+.field-input:focus,
+.field-select:focus {
+  outline: none;
+}
+
+.field-input::placeholder {
+  color: var(--app-ink-faint);
+}
+
+/* Las cantidades y los importes se escriben monoespaciados: se teclean
+   mirando el número, no la palabra. */
+.field-input[type="number"],
+.field-input[type="date"] {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fuera las flechitas del input numérico: con el pulgar no se aciertan y
+   parten la línea del campo. El teclado numérico ya lo da inputmode. */
+.field-input[type="number"] {
+  appearance: textfield;
+}
+
+.field-input[type="number"]::-webkit-outer-spin-button,
+.field-input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* <select> nativo en vez de mat-select: en el teléfono abre el selector
+   del sistema, que se maneja mejor con una mano que un overlay propio. */
+.field-select {
+  appearance: none;
+  padding-right: 18px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--app-ink-muted) 50%),
+                    linear-gradient(135deg, var(--app-ink-muted) 50%, transparent 50%);
+  background-position: right 6px top 55%, right 1px top 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.field-suffix,
+.field-prefix {
+  flex: none;
+  font-family: var(--app-mono);
+  font-size: 12px;
+  color: var(--app-ink-muted);
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--app-ink-muted);
+}
+
+.field-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-stamp);
+}
+
+.field-error ~ .field-line,
+.field.has-error .field-line {
+  border-bottom-color: var(--app-stamp);
+}
+
+/* --- Casilla ------------------------------------------------------- */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--app-stamp);
+}
+
+/* --- Botones de diálogo ------------------------------------------- */
+.button-stamp,
+.button-plain {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 2px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.button-stamp {
+  border: 1px solid var(--app-stamp);
+  background: var(--app-stamp);
+  color: var(--app-paper);
+}
+
+/* Acción secundaria: contorno, no relleno. Se usa dentro de formularios y
+   detalles, donde no debe competir con la acción principal. Vive aquí y no
+   en un componente porque ya la comparten la fila de insumo y el diálogo de
+   tarifa: al declararla en un CSS encapsulado, el otro componente no la
+   alcanzaba y el botón salía sin estilo. */
+.button-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--app-ink-muted);
+  border-radius: 2px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  cursor: pointer;
+}
+
+.button-outline.is-destructive {
+  border-color: var(--app-stamp);
+  color: var(--app-stamp);
+}
+
+.button-outline:disabled {
+  border-color: var(--app-rule);
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.button-outline:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
+}
+
+.button-outline mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Deshabilitado va vaciado, no relleno: el relleno daba 1,9:1 y, aunque
+   WCAG exime los controles inactivos, era ilegible. Así queda en 4,7:1. */
+.button-stamp:disabled {
+  border-color: var(--app-rule);
+  background: none;
+  color: var(--app-ink-faint);
+  cursor: not-allowed;
+}
+
+.button-plain {
+  border: 1px solid transparent;
+  background: none;
+  color: var(--app-ink-muted);
+}
+
+.button-stamp:focus-visible,
+.button-plain:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
 }

@@ -24,11 +24,13 @@
                 <h3 class="dough-name">{{ dough.name }}</h3>
               </div>
               <div class="card-actions">
-                <button mat-icon-button color="primary" 
+                <button mat-icon-button color="primary"
+                        [attr.aria-label]="'Editar masa ' + dough.name"
                         (click)="editDough(dough)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" 
+                <button mat-icon-button color="warn"
+                        [attr.aria-label]="'Eliminar masa ' + dough.name"
                         (click)="deleteDough(dough)">
                   <mat-icon>delete</mat-icon>
                 </button>

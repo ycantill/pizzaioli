@@ -11,3 +11,11 @@ mat-dialog-content {
 mat-dialog-actions {
   padding: 16px 24px;
 }
+
+/* Separada del formulario por una regla gruesa: no debe caer por descuido
+   junto a los campos que se acaban de editar. */
+.danger-zone {
+  margin: 20px 0 8px;
+  padding-top: 14px;
+  border-top: 2px solid var(--app-rule-strong);
+}

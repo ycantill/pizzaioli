@@ -1,93 +1,70 @@
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* Mano de obra: una fila por tipo de receta, no por configuración. Sin línea
+   de alta: las filas salen de los tipos de receta, no se crean aquí. */
+
+.intro {
+  margin: 14px 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
 }
 
-.page-title {
+.labor-list {
+  list-style: none;
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #333;
+  padding: 0;
+  border-top: 2px solid var(--app-rule-strong);
 }
 
-.container {
-  padding: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-}
-
-.items-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.item-chip {
-  display: inline-block;
-  padding: 4px 12px;
-  background-color: #e3f2fd;
-  border-radius: 16px;
-  font-size: 0.875rem;
-  color: #1976d2;
-}
-
-.no-config {
-  color: #999;
-  font-style: italic;
-}
-
-/* Mobile view */
-.mobile-view {
-  display: none;
+.labor-list li + li .labor-row {
+  border-top: 1px dotted var(--app-rule);
 }
 
 .labor-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: 56px;
   padding: 12px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.labor-row:last-child {
-  border-bottom: none;
+.labor-row:focus-visible {
+  outline: 2px solid var(--app-stamp);
+  outline-offset: -2px;
 }
 
-.labor-info {
-  flex: 1;
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.type-name {
-  display: block;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 6px;
+.row-head .ticket-name {
+  flex: none;
+  max-width: 55%;
 }
 
-.items-list {
+.ticket-tag.is-empty {
+  color: var(--app-ink-faint);
+}
+
+/* Los consumos van bajo el nombre: en la línea del total no caben, y son el
+   desglose de ese total. */
+.row-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--app-ink-muted);
 }
 
-.labor-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+.row-item-qty {
+  font-family: var(--app-mono);
+  font-variant-numeric: tabular-nums;
 }
-

@@ -1,13 +1,12 @@
+/* Confirmación: el texto es lo único que hay, así que se le da aire. */
+
 mat-dialog-content {
-  min-width: 300px;
-  padding-top: 20px;
+  min-width: 280px;
 }
 
 p {
   margin: 0;
-  color: #666;
-}
-
-mat-dialog-actions {
-  padding: 16px 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
 }

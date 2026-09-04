@@ -1,47 +1,70 @@
-<h2 mat-dialog-title>{{ data.rate ? 'Editar' : 'Nueva' }} tarifa</h2>
+<div class="dialog-header">
+  <button type="button" class="dialog-close" aria-label="Cerrar" (click)="onCancel()">
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <h2 mat-dialog-title>{{ data.rate ? 'Editar' : 'Nueva' }} tarifa</h2>
+</div>
 <mat-dialog-content>
   <form [formGroup]="form">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Nombre</mat-label>
-      <input matInput formControlName="name" placeholder="Ej: Energía eléctrica">
-      @if (form.get('name')?.hasError('required')) {
-        <mat-error>El nombre es requerido</mat-error>
+    <label class="field">
+      <span class="field-label">Nombre</span>
+      <span class="field-line">
+        <input class="field-input" type="text" formControlName="name"
+               placeholder="Ej: Energía eléctrica">
+      </span>
+      @if (showError('name', 'required')) {
+        <span class="field-error">El nombre es requerido</span>
       }
-    </mat-form-field>
+    </label>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Unidad</mat-label>
-      <mat-select formControlName="unitId">
-        @for (unit of data.units; track unit.id) {
-          <mat-option [value]="unit.id">{{ unit.name }}</mat-option>
-        }
-      </mat-select>
-      @if (form.get('unitId')?.hasError('required')) {
-        <mat-error>La unidad es requerida</mat-error>
+    <label class="field">
+      <span class="field-label">Unidad</span>
+      <span class="field-line">
+        <select class="field-select" formControlName="unitId">
+          <option value="" disabled>Elegí una unidad</option>
+          @for (unit of data.units; track unit.id) {
+            <option [value]="unit.id">{{ unit.name }}</option>
+          }
+        </select>
+      </span>
+      @if (showError('unitId', 'required')) {
+        <span class="field-error">La unidad es requerida</span>
       }
-    </mat-form-field>
+    </label>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Valor por unidad</mat-label>
-      <input matInput type="number" min="0" step="any" formControlName="value">
-      <span matTextPrefix>$&nbsp;</span>
-      @if (form.get('value')?.hasError('required')) {
-        <mat-error>El valor es requerido</mat-error>
+    <label class="field">
+      <span class="field-label">Valor por unidad</span>
+      <span class="field-line">
+        <span class="field-prefix">$</span>
+        <input class="field-input" type="number" min="0" step="any" inputmode="decimal"
+               formControlName="value">
+      </span>
+      @if (showError('value', 'required')) {
+        <span class="field-error">El valor es requerido</span>
       }
-      @if (form.get('value')?.hasError('min')) {
-        <mat-error>El valor no puede ser negativo</mat-error>
+      @if (showError('value', 'min')) {
+        <span class="field-error">El valor no puede ser negativo</span>
       }
-    </mat-form-field>
+    </label>
 
-    <p class="hint">
+    <p class="field-hint">
       Las tarifas no llevan inventario: su valor se mantiene a mano. Cambiarlo mueve de inmediato
       los precios que dependan de ella.
     </p>
+
+    @if (data.rate) {
+      <div class="danger-zone">
+        <button type="button" class="button-outline is-destructive" (click)="onDelete()">
+          <mat-icon aria-hidden="true">delete</mat-icon>
+          Eliminar tarifa
+        </button>
+      </div>
+    }
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancelar</button>
-  <button mat-flat-button color="primary" [disabled]="!form.valid" (click)="onSave()">
+  <button type="button" class="button-plain" (click)="onCancel()">Cancelar</button>
+  <button type="button" class="button-stamp" [disabled]="!form.valid" (click)="onSave()">
     {{ data.rate ? 'Guardar' : 'Crear' }}
   </button>
 </mat-dialog-actions>

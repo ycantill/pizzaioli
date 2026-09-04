@@ -13,7 +13,7 @@ mat-dialog-content {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background-color: #f5f5f5;
+  background-color: var(--mat-sys-surface-container);
   border-radius: 4px;
   margin-top: 8px;
 }
@@ -21,13 +21,13 @@ mat-dialog-content {
 .total-label {
   font-size: 16px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--mat-sys-on-surface);
 }
 
 .total-value {
   font-size: 20px;
   font-weight: 600;
-  color: #1976d2;
+  color: var(--mat-sys-primary);
 }
 
 mat-dialog-actions {
