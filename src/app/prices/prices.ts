@@ -12,7 +12,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DecimalPipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Price } from '../models/price.model';
-import { DoughCalculationService } from '../services/dough-calculation.service';
 import { DoughsDataService } from '../services/doughs-data.service';
 import { RecipesDataService } from '../services/recipes-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
@@ -23,17 +22,16 @@ import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
 import { PricesDataService } from '../services/prices-data.service';
 import { ToppingsDataService } from '../services/toppings-data.service';
+import { PriceCalculationService, PriceSpec } from '../services/price-calculation.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { formatMinutes } from '../shared/format.utils';
 import {
-  buildLaborLineItem,
-  buildLineItem,
   CostLineItem,
   excludingRecovery,
   LaborLineItem,
   subtotal,
   totalBaseCost,
-  totalCostWithMargin,
-  totalRoundedCost
+  totalCostWithMargin
 } from '../services/pricing';
 
 @Component({
@@ -56,7 +54,7 @@ import {
   styleUrl: './prices.css'
 })
 export class Prices {
-  private doughCalcService = inject(DoughCalculationService);
+  private priceCalc = inject(PriceCalculationService);
   private dialog = inject(MatDialog);
   private doughsService = inject(DoughsDataService);
   private recipesService = inject(RecipesDataService);
@@ -72,9 +70,6 @@ export class Prices {
   doughs = this.doughsService.doughs;
   recipes = this.recipesService.recipes;
   recipeTypes = this.recipeTypesService.recipeTypes;
-  packagings = this.packagingsService.packagings;
-  consumptions = this.consumptionsService.consumptions;
-  labors = this.laborsService.labors;
   toppings = this.toppingsService.toppings;
   savedPrices = this.pricesService.prices;
   sortedSavedPrices = computed(() => [...this.savedPrices()].sort((a, b) => a.price - b.price));
@@ -129,47 +124,21 @@ export class Prices {
     return this.recipeTypes().find(rt => rt.id === recipe.recipeTypeId)?.name ?? null;
   });
 
-  doughLineItems = computed<CostLineItem[]>(() => {
-    const dough = this.selectedDough();
-    if (!dough) return [];
+  /** Lo que se está cotizando ahora mismo. */
+  private spec = computed<PriceSpec>(() => ({
+    doughId: this.selectedDoughId(),
+    recipeId: this.selectedRecipeId(),
+    ballWeight: this.ballWeight(),
+    additionToppingIds: this.selectedAdditionIds(),
+    removedIngredientIds: this.removedIngredientIds()
+  }));
 
-    const weight = this.ballWeight();
-    const bakerPercentages = this.doughCalcService.getDoughBakerPercentages(dough, this.catalog.items());
-    if (bakerPercentages.length === 0) return [];
+  /** El desglose entero, calculado una vez y repartido en las tablas. */
+  breakdown = computed(() => this.priceCalc.breakdownOf(this.spec()));
 
-    const totalBakerPercentage = bakerPercentages.reduce((sum, bp) => sum + bp.bakerPercentage, 0);
-    if (totalBakerPercentage === 0) return [];
+  doughLineItems = computed(() => this.breakdown().dough);
 
-    const ingredientMultiplier = weight / totalBakerPercentage;
-
-    return bakerPercentages.map(bp => {
-      const item = this.catalog.find(bp.supplyId);
-      if (!item) return null;
-
-      return buildLineItem(item, ingredientMultiplier * bp.bakerPercentage);
-    }).filter((item): item is CostLineItem => item !== null);
-  });
-
-  recipeLineItems = computed<CostLineItem[]>(() => {
-    const recipe = this.selectedRecipe();
-    if (!recipe) return [];
-
-    const allToppings = this.toppings();
-    const removed = new Set(this.removedIngredientIds());
-
-    return recipe.toppings.filter(id => !removed.has(id)).map(toppingId => {
-      const topping = allToppings.find(t => t.id === toppingId);
-      if (!topping) return null;
-
-      const item = this.catalog.find(topping.supplyId);
-      if (!item) return null;
-
-      return buildLineItem(item, topping.quantity, {
-        name: `${item.name} (${topping.size})`,
-        toppingId
-      });
-    }).filter((item): item is CostLineItem => item !== null);
-  });
+  recipeLineItems = computed(() => this.breakdown().recipe);
 
   availableSizeSAdditions = computed(() => {
     const recipeToppingIds = new Set(this.selectedRecipe()?.toppings ?? []);
@@ -185,64 +154,13 @@ export class Prices {
       });
   });
 
-  additionLineItems = computed<CostLineItem[]>(() => {
-    const allToppings = this.toppings();
-
-    return this.selectedAdditionIds().map(toppingId => {
-      const topping = allToppings.find(t => t.id === toppingId);
-      if (!topping) return null;
-
-      const item = this.catalog.find(topping.supplyId);
-      if (!item) return null;
-
-      return buildLineItem(item, topping.quantity, {
-        name: `${item.name} (${topping.size})`
-      });
-    }).filter((item): item is CostLineItem => item !== null);
-  });
+  additionLineItems = computed(() => this.breakdown().additions);
 
   additionSubtotal = computed(() => subtotal(this.additionLineItems()));
 
-  matchedPackaging = computed(() => {
-    const recipe = this.selectedRecipe();
-    if (!recipe) return null;
-    return this.packagings().find(d => d.recipeTypeId === recipe.recipeTypeId) ?? null;
-  });
+  packagingLineItems = computed(() => this.breakdown().packaging);
 
-  packagingLineItems = computed<CostLineItem[]>(() => {
-    const packaging = this.matchedPackaging();
-    if (!packaging) return [];
-
-    return packaging.items.map(packagingItem => {
-      const item = this.catalog.find(packagingItem.supplyId);
-      if (!item) return null;
-
-      return buildLineItem(item, packagingItem.quantity);
-    }).filter((item): item is CostLineItem => item !== null);
-  });
-
-  matchedLabor = computed(() => {
-    const recipe = this.selectedRecipe();
-    if (!recipe) return null;
-    return this.labors().find(l => l.recipeTypeId === recipe.recipeTypeId) ?? null;
-  });
-
-  laborLineItems = computed<LaborLineItem[]>(() => {
-    const labor = this.matchedLabor();
-    if (!labor) return [];
-
-    const allConsumptions = this.consumptions();
-
-    return labor.items.map(laborItem => {
-      const consumption = allConsumptions.find(c => c.id === laborItem.consumptionId);
-      if (!consumption) return null;
-
-      const item = this.catalog.find(consumption.rateId);
-      if (!item) return null;
-
-      return buildLaborLineItem(consumption.name, item, consumption.quantity, laborItem.minutes);
-    }).filter((item): item is LaborLineItem => item !== null);
-  });
+  laborLineItems = computed(() => this.breakdown().labor);
 
   doughSubtotal = computed(() => subtotal(this.doughLineItems()));
 
@@ -253,17 +171,11 @@ export class Prices {
   laborSubtotal = computed(() => subtotal(this.laborLineItems()));
 
   /** Todas las líneas que componen un precio: ingredientes, adiciones, empaque y mano de obra. */
-  allLineItems = computed<(CostLineItem | LaborLineItem)[]>(() => [
-    ...this.doughLineItems(),
-    ...this.recipeLineItems(),
-    ...this.additionLineItems(),
-    ...this.packagingLineItems(),
-    ...this.laborLineItems()
-  ]);
+  allLineItems = computed<(CostLineItem | LaborLineItem)[]>(() => this.breakdown().all);
 
-  totalBaseCost = computed(() => totalBaseCost(this.allLineItems()));
+  totalBaseCost = computed(() => this.breakdown().variableCost);
 
-  totalWithMargin = computed(() => totalRoundedCost(this.allLineItems()));
+  totalWithMargin = computed(() => this.breakdown().price);
 
   totalMarginAmount = computed(() =>
     Math.round((this.suggestedPrice() - this.totalBaseCost()) * 100) / 100
@@ -350,11 +262,7 @@ export class Prices {
   }
 
   formatMinutes(totalMinutes: number): string {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
-    if (hours > 0) return `${hours}h`;
-    return `${minutes}min`;
+    return formatMinutes(totalMinutes);
   }
 
   getRecipeIngredientNames(price: Price): string {
