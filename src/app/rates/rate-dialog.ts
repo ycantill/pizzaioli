@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 import { Rate } from '../models/rate.model';
 import { Unit } from '../models/unit.model';
 
@@ -16,9 +17,6 @@ export interface RateDialogResult {
   value: number;
 }
 
-/** Borrar se pide desde la propia edición, así que hay que distinguirlo. */
-export const DELETE_RATE = 'delete-rate' as const;
-
 @Component({
   selector: 'app-rate-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,7 +30,7 @@ export const DELETE_RATE = 'delete-rate' as const;
 })
 export class RateDialog {
   data: RateDialogData = inject(MAT_DIALOG_DATA);
-  private dialogRef = inject(MatDialogRef<RateDialog, RateDialogResult | typeof DELETE_RATE>);
+  private dialogRef = inject(MatDialogRef<RateDialog, RateDialogResult | DeleteRequested>);
   private fb = inject(FormBuilder);
 
   form = this.fb.nonNullable.group({
@@ -60,7 +58,7 @@ export class RateDialog {
    * sobre qué tarifa se actúa, y la lista queda sin controles que apuntar.
    */
   onDelete(): void {
-    this.dialogRef.close(DELETE_RATE);
+    this.dialogRef.close(DELETE_REQUESTED);
   }
 
   onSave(): void {

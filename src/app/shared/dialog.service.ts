@@ -3,6 +3,15 @@ import { ComponentType } from '@angular/cdk/portal';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 /**
+ * Lo que devuelve un diálogo de edición cuando se pide borrar desde dentro.
+ * El borrado vive en la propia edición y no en la lista: ahí ya está claro
+ * sobre qué elemento se actúa, y la lista queda sin controles que apuntar.
+ */
+export const DELETE_REQUESTED = 'delete-requested' as const;
+
+export type DeleteRequested = typeof DELETE_REQUESTED;
+
+/**
  * Abre diálogos con presentación de móvil.
  *
  * El diálogo de Material, tal cual, ocupaba el 55% de un teléfono de 390×844:

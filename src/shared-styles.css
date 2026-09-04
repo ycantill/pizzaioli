@@ -68,6 +68,18 @@
   white-space: nowrap;
 }
 
+/* Cuando lo de la derecha no es una cifra sino una clasificación —la función
+   de una categoría, por ejemplo— va como etiqueta, no en monoespaciada. */
+.ticket-tag {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-ink-muted);
+  white-space: nowrap;
+}
+
 .ticket-unit {
   margin-left: 2px;
   font-size: 10px;

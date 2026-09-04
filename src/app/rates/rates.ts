@@ -7,9 +7,9 @@ import { Rate } from '../models/rate.model';
 import { RatesDataService } from '../services/rates-data.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
-import { DialogService } from '../shared/dialog.service';
+import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
 import { getUnitName } from '../shared/lookup.utils';
-import { DELETE_RATE, RateDialog, RateDialogResult } from './rate-dialog';
+import { RateDialog, RateDialogResult } from './rate-dialog';
 
 @Component({
   selector: 'app-rates',
@@ -59,13 +59,13 @@ export class Rates {
   }
 
   editRate(rate: Rate) {
-    const dialogRef = this.dialogs.openFullScreen<RateDialog, RateDialogResult | typeof DELETE_RATE>(
+    const dialogRef = this.dialogs.openFullScreen<RateDialog, RateDialogResult | DeleteRequested>(
       RateDialog, { rate, units: this.units() }
     );
 
     dialogRef.afterClosed().subscribe(async (result) => {
       // Borrar se pide desde la propia edición: la lista no tiene controles.
-      if (result === DELETE_RATE) return this.deleteRate(rate);
+      if (result === DELETE_REQUESTED) return this.deleteRate(rate);
       if (!result || !rate.id) return;
 
       this.saving.set(true);
