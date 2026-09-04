@@ -18,6 +18,8 @@ import {
   PreparationConsumption
 } from '../models/preparation.model';
 import { PreparationsDataService } from '../services/preparations-data.service';
+import { SizesDataService } from '../services/sizes-data.service';
+import { sizesOf } from '../models/size.model';
 import { RecipesDataService } from '../services/recipes-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { CatalogService } from '../services/catalog.service';
@@ -67,6 +69,7 @@ export class Prices {
   private priceCalc = inject(PriceCalculationService);
   private dialog = inject(MatDialog);
   private preparationsService = inject(PreparationsDataService);
+  private sizesService = inject(SizesDataService);
   private recipesService = inject(RecipesDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private catalog = inject(CatalogService);
@@ -80,6 +83,7 @@ export class Prices {
 
   preparations = this.preparationsService.preparations;
   units = this.unitsService.units;
+  selectedSizeId = signal<string | null>(null);
   recipes = this.recipesService.recipes;
   recipeTypes = this.recipeTypesService.recipeTypes;
   toppings = this.toppingsService.toppings;
@@ -117,7 +121,7 @@ export class Prices {
     this.unitsService.isLoading() ||
     this.packagingsService.isLoading() || this.consumptionsService.isLoading() ||
     this.laborsService.isLoading() || this.pricesService.isLoading() ||
-    this.toppingsService.isLoading()
+    this.toppingsService.isLoading() || this.sizesService.isLoading()
   );
   saving = signal(false);
 
@@ -139,9 +143,15 @@ export class Prices {
   });
 
   /** Lo que se está cotizando ahora mismo. */
+  /** Los tamaños de la familia de la receta elegida. */
+  availableSizes = computed(() =>
+    sizesOf(this.sizesService.sizes(), this.selectedRecipe()?.recipeTypeId)
+  );
+
   private spec = computed<PriceSpec>(() => ({
     preparations: this.preparationConsumptions(),
     recipeId: this.selectedRecipeId(),
+    sizeId: this.selectedSizeId(),
     additionToppingIds: this.selectedAdditionIds(),
     removedIngredientIds: this.removedIngredientIds()
   }));
@@ -284,6 +294,8 @@ export class Prices {
 
   onRecipeSelected(recipeId: string | null) {
     this.selectedRecipeId.set(recipeId);
+    // Los tamaños son de cada familia: el elegido no tiene por qué existir en la nueva.
+    this.selectedSizeId.set(null);
     this.selectedAdditionIds.set([]);
     this.removedIngredientIds.set([]);
     this.pendingAdditionId.set(null);
@@ -354,6 +366,7 @@ export class Prices {
         price: this.suggestedPrice(),
         preparations: this.preparationConsumptions(),
         recipeId: this.selectedRecipeId(),
+        sizeId: this.selectedSizeId(),
         ...(this.selectedAdditionIds().length ? { additionToppingIds: this.selectedAdditionIds() } : {}),
         ...(this.removedIngredientIds().length ? { removedIngredientIds: this.removedIngredientIds() } : {}),
       };
@@ -368,6 +381,7 @@ export class Prices {
 
   loadPrice(price: Price): void {
     this.selectedRecipeId.set(price.recipeId ?? null);
+    this.selectedSizeId.set(price.sizeId ?? null);
     this.preparationConsumptions.set(preparationsOf(price));
     this.priceName.set(price.name);
     this.selectedAdditionIds.set(price.additionToppingIds ?? []);

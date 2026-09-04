@@ -13,6 +13,8 @@ export interface Price {
   doughId?: string | null;
   ballWeight?: number;
   recipeId?: string | null;
+  /** El tamaño que se cotizó. Sin declarar, el base. */
+  sizeId?: string | null;
   additionToppingIds?: string[];
   removedIngredientIds?: string[];
 }

@@ -1,3 +1,32 @@
 .full-width {
   width: 100%;
 }
+
+/* Los tamaños se leen como una tabla corta: nombre y factor en la misma línea. */
+.sizes-title {
+  margin: 8px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sizes-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.size-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.size-factor {
+  width: 110px;
+}

@@ -27,7 +27,21 @@
             </mat-select>
           </mat-form-field>
 
-       </div>
+          @if (availableSizes().length > 0) {
+            <mat-form-field appearance="outline">
+              <mat-label>Tamaño</mat-label>
+              <mat-select [value]="selectedSizeId()"
+                          (selectionChange)="selectedSizeId.set($event.value)">
+                <mat-option [value]="null">Base</mat-option>
+                @for (size of availableSizes(); track size.id) {
+                  <mat-option [value]="size.id">
+                    {{ size.name }} (×{{ size.factor }})
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
 
         <h3 class="config-subtitle">Preparaciones</h3>
         <p class="config-note">

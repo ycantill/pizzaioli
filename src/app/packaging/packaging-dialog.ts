@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators, FormArray } from '@angular/forms';
 import { Packaging, PackagingItem } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
+import { Size } from '../models/size.model';
 import { PricedItem } from '../models/priced-item.model';
 import { Unit } from '../models/unit.model';
 import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
@@ -11,6 +12,8 @@ import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 export interface PackagingDialogData {
   packaging?: Packaging;
   recipeType: RecipeType;
+  /** El tamaño al que aplica, o null si vale para todos. */
+  size: Size | null;
   costs: PricedItem[];
   units: Unit[];
 }
@@ -92,6 +95,8 @@ export class PackagingDialog {
       const formValue = this.form.value;
       const packaging: Packaging = {
         recipeTypeId: this.data.recipeType.id!,
+        // Firestore no acepta undefined: sin tamaño, el campo no va.
+        ...(this.data.size?.id ? { sizeId: this.data.size.id } : {}),
         items: formValue.items as PackagingItem[]
       };
       this.dialogRef.close(packaging);

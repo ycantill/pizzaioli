@@ -3,10 +3,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Packaging } from '../models/packaging.model';
 import { RecipeType } from '../models/recipe-type.model';
+import { Size, sizesOf } from '../models/size.model';
 import { CatalogService } from '../services/catalog.service';
 import { UnitsDataService } from '../services/units-data.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
 import { PackagingsDataService } from '../services/packagings-data.service';
+import { SizesDataService } from '../services/sizes-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
 import { PackagingDialog } from './packaging-dialog';
@@ -27,12 +29,14 @@ export class PackagingConfig {
   private unitsService = inject(UnitsDataService);
   private recipeTypesService = inject(RecipeTypesDataService);
   private packagingsService = inject(PackagingsDataService);
+  private sizesService = inject(SizesDataService);
 
   packagings = this.packagingsService.packagings;
   recipeTypes = this.recipeTypesService.recipeTypes;
   loading = computed(() =>
     this.recipeTypesService.isLoading() || this.catalog.isLoading() ||
-    this.unitsService.isLoading() || this.packagingsService.isLoading()
+    this.unitsService.isLoading() || this.packagingsService.isLoading() ||
+    this.sizesService.isLoading()
   );
 
   getRecipeTypeName(recipeTypeId: string): string {
@@ -44,12 +48,27 @@ export class PackagingConfig {
     return this.catalog.name(supplyId);
   }
 
-  getPackagingForType(recipeTypeId: string): Packaging | undefined {
-    return this.packagings().find(d => d.recipeTypeId === recipeTypeId);
+  /**
+   * Las filas de una familia: primero la que vale para todos los tamaños y
+   * después una por tamaño, para poder darle su propia caja a la familiar.
+   */
+  rowsFor(recipeTypeId: string | undefined): (Size | null)[] {
+    return [null, ...sizesOf(this.sizesService.sizes(), recipeTypeId)];
   }
 
-  openDialog(recipeType: RecipeType) {
-    const existingPackaging = this.getPackagingForType(recipeType.id!);
+  /** Lo configurado para esa fila exacta, sin caer en el defecto. */
+  getPackagingFor(recipeTypeId: string, sizeId: string | null): Packaging | undefined {
+    return this.packagings().find(p =>
+      p.recipeTypeId === recipeTypeId && (p.sizeId ?? null) === sizeId
+    );
+  }
+
+  rowLabel(size: Size | null): string {
+    return size ? size.name : 'Todos los tamaños';
+  }
+
+  openDialog(recipeType: RecipeType, size: Size | null) {
+    const existingPackaging = this.getPackagingFor(recipeType.id!, size?.id ?? null);
 
     const filteredCosts = this.catalog.packagingSupplies();
 
@@ -58,6 +77,7 @@ export class PackagingConfig {
       {
         packaging: existingPackaging,
         recipeType,
+        size,
         costs: filteredCosts,
         units: this.unitsService.units()
       }
@@ -66,7 +86,9 @@ export class PackagingConfig {
     dialogRef.afterClosed().subscribe(async (result) => {
       // Borrar se pide desde la propia configuración: la lista no tiene controles.
       if (result === DELETE_REQUESTED) {
-        if (existingPackaging?.id) this.deletePackaging(existingPackaging.id, recipeType.name);
+        if (existingPackaging?.id) {
+          this.deletePackaging(existingPackaging.id, `${recipeType.name} (${this.rowLabel(size)})`);
+        }
         return;
       }
       if (result) {

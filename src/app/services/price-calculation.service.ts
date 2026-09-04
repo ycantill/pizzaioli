@@ -2,11 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { batchSizeOf } from '../models/labor.model';
 import { Preparation, PreparationConsumption, scaledIngredients } from '../models/preparation.model';
 import { Price, preparationsOf } from '../models/price.model';
+import { configFor, factorOf } from '../models/size.model';
+import { toppingQuantity } from '../models/topping.model';
 import { resolveLaborItem } from './labor-rates';
 import { RatesDataService } from './rates-data.service';
 import { CatalogService } from './catalog.service';
 import { ConsumptionsDataService } from './consumptions-data.service';
 import { PreparationsDataService } from './preparations-data.service';
+import { SizesDataService } from './sizes-data.service';
 import { LaborsDataService } from './labors-data.service';
 import { PackagingsDataService } from './packagings-data.service';
 import { RecipesDataService } from './recipes-data.service';
@@ -27,6 +30,8 @@ import {
 export interface PriceSpec {
   preparations: PreparationConsumption[];
   recipeId: string | null;
+  /** El tamaño que se cotiza. Sin tamaño, el base. */
+  sizeId: string | null;
   additionToppingIds?: string[];
   removedIngredientIds?: string[];
 }
@@ -83,6 +88,7 @@ export function contributionPerMinute(breakdown: PriceBreakdown): number {
 @Injectable({ providedIn: 'root' })
 export class PriceCalculationService {
   private preparationsService = inject(PreparationsDataService);
+  private sizesService = inject(SizesDataService);
   private recipesService = inject(RecipesDataService);
   private catalog = inject(CatalogService);
   private packagingsService = inject(PackagingsDataService);
@@ -96,6 +102,7 @@ export class PriceCalculationService {
     return {
       preparations: preparationsOf(price),
       recipeId: price.recipeId ?? null,
+      sizeId: price.sizeId ?? null,
       additionToppingIds: price.additionToppingIds,
       removedIngredientIds: price.removedIngredientIds
     };
@@ -106,11 +113,17 @@ export class PriceCalculationService {
       ? this.recipesService.recipes().find(r => r.id === spec.recipeId) ?? null
       : null;
 
+    // El tamaño escala los toppings que lo declaran y elige qué empaque y qué
+    // mano de obra le tocan: la familiar va en otra caja y ocupa más horno.
+    const factor = factorOf(this.sizesService.find(spec.sizeId));
+
     const preparations = this.preparationLineItems(spec.preparations);
-    const recipeItems = this.recipeLineItems(recipe?.toppings ?? [], spec.removedIngredientIds);
-    const additions = this.toppingLineItems(spec.additionToppingIds ?? []);
-    const packaging = this.packagingLineItems(recipe?.recipeTypeId);
-    const labor = this.laborLineItems(recipe?.recipeTypeId);
+    const recipeItems = this.recipeLineItems(
+      recipe?.toppings ?? [], spec.removedIngredientIds, factor
+    );
+    const additions = this.toppingLineItems(spec.additionToppingIds ?? [], factor);
+    const packaging = this.packagingLineItems(recipe?.recipeTypeId, spec.sizeId);
+    const labor = this.laborLineItems(recipe?.recipeTypeId, spec.sizeId);
 
     if (!preparations.length && !recipeItems.length && !additions.length
       && !packaging.length && !labor.length) {
@@ -132,15 +145,15 @@ export class PriceCalculationService {
       price,
       contribution: Math.round((price - variableCost) * 100) / 100,
       recipeTypeId: recipe?.recipeTypeId ?? null,
-      productionMinutes: this.productionMinutes(recipe?.recipeTypeId)
+      productionMinutes: this.productionMinutes(recipe?.recipeTypeId, spec.sizeId)
     };
   }
 
   /** Minutos que ocupa una unidad de ese tipo de receta, repartidos por tanda. */
-  productionMinutes(recipeTypeId: string | undefined): number {
+  productionMinutes(recipeTypeId: string | undefined, sizeId: string | null = null): number {
     if (!recipeTypeId) return 0;
 
-    const labor = this.laborsService.labors().find(l => l.recipeTypeId === recipeTypeId);
+    const labor = configFor(this.laborsService.labors(), recipeTypeId, sizeId);
     if (!labor) return 0;
 
     return labor.items.reduce((sum, item) => sum + item.minutes / batchSizeOf(item), 0);
@@ -173,16 +186,20 @@ export class PriceCalculationService {
     }).filter((item): item is CostLineItem => item !== null);
   }
 
-  private recipeLineItems(toppingIds: string[], removedIds: string[] | undefined): CostLineItem[] {
+  private recipeLineItems(
+    toppingIds: string[],
+    removedIds: string[] | undefined,
+    factor: number
+  ): CostLineItem[] {
     const removed = new Set(removedIds ?? []);
-    return this.toppingLineItems(toppingIds.filter(id => !removed.has(id)));
+    return this.toppingLineItems(toppingIds.filter(id => !removed.has(id)), factor);
   }
 
   /**
    * Cada línea arrastra el id de su topping: quitarla desde la tabla busca por
    * ese id y no por la posición, que se corre si algún topping ya no existe.
    */
-  private toppingLineItems(toppingIds: string[]): CostLineItem[] {
+  private toppingLineItems(toppingIds: string[], factor: number): CostLineItem[] {
     const allToppings = this.toppingsService.toppings();
 
     return toppingIds.map(toppingId => {
@@ -192,18 +209,20 @@ export class PriceCalculationService {
       const item = this.catalog.find(topping.supplyId);
       if (!item) return null;
 
-      return buildLineItem(item, topping.quantity, {
+      return buildLineItem(item, toppingQuantity(topping, factor), {
         name: `${item.name} (${topping.size})`,
         toppingId
       });
     }).filter((item): item is CostLineItem => item !== null);
   }
 
-  private packagingLineItems(recipeTypeId: string | undefined): CostLineItem[] {
+  private packagingLineItems(
+    recipeTypeId: string | undefined,
+    sizeId: string | null
+  ): CostLineItem[] {
     if (!recipeTypeId) return [];
 
-    const packaging = this.packagingsService.packagings()
-      .find(p => p.recipeTypeId === recipeTypeId);
+    const packaging = configFor(this.packagingsService.packagings(), recipeTypeId, sizeId);
     if (!packaging) return [];
 
     return packaging.items.map(packagingItem => {
@@ -214,10 +233,10 @@ export class PriceCalculationService {
     }).filter((item): item is CostLineItem => item !== null);
   }
 
-  private laborLineItems(recipeTypeId: string | undefined): LaborLineItem[] {
+  private laborLineItems(recipeTypeId: string | undefined, sizeId: string | null): LaborLineItem[] {
     if (!recipeTypeId) return [];
 
-    const labor = this.laborsService.labors().find(l => l.recipeTypeId === recipeTypeId);
+    const labor = configFor(this.laborsService.labors(), recipeTypeId, sizeId);
     if (!labor) return [];
 
     const rates = this.ratesService.rates();

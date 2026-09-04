@@ -22,6 +22,8 @@ export interface LaborItem {
 export interface Labor {
   id?: string;
   recipeTypeId: string;
+  /** El tamaño al que aplica: una familiar ocupa más horno. Sin declarar, todos. */
+  sizeId?: string;
   items: LaborItem[];
 }
 

@@ -7,6 +7,7 @@ import { Consumption } from '../models/consumption.model';
 import { batchSizeOf, Labor, LaborItem } from '../models/labor.model';
 import { quantityPerHourOf, Rate } from '../models/rate.model';
 import { RecipeType } from '../models/recipe-type.model';
+import { Size } from '../models/size.model';
 import { resolveLaborItem } from '../services/labor-rates';
 import { DELETE_REQUESTED, DeleteRequested } from '../shared/dialog.service';
 import { formatMinutes } from '../shared/format.utils';
@@ -23,6 +24,8 @@ interface ItemFormValue {
 export interface LaborDialogData {
   labor?: Labor;
   recipeType: RecipeType;
+  /** El tamaño al que aplica, o null si vale para todos. */
+  size: Size | null;
   rates: Rate[];
   units: Unit[];
   /** Solo para leer configuraciones viejas. Ver `resolveLaborItem`. */
@@ -173,6 +176,11 @@ export class LaborDialog {
 
     if (items.length === 0) return;
 
-    this.dialogRef.close({ recipeTypeId: this.data.recipeType.id!, items });
+    this.dialogRef.close({
+      recipeTypeId: this.data.recipeType.id!,
+      // Firestore no acepta undefined: sin tamaño, el campo no va.
+      ...(this.data.size?.id ? { sizeId: this.data.size.id } : {}),
+      items
+    });
   }
 }

@@ -5,7 +5,8 @@
 <div class="container">
   <p class="intro">
     Qué se empaca con cada tipo de receta. Su costo se suma al precio de venta, igual que los
-    ingredientes.
+    ingredientes. Cada tamaño puede llevar el suyo —una familiar no va en la caja de la
+    personal—; lo que se configure en «todos los tamaños» vale para los que no tengan el propio.
   </p>
 
   @if (loading()) {
@@ -16,32 +17,39 @@
     <ul class="packaging-list">
       @for (recipeType of recipeTypes(); track recipeType.id) {
         <li>
-          <button type="button"
-                  class="packaging-row"
-                  [attr.aria-label]="(getPackagingForType(recipeType.id!) ? 'Editar' : 'Configurar')
-                    + ' paquetería de ' + recipeType.name"
-                  (click)="openDialog(recipeType)">
-            <span class="row-head">
-              <span class="ticket-name">{{ recipeType.name }}</span>
-              <span class="ticket-leader" aria-hidden="true"></span>
-              @if (getPackagingForType(recipeType.id!); as packaging) {
-                <span class="ticket-tag">{{ packaging.items.length }} ítem(s)</span>
-              } @else {
-                <span class="ticket-tag is-empty">Sin configurar</span>
-              }
-            </span>
-
-            @if (getPackagingForType(recipeType.id!); as packaging) {
-              <span class="row-items">
-                @for (item of packaging.items; track $index) {
-                  <span class="row-item">
-                    {{ getCostName(item.supplyId) }}
-                    <span class="row-item-qty">×{{ item.quantity }}</span>
+          <h2 class="group-name">{{ recipeType.name }}</h2>
+          <ul class="size-list">
+            @for (size of rowsFor(recipeType.id); track size?.id ?? 'base') {
+              <li>
+                <button type="button"
+                        class="packaging-row"
+                        [attr.aria-label]="'Paquetería de ' + recipeType.name + ', '
+                          + rowLabel(size)"
+                        (click)="openDialog(recipeType, size)">
+                  <span class="row-head">
+                    <span class="ticket-name">{{ rowLabel(size) }}</span>
+                    <span class="ticket-leader" aria-hidden="true"></span>
+                    @if (getPackagingFor(recipeType.id!, size?.id ?? null); as packaging) {
+                      <span class="ticket-tag">{{ packaging.items.length }} ítem(s)</span>
+                    } @else {
+                      <span class="ticket-tag is-empty">Sin configurar</span>
+                    }
                   </span>
-                }
-              </span>
+
+                  @if (getPackagingFor(recipeType.id!, size?.id ?? null); as packaging) {
+                    <span class="row-items">
+                      @for (item of packaging.items; track $index) {
+                        <span class="row-item">
+                          {{ getCostName(item.supplyId) }}
+                          <span class="row-item-qty">×{{ item.quantity }}</span>
+                        </span>
+                      }
+                    </span>
+                  }
+                </button>
+              </li>
             }
-          </button>
+          </ul>
         </li>
       } @empty {
         <p class="empty">No hay tipos de receta. Creá uno para poder configurar su paquetería.</p>
