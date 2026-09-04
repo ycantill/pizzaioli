@@ -63,3 +63,12 @@
   padding-top: 14px;
   border-top: 2px solid var(--app-rule-strong);
 }
+
+/* El tiempo se escribe por tanda, no por unidad: sin esta nota el campo
+   "Rinde" parece un dato de la receta y no el divisor del costo. */
+.section-note {
+  margin: 0 0 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--app-ink-muted);
+}

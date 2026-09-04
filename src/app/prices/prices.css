@@ -93,6 +93,14 @@ td.warning {
   font-style: italic;
 }
 
+/* El reparto de la tanda se anuncia en voz baja: aclara el tiempo de al lado,
+   no es otro dato de la fila. */
+.cell-note {
+  display: block;
+  font-size: 11px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 /* Summary Card */
 .summary-card {
   margin-bottom: 16px;

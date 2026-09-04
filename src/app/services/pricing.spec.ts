@@ -97,6 +97,7 @@ describe('buildLaborLineItem', () => {
     expect(buildLaborLineItem('Horno', item(500, MARGIN_90), 2, 30)).toEqual({
       name: 'Horno',
       hours: 0.5,
+      batchSize: 1,
       costPerHour: 1000,
       baseCost: 500,
       marginPercent: 90,
@@ -104,6 +105,22 @@ describe('buildLaborLineItem', () => {
       roundedCost: 500,
       isRecoveryOnly: false
     });
+  });
+
+  it('reparte los minutos de la tanda entre las unidades que rinde', () => {
+    // Los mismos 30 minutos de horno, pero salen 4 pizzas: 7,5 minutos cada una.
+    const line = buildLaborLineItem('Horno', item(500, MARGIN_90), 2, 30, 4);
+
+    expect(line.hours).toBe(0.125);
+    expect(line.baseCost).toBe(125);
+    expect(line.batchSize).toBe(4);
+  });
+
+  it('una tanda de cero o de una no reparte nada', () => {
+    const whole = buildLaborLineItem('Horno', item(500, MARGIN_90), 2, 30).baseCost;
+
+    expect(buildLaborLineItem('Horno', item(500, MARGIN_90), 2, 30, 1).baseCost).toBe(whole);
+    expect(buildLaborLineItem('Horno', item(500, MARGIN_90), 2, 30, 0).baseCost).toBe(whole);
   });
 });
 

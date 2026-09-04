@@ -1,7 +1,7 @@
 import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Labor } from '../models/labor.model';
+import { batchSizeOf, Labor, LaborItem, minutesPerUnit } from '../models/labor.model';
 import { RecipeType } from '../models/recipe-type.model';
 import { CatalogService } from '../services/catalog.service';
 import { RecipeTypesDataService } from '../services/recipe-types-data.service';
@@ -9,6 +9,7 @@ import { ConsumptionsDataService } from '../services/consumptions-data.service';
 import { LaborsDataService } from '../services/labors-data.service';
 import { ConfirmDialog } from '../shared/confirm-dialog';
 import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
+import { formatMinutes } from '../shared/format.utils';
 import { LaborDialog } from './labor-dialog';
 
 @Component({
@@ -41,17 +42,26 @@ export class LaborConfig {
     return consumption ? consumption.name : 'Desconocido';
   }
 
-  /** Lo que suma una configuración entera, que es lo que interesa de un vistazo. */
+  /**
+   * Lo que suma una configuración entera, ya repartido por tanda: es el tiempo
+   * que se le cobra a una unidad, no el que se está de pie en la cocina.
+   */
   totalMinutes(labor: Labor): number {
-    return labor.items.reduce((suma, item) => suma + item.minutes, 0);
+    return labor.items.reduce((suma, item) => suma + minutesPerUnit(item), 0);
+  }
+
+  minutesPerUnit(item: LaborItem): number {
+    return minutesPerUnit(item);
+  }
+
+  /** Solo se anuncia la tanda cuando reparte: "÷1" sería ruido. */
+  batchLabel(item: LaborItem): string {
+    const batch = batchSizeOf(item);
+    return batch > 1 ? `tanda de ${batch}` : '';
   }
 
   formatMinutes(totalMinutes: number): string {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
-    if (hours > 0) return `${hours}h`;
-    return `${minutes}min`;
+    return formatMinutes(totalMinutes);
   }
 
   getLaborForType(recipeTypeId: string): Labor | undefined {

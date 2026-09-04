@@ -377,7 +377,12 @@
               </ng-container>
               <ng-container matColumnDef="hours">
                 <th mat-header-cell *matHeaderCellDef>Tiempo</th>
-                <td mat-cell *matCellDef="let item">{{ formatMinutes(item.hours * 60) }}</td>
+                <td mat-cell *matCellDef="let item">
+                  {{ formatMinutes(item.hours * 60) }}
+                  @if (item.batchSize > 1) {
+                    <span class="cell-note">tanda de {{ item.batchSize }}</span>
+                  }
+                </td>
                 <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
               <ng-container matColumnDef="baseCost">

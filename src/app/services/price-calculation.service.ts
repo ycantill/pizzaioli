@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { batchSizeOf } from '../models/labor.model';
 import { Price } from '../models/price.model';
 import { CatalogService } from './catalog.service';
 import { ConsumptionsDataService } from './consumptions-data.service';
@@ -42,7 +43,7 @@ export interface PriceBreakdown {
    */
   contribution: number;
   recipeTypeId: string | null;
-  /** Minutos de cocina que ocupa una unidad. */
+  /** Minutos de cocina que ocupa una unidad, ya repartidos por tanda. */
   productionMinutes: number;
 }
 
@@ -116,14 +117,14 @@ export class PriceCalculationService {
     };
   }
 
-  /** Minutos que ocupa una unidad de ese tipo de receta. */
+  /** Minutos que ocupa una unidad de ese tipo de receta, repartidos por tanda. */
   productionMinutes(recipeTypeId: string | undefined): number {
     if (!recipeTypeId) return 0;
 
     const labor = this.laborsService.labors().find(l => l.recipeTypeId === recipeTypeId);
     if (!labor) return 0;
 
-    return labor.items.reduce((sum, item) => sum + item.minutes, 0);
+    return labor.items.reduce((sum, item) => sum + item.minutes / batchSizeOf(item), 0);
   }
 
   private doughLineItems(spec: PriceSpec): CostLineItem[] {
@@ -207,7 +208,7 @@ export class PriceCalculationService {
       if (!item) return null;
 
       return buildLaborLineItem(
-        consumption.name, item, consumption.quantity, laborItem.minutes
+        consumption.name, item, consumption.quantity, laborItem.minutes, batchSizeOf(laborItem)
       );
     }).filter((item): item is LaborLineItem => item !== null);
   }

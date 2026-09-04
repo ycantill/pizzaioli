@@ -7,6 +7,10 @@
 <mat-dialog-content>
   <form [formGroup]="form">
     <h3 class="section-title">Cuánto tiempo lleva</h3>
+    <p class="section-note">
+      El tiempo es el de la tanda entera. Si de esa tanda salen varias unidades, se reparte
+      entre ellas.
+    </p>
 
     <ul formArrayName="items" class="items-list">
       @for (item of itemsArray.controls; track $index) {
@@ -49,6 +53,19 @@
               <mat-icon aria-hidden="true">delete</mat-icon>
             </button>
           </div>
+
+          <label class="field">
+            <span class="field-label">Rinde</span>
+            <span class="field-line">
+              <input class="field-input" type="number" min="1" step="1" inputmode="numeric"
+                     formControlName="batchSize">
+              <span class="field-suffix">unidades</span>
+            </span>
+            <span class="field-hint">
+              Cuántas unidades salen de ese tiempo. El horno hornea varias a la vez y el gas lo
+              pagan entre todas: a cada unidad le tocan {{ perUnitLabels()[$index] }}.
+            </span>
+          </label>
         </li>
       }
     </ul>
