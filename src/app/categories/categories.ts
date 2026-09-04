@@ -1,36 +1,29 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog } from '@angular/material/dialog';
 import { SupplyCategory } from '../models/supply-category.model';
 import { inferCategoryKind } from '../services/catalog.service';
 import { SupplyCategoriesDataService } from '../services/supply-categories-data.service';
 import { CategoryDialog } from './category-dialog';
 import { ConfirmDialog } from '../shared/confirm-dialog';
+import { DELETE_REQUESTED, DeleteRequested, DialogService } from '../shared/dialog.service';
 
 @Component({
   selector: 'app-categories',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MatTableModule,
-    MatButtonModule,
     MatIconModule,
-    MatCardModule,
     MatProgressSpinnerModule
   ],
   templateUrl: './categories.html',
   styleUrl: './categories.css'
 })
 export class Categories {
-  private dialog = inject(MatDialog);
+  private dialogs = inject(DialogService);
   private categoriesService = inject(SupplyCategoriesDataService);
 
   categories = this.categoriesService.categories;
   loading = this.categoriesService.isLoading;
-  displayedColumns: string[] = ['name', 'kind', 'actions'];
 
   kindLabel(category: SupplyCategory): string {
     const kind = category.kind ?? inferCategoryKind(category.name);
@@ -40,9 +33,7 @@ export class Categories {
   }
 
   addCategory() {
-    const dialogRef = this.dialog.open(CategoryDialog, {
-      width: '400px'
-    });
+    const dialogRef = this.dialogs.openFullScreen<CategoryDialog, SupplyCategory>(CategoryDialog);
 
     dialogRef.afterClosed().subscribe(async (result: SupplyCategory | undefined) => {
       if (result) {
@@ -56,12 +47,13 @@ export class Categories {
   }
 
   editCategory(category: SupplyCategory) {
-    const dialogRef = this.dialog.open(CategoryDialog, {
-      width: '400px',
-      data: { category }
-    });
+    const dialogRef = this.dialogs.openFullScreen<CategoryDialog, SupplyCategory | DeleteRequested>(
+      CategoryDialog, { category }
+    );
 
-    dialogRef.afterClosed().subscribe(async (result: SupplyCategory | undefined) => {
+    dialogRef.afterClosed().subscribe(async (result) => {
+      // Borrar se pide desde la propia edición: la lista no tiene controles.
+      if (result === DELETE_REQUESTED) return this.deleteCategory(category);
       if (result && category.id) {
         try {
           await this.categoriesService.update(category.id, result);
@@ -73,14 +65,12 @@ export class Categories {
   }
 
   deleteCategory(category: SupplyCategory) {
-    const dialogRef = this.dialog.open(ConfirmDialog, {
-      data: {
-        title: 'Confirmar eliminación',
-        message: `¿Estás seguro de que deseas eliminar la categoría "${category.name}"?`
-      }
+    const dialogRef = this.dialogs.openConfirm<ConfirmDialog, boolean>(ConfirmDialog, {
+      title: 'Confirmar eliminación',
+      message: `¿Eliminar la categoría "${category.name}"? Los insumos que la usen quedarán sin categoría.`
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed: boolean) => {
+    dialogRef.afterClosed().subscribe(async (confirmed: boolean | undefined) => {
       if (confirmed && category.id) {
         try {
           await this.categoriesService.remove(category.id);
